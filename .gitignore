@@ -31,3 +31,27 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Frontend/Neon ###
+frontend/neon/node_modules
+frontend/neon/.pnp
+frontend/neon/.pnp.*
+frontend/neon/.yarn/*
+!frontend/neon/.yarn/patches
+!frontend/neon/.yarn/plugins
+!frontend/neon/.yarn/releases
+!frontend/neon/.yarn/versions
+frontend/neon/coverage
+frontend/neon/.next/
+frontend/neon/out/
+frontend/neon/build
+frontend/neon/.DS_Store
+frontend/neon/*.pem
+frontend/neon/npm-debug.log*
+frontend/neon/yarn-debug.log*
+frontend/neon/yarn-error.log*
+frontend/neon/.pnpm-debug.log*
+frontend/neon/.env*
+frontend/neon/.vercel
+frontend/neon/*.tsbuildinfo
+frontend/neon/next-env.d.ts
