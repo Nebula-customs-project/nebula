@@ -5,11 +5,11 @@ services:
     image: postgres:15-alpine
     container_name: telemetry_postgres
     environment:
-      POSTGRES_DB: telemetry_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -17,8 +17,8 @@ services:
     image: eclipse-mosquitto:2
     container_name: telemetry_mosquitto
     ports:
-      - "1883:1883"
-      - "9001:9001"
+      - "${MQTT_PORT}:1883"
+      - "${MQTT_UI_PORT}:9001"
     volumes:
       - ./mosquitto/config:/mosquitto/config
       - ./mosquitto/data:/mosquitto/data
@@ -26,4 +26,3 @@ services:
 
 volumes:
   postgres_data:
-

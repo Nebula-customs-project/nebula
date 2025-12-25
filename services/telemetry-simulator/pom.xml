@@ -3,16 +3,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <groupId>pse.nebula</groupId>
+        <artifactId>nebula</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
-    <groupId>pse.nebula</groupId>
+
+    <groupId>pse.nebula.services</groupId>
     <artifactId>telemetry-simulator</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>telemetry-simulator</name>
     <description>Telemetry Simulator Microservice</description>
+
     <properties>
         <java.version>17</java.version>
     </properties>
@@ -39,7 +40,7 @@
         <dependency>
             <groupId>com.hivemq</groupId>
             <artifactId>hivemq-mqtt-client</artifactId>
-            <version>1.3.3</version>
+            <version>${hivemq.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -66,4 +67,3 @@
     </build>
 
 </project>
-
