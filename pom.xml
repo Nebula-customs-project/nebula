@@ -62,7 +62,7 @@
     </dependencyManagement>
 
     <modules>
-        <module>services/telemetry-simulator</module>
+        <module>services/world-view</module>
     </modules>
 
 </project>

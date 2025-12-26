@@ -1,53 +1,83 @@
 package pse.nebula.worldview.infrastructure.adapter.persistence;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
 import pse.nebula.worldview.domain.model.Coordinate;
 import pse.nebula.worldview.domain.model.DrivingRoute;
 import pse.nebula.worldview.domain.port.outbound.RouteRepository;
+import pse.nebula.worldview.infrastructure.adapter.persistence.entity.RouteEntity;
+import pse.nebula.worldview.infrastructure.adapter.persistence.jpa.JpaRouteRepository;
+import pse.nebula.worldview.infrastructure.adapter.persistence.mapper.RouteEntityMapper;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * In-memory repository containing 8 predefined routes to Porsche Zentrum Stuttgart.
- * This is kept as a fallback/testing implementation.
- * The primary implementation is PostgresRouteRepository.
- *
+ * PostgreSQL implementation of RouteRepository.
+ * Stores 8 predefined routes to Porsche Zentrum Stuttgart.
  * All routes end at the dealership: Porsche Zentrum Stuttgart
  * Address: Porschestraße 1, 70435 Stuttgart, Germany
  * Coordinates: 48.8354, 9.1520
  */
-public class InMemoryRouteRepository implements RouteRepository {
+@Slf4j
+@Repository
+@Primary
+@RequiredArgsConstructor
+public class PostgresRouteRepository implements RouteRepository {
 
     // Porsche Zentrum Stuttgart - Destination for all routes
     private static final Coordinate DEALERSHIP = new Coordinate(48.8354, 9.1520);
 
-    private final Map<String, DrivingRoute> routes = new LinkedHashMap<>();
+    private final JpaRouteRepository jpaRouteRepository;
+    private final RouteEntityMapper routeEntityMapper;
 
     @PostConstruct
+    @Transactional
     public void initializeRoutes() {
+        if (jpaRouteRepository.count() == 0) {
+            log.info("Initializing predefined routes in database...");
+            initializeAllRoutes();
+            log.info("Successfully initialized {} routes", jpaRouteRepository.count());
+        } else {
+            log.info("Routes already exist in database. Found {} routes.", jpaRouteRepository.count());
+        }
+    }
+
+    private void initializeAllRoutes() {
         // Route 1: From Ludwigsburg Schloss
-        createRoute1FromLudwigsburg();
+        saveRoute(createRoute1FromLudwigsburg());
 
         // Route 2: From Favoritepark (Ludwigsburg)
-        createRoute2FromFavoritepark();
+        saveRoute(createRoute2FromFavoritepark());
 
         // Route 3: From Esslingen am Neckar
-        createRoute3FromEsslingen();
+        saveRoute(createRoute3FromEsslingen());
 
         // Route 4: From Böblingen
-        createRoute4FromBoblingen();
+        saveRoute(createRoute4FromBoblingen());
 
         // Route 5: From Sindelfingen
-        createRoute5FromSindelfingen();
+        saveRoute(createRoute5FromSindelfingen());
 
         // Route 6: From Waiblingen
-        createRoute6FromWaiblingen();
+        saveRoute(createRoute6FromWaiblingen());
 
         // Route 7: From Fellbach
-        createRoute7FromFellbach();
+        saveRoute(createRoute7FromFellbach());
 
         // Route 8: From Kornwestheim
-        createRoute8FromKornwestheim();
+        saveRoute(createRoute8FromKornwestheim());
+    }
+
+    private void saveRoute(DrivingRoute route) {
+        RouteEntity entity = routeEntityMapper.toEntity(route);
+        jpaRouteRepository.save(entity);
+        log.debug("Saved route: {} ({})", route.name(), route.id());
     }
 
     /**
@@ -55,7 +85,7 @@ public class InMemoryRouteRepository implements RouteRepository {
      * Distance: ~15 km, Duration: ~20 min
      * Via B27 and Stammheimer Straße
      */
-    private void createRoute1FromLudwigsburg() {
+    private DrivingRoute createRoute1FromLudwigsburg() {
         List<Coordinate> waypoints = Arrays.asList(
             new Coordinate(48.8973, 9.1920),  // Ludwigsburg Schloss
             new Coordinate(48.8945, 9.1875),  // Schlossstraße
@@ -76,7 +106,7 @@ public class InMemoryRouteRepository implements RouteRepository {
             DEALERSHIP
         );
 
-        addRoute("route-1", "Ludwigsburg Schloss Route",
+        return createRoute("route-1", "Ludwigsburg Schloss Route",
             "From Ludwigsburg Palace via B27 - Scenic castle start",
             waypoints, 15000, 1200);
     }
@@ -86,7 +116,7 @@ public class InMemoryRouteRepository implements RouteRepository {
      * Distance: ~12 km, Duration: ~18 min
      * Via Favoritepark and Stammheimer Straße
      */
-    private void createRoute2FromFavoritepark() {
+    private DrivingRoute createRoute2FromFavoritepark() {
         List<Coordinate> waypoints = Arrays.asList(
             new Coordinate(48.8821, 9.1678),  // Favoritepark
             new Coordinate(48.8792, 9.1654),  // Park exit
@@ -105,7 +135,7 @@ public class InMemoryRouteRepository implements RouteRepository {
             DEALERSHIP
         );
 
-        addRoute("route-2", "Favoritepark Route",
+        return createRoute("route-2", "Favoritepark Route",
             "From Favoritepark Ludwigsburg via scenic park roads",
             waypoints, 12000, 1080);
     }
@@ -115,7 +145,7 @@ public class InMemoryRouteRepository implements RouteRepository {
      * Distance: ~20 km, Duration: ~25 min
      * Via B10 and Neckartalstraße
      */
-    private void createRoute3FromEsslingen() {
+    private DrivingRoute createRoute3FromEsslingen() {
         List<Coordinate> waypoints = Arrays.asList(
             new Coordinate(48.7395, 9.3108),  // Esslingen Marktplatz
             new Coordinate(48.7428, 9.2985),  // Neckarstraße
@@ -138,7 +168,7 @@ public class InMemoryRouteRepository implements RouteRepository {
             DEALERSHIP
         );
 
-        addRoute("route-3", "Esslingen Route",
+        return createRoute("route-3", "Esslingen Route",
             "From Esslingen historic center via B10 along the Neckar",
             waypoints, 20000, 1500);
     }
@@ -148,7 +178,7 @@ public class InMemoryRouteRepository implements RouteRepository {
      * Distance: ~22 km, Duration: ~28 min
      * Via A81 and B295
      */
-    private void createRoute4FromBoblingen() {
+    private DrivingRoute createRoute4FromBoblingen() {
         List<Coordinate> waypoints = Arrays.asList(
             new Coordinate(48.6862, 9.0145),  // Böblingen Stadtmitte
             new Coordinate(48.6912, 9.0198),  // Heading to A81
@@ -172,7 +202,7 @@ public class InMemoryRouteRepository implements RouteRepository {
             DEALERSHIP
         );
 
-        addRoute("route-4", "Böblingen Route",
+        return createRoute("route-4", "Böblingen Route",
             "From Böblingen via A81 Autobahn - Fast highway route",
             waypoints, 22000, 1680);
     }
@@ -182,7 +212,7 @@ public class InMemoryRouteRepository implements RouteRepository {
      * Distance: ~18 km, Duration: ~24 min
      * Via Mahdentalstraße and B14
      */
-    private void createRoute5FromSindelfingen() {
+    private DrivingRoute createRoute5FromSindelfingen() {
         List<Coordinate> waypoints = Arrays.asList(
             new Coordinate(48.7132, 9.0028),  // Sindelfingen Zentrum (Mercedes HQ area)
             new Coordinate(48.7178, 9.0108),  // Heading east
@@ -206,7 +236,7 @@ public class InMemoryRouteRepository implements RouteRepository {
             DEALERSHIP
         );
 
-        addRoute("route-5", "Sindelfingen Route",
+        return createRoute("route-5", "Sindelfingen Route",
             "From Sindelfingen (Mercedes-Benz city) to Porsche - Rival territory route",
             waypoints, 18000, 1440);
     }
@@ -216,7 +246,7 @@ public class InMemoryRouteRepository implements RouteRepository {
      * Distance: ~16 km, Duration: ~22 min
      * Via B14 and B29
      */
-    private void createRoute6FromWaiblingen() {
+    private DrivingRoute createRoute6FromWaiblingen() {
         List<Coordinate> waypoints = Arrays.asList(
             new Coordinate(48.8312, 9.3168),  // Waiblingen Altstadt
             new Coordinate(48.8285, 9.2998),  // Heading west
@@ -234,7 +264,7 @@ public class InMemoryRouteRepository implements RouteRepository {
             DEALERSHIP
         );
 
-        addRoute("route-6", "Waiblingen Route",
+        return createRoute("route-6", "Waiblingen Route",
             "From Waiblingen old town via B29 through Rems Valley",
             waypoints, 16000, 1320);
     }
@@ -244,7 +274,7 @@ public class InMemoryRouteRepository implements RouteRepository {
      * Distance: ~10 km, Duration: ~15 min
      * Via Fellbacher Straße and Schmidener Straße
      */
-    private void createRoute7FromFellbach() {
+    private DrivingRoute createRoute7FromFellbach() {
         List<Coordinate> waypoints = Arrays.asList(
             new Coordinate(48.8108, 9.2762),  // Fellbach Zentrum
             new Coordinate(48.8098, 9.2618),  // Fellbacher Straße
@@ -261,7 +291,7 @@ public class InMemoryRouteRepository implements RouteRepository {
             DEALERSHIP
         );
 
-        addRoute("route-7", "Fellbach Route",
+        return createRoute("route-7", "Fellbach Route",
             "From Fellbach wine town - Short scenic route",
             waypoints, 10000, 900);
     }
@@ -271,7 +301,7 @@ public class InMemoryRouteRepository implements RouteRepository {
      * Distance: ~5 km, Duration: ~10 min
      * Via Stammheimer Straße - Closest route
      */
-    private void createRoute8FromKornwestheim() {
+    private DrivingRoute createRoute8FromKornwestheim() {
         List<Coordinate> waypoints = Arrays.asList(
             new Coordinate(48.8598, 9.1858),  // Kornwestheim Bahnhof
             new Coordinate(48.8572, 9.1795),  // Stuttgarter Straße
@@ -285,36 +315,37 @@ public class InMemoryRouteRepository implements RouteRepository {
             DEALERSHIP
         );
 
-        addRoute("route-8", "Kornwestheim Route",
+        return createRoute("route-8", "Kornwestheim Route",
             "From Kornwestheim - Quick direct route",
             waypoints, 5000, 600);
     }
 
-    private void addRoute(String id, String name, String description,
-                          List<Coordinate> waypoints, double distanceMeters, int durationSeconds) {
+    private DrivingRoute createRoute(String id, String name, String description,
+                                     List<Coordinate> waypoints, double distanceMeters, int durationSeconds) {
         Coordinate start = waypoints.get(0);
         Coordinate end = waypoints.get(waypoints.size() - 1);
 
-        DrivingRoute route = new DrivingRoute(
-            id, name, description, start, end, waypoints, distanceMeters, durationSeconds
-        );
-
-        routes.put(id, route);
+        return new DrivingRoute(id, name, description, start, end, waypoints, distanceMeters, durationSeconds);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DrivingRoute> findAll() {
-        return new ArrayList<>(routes.values());
+        return jpaRouteRepository.findAll().stream()
+                .map(routeEntityMapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<DrivingRoute> findById(String routeId) {
-        return Optional.ofNullable(routes.get(routeId));
+        return jpaRouteRepository.findById(routeId)
+                .map(routeEntityMapper::toDomain);
     }
 
     @Override
     public int count() {
-        return routes.size();
+        return (int) jpaRouteRepository.count();
     }
 }
 

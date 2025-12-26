@@ -3,35 +3,41 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: nebula-postgres
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-nebula_db}
-      POSTGRES_USER: ${POSTGRES_USER:-nebula_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nebulaUser@123}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_PORT:-5434}:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nebula_user} -d ${POSTGRES_DB:-nebula_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - nebula-network
 
   # RabbitMQ with MQTT Plugin
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: nebula-rabbitmq
+    env_file:
+      - .env
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-nebula}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-nebula123}
-      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
     ports:
-      - "${RABBITMQ_AMQP_PORT:-5672}:5672"      # AMQP
-      - "${RABBITMQ_MQTT_PORT:-1883}:1883"      # MQTT
-      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"  # Management UI
-      - "${RABBITMQ_WEB_MQTT_PORT:-15675}:15675"    # Web MQTT (WebSocket)
+      - "${RABBITMQ_AMQP_PORT}:5672"
+      - "${RABBITMQ_MQTT_PORT}:1883"
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
+      - "${RABBITMQ_WEB_MQTT_PORT}:15675"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
       - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
@@ -42,6 +48,12 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - nebula-network
+
+networks:
+  nebula-network:
+    driver: bridge
 
 volumes:
   postgres_data:
