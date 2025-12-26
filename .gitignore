@@ -55,3 +55,14 @@ frontend/neon/.env*
 frontend/neon/.vercel
 frontend/neon/*.tsbuildinfo
 frontend/neon/next-env.d.ts
+
+### Environment Variables ###
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+services/**/.env
+services/**/.env.local
+services/**/.env.*.local

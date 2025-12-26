@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: telemetry_postgres
+    container_name: nebula-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -15,7 +13,7 @@ services:
 
   mosquitto:
     image: eclipse-mosquitto:2
-    container_name: telemetry_mosquitto
+    container_name: nebula-mosquitto
     ports:
       - "${MQTT_PORT}:1883"
       - "${MQTT_UI_PORT}:9001"
