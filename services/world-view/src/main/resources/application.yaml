@@ -27,7 +27,6 @@ spring:
     show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         default_schema: world_view
     open-in-view: false
@@ -46,11 +45,23 @@ server:
 logging:
   level:
     root: INFO
-    pse.nebula.worldview: DEBUG
-    pse.nebula.worldview.application.service: INFO
-    pse.nebula.worldview.infrastructure.adapter.web: DEBUG
-    org.hibernate.SQL: ${SQL_LOG_LEVEL:WARN}
-    org.hibernate.type.descriptor.sql.BasicBinder: ${SQL_LOG_LEVEL:WARN}
+    # Application logs - set to INFO for cleaner output
+    pse.nebula.worldview: INFO
+
+    # Suppress noisy framework logs
+    org.hibernate: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    com.zaxxer.hikari: WARN
+    org.springframework.orm.jpa: WARN
+    org.springframework.boot.web.embedded.tomcat: WARN
+    org.apache.catalina: WARN
+    org.apache.coyote: WARN
+    org.springframework.data.repository.config: WARN
+    org.springframework.boot.autoconfigure: WARN
+    org.springframework.web.context: WARN
+    org.springframework.boot.web.servlet.context: WARN
+    org.springframework.boot.actuate: WARN
 
 # Actuator Configuration
 management:
