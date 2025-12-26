@@ -9,9 +9,9 @@ spring:
 
   # Database Configuration
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/${DB_NAME:nebula_db}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/${DB_NAME:nebula_db}?currentSchema=world_view
     username: ${DB_USERNAME:nebula_user}
-    password: ${DB_PASSWORD:nebulaUser@123}
+    password: ${DB_PASSWORD:nebula@2025}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -29,6 +29,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        default_schema: world_view
     open-in-view: false
 
   # Jackson Configuration
