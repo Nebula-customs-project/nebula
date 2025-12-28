@@ -74,6 +74,8 @@ public class JourneyService implements JourneyUseCase {
     public Coordinate advanceJourney(String journeyId, double elapsedSeconds) {
         JourneyState journeyState = getJourneyState(journeyId);
 
+        int totalWaypoints = journeyState.getRoute().waypoints().size();
+
         boolean completed = journeyState.advance(elapsedSeconds);
 
         // Save updated state
@@ -81,10 +83,27 @@ public class JourneyService implements JourneyUseCase {
 
         // Publish coordinate update
         Coordinate currentPosition = journeyState.getCurrentPosition();
+        int currentWaypoint = journeyState.getCurrentWaypointIndex();
+        double progress = journeyState.getProgressPercentage();
+        
+        // Log every 10th waypoint or milestones (10%, 25%, 50%, 75%, 90%)
+        if (currentWaypoint % 10 == 0 || currentWaypoint == 1 || 
+            (progress > 10 && progress < 11) || (progress > 25 && progress < 26) ||
+            (progress > 50 && progress < 51) || (progress > 75 && progress < 76) ||
+            (progress > 90 && progress < 91)) {
+            log.info("Journey {} - Waypoint {}/{} ({:.1f}%) - Position: [{:.6f}, {:.6f}]",
+                    journeyId, 
+                    currentWaypoint + 1, 
+                    totalWaypoints,
+                    progress,
+                    currentPosition.latitude(),
+                    currentPosition.longitude());
+        }
+        
         coordinatePublisher.publishCoordinateUpdate(journeyId, currentPosition, journeyState);
 
         if (completed) {
-            log.info("Journey completed: {}", journeyId);
+            log.info("=== JOURNEY COMPLETED: {} - Successfully reached destination! ===", journeyId);
             coordinatePublisher.publishJourneyCompleted(journeyState);
         }
 

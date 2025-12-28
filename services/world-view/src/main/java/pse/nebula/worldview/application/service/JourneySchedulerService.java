@@ -20,7 +20,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class JourneySchedulerService {
 
-    private static final double UPDATE_INTERVAL_SECONDS = 2.0; // 2 seconds between updates
+    // Reduced interval for smoother animation (500ms = 0.5 seconds)
+    private static final double UPDATE_INTERVAL_SECONDS = 0.5;
+    private static final long UPDATE_INTERVAL_MS = 500;
 
     private final JourneyUseCase journeyUseCase;
 
@@ -34,7 +36,8 @@ public class JourneySchedulerService {
      */
     public void registerJourney(String journeyId) {
         activeJourneyIds.add(journeyId);
-        log.info("Registered journey for updates: {}", journeyId);
+        log.info("=== JOURNEY REGISTERED for scheduled updates: {} ===", journeyId);
+        log.info("Active journeys count: {}", activeJourneyIds.size());
     }
 
     /**
@@ -67,16 +70,16 @@ public class JourneySchedulerService {
     }
 
     /**
-     * Scheduled task that runs every 2 seconds to update all active journeys.
+     * Scheduled task that runs every 500ms to update all active journeys.
      * This advances each journey and publishes coordinate updates to the frontend.
      */
-    @Scheduled(fixedRate = 2000) // 2 seconds
+    @Scheduled(fixedRate = UPDATE_INTERVAL_MS) // 500ms for smooth animation
     public void updateActiveJourneys() {
         if (activeJourneyIds.isEmpty()) {
             return;
         }
 
-        log.debug("Updating {} active journey(s)", activeJourneyIds.size());
+        log.debug("=== SCHEDULER: Updating {} active journey(s) ===", activeJourneyIds.size());
 
         // Process each active journey
         for (String journeyId : Set.copyOf(activeJourneyIds)) {
