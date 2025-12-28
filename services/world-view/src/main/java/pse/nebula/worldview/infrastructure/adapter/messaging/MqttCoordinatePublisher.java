@@ -75,25 +75,31 @@ public class MqttCoordinatePublisher implements CoordinatePublisher {
     }
 
     private void publishMessage(String topic, Object payload, String messageType) {
-        try {
-            String jsonPayload = objectMapper.writeValueAsString(payload);
-            
-            mqttClient.publishWith()
-                    .topic(topic)
-                    .payload(jsonPayload.getBytes(StandardCharsets.UTF_8))
-                    .retain(false)
-                    .send()
-                    .whenComplete((publish, throwable) -> {
-                        if (throwable != null) {
-                            log.error("Failed to publish {} to topic {}: {}", 
-                                    messageType, topic, throwable.getMessage());
-                        } else {
-                            log.trace("Successfully published {} to topic: {}", messageType, topic);
-                        }
-                    });
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize {} for MQTT: {}", messageType, e.getMessage());
-        }
+        // Run MQTT publishing in a separate thread to avoid blocking the main request thread
+        // This ensures SSE works even if MQTT is slow or unavailable
+        new Thread(() -> {
+            try {
+                String jsonPayload = objectMapper.writeValueAsString(payload);
+                
+                mqttClient.publishWith()
+                        .topic(topic)
+                        .payload(jsonPayload.getBytes(StandardCharsets.UTF_8))
+                        .retain(false)
+                        .send()
+                        .whenComplete((publish, throwable) -> {
+                            if (throwable != null) {
+                                log.warn("Failed to publish {} to topic {}: {}", 
+                                        messageType, topic, throwable.getMessage());
+                            } else {
+                                log.trace("Successfully published {} to topic: {}", messageType, topic);
+                            }
+                        });
+            } catch (JsonProcessingException e) {
+                log.error("Failed to serialize {} for MQTT: {}", messageType, e.getMessage());
+            } catch (Exception e) {
+                log.warn("MQTT publishing failed for {}: {}", messageType, e.getMessage());
+            }
+        }, "mqtt-publisher").start();
     }
 
     /**

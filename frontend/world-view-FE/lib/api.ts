@@ -162,9 +162,42 @@ class WorldViewApi {
       `${this.baseUrl}/api/v1/journeys/${journeyId}/stream`
     );
 
+    // Listen for named events (coordinate-update, journey-started, journey-completed)
+    eventSource.addEventListener('coordinate-update', (event: MessageEvent) => {
+      try {
+        const data: CoordinateUpdateDto = JSON.parse(event.data);
+        console.log('Received coordinate update:', data);
+        onUpdate(data);
+      } catch (error) {
+        console.error('Failed to parse SSE coordinate-update data:', error);
+      }
+    });
+
+    eventSource.addEventListener('journey-started', (event: MessageEvent) => {
+      try {
+        const data: CoordinateUpdateDto = JSON.parse(event.data);
+        console.log('Journey started event:', data);
+        onUpdate(data);
+      } catch (error) {
+        console.error('Failed to parse SSE journey-started data:', error);
+      }
+    });
+
+    eventSource.addEventListener('journey-completed', (event: MessageEvent) => {
+      try {
+        const data: CoordinateUpdateDto = JSON.parse(event.data);
+        console.log('Journey completed event:', data);
+        onUpdate(data);
+      } catch (error) {
+        console.error('Failed to parse SSE journey-completed data:', error);
+      }
+    });
+
+    // Fallback for unnamed messages (shouldn't happen but just in case)
     eventSource.onmessage = (event) => {
       try {
         const data: CoordinateUpdateDto = JSON.parse(event.data);
+        console.log('Received SSE message:', data);
         onUpdate(data);
       } catch (error) {
         console.error('Failed to parse SSE data:', error);

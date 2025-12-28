@@ -91,13 +91,13 @@ public class JourneyService implements JourneyUseCase {
             (progress > 10 && progress < 11) || (progress > 25 && progress < 26) ||
             (progress > 50 && progress < 51) || (progress > 75 && progress < 76) ||
             (progress > 90 && progress < 91)) {
-            log.info("Journey {} - Waypoint {}/{} ({:.1f}%) - Position: [{:.6f}, {:.6f}]",
+            log.info("Journey {} - Waypoint {}/{} ({}%) - Position: [{}, {}]",
                     journeyId, 
                     currentWaypoint + 1, 
                     totalWaypoints,
-                    progress,
-                    currentPosition.latitude(),
-                    currentPosition.longitude());
+                    String.format("%.1f", progress),
+                    String.format("%.6f", currentPosition.latitude()),
+                    String.format("%.6f", currentPosition.longitude()));
         }
         
         coordinatePublisher.publishCoordinateUpdate(journeyId, currentPosition, journeyState);

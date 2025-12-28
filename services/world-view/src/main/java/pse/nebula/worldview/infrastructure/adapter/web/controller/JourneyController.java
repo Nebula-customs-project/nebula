@@ -62,7 +62,9 @@ public class JourneyController {
         }
 
         // Register journey for scheduled updates
+        log.info("About to register journey: {} for scheduled updates", request.getJourneyId());
         journeySchedulerService.registerJourney(request.getJourneyId());
+        log.info("Journey registered successfully, returning response");
 
         return ResponseEntity.status(HttpStatus.CREATED).body(dtoMapper.toDto(journeyState));
     }
