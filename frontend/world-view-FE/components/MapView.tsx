@@ -112,36 +112,52 @@ export default function MapView({
     return waypoints.map((wp) => [wp.lat, wp.lng] as [number, number]);
   }, [waypoints]);
 
+  // Find the nearest waypoint index to a given position
+  const findNearestWaypointIndex = (position: MapPosition): number => {
+    if (waypoints.length === 0) return -1;
+    
+    let minDistance = Infinity;
+    let nearestIdx = 0;
+    
+    waypoints.forEach((wp, idx) => {
+      const distance = Math.sqrt(
+        Math.pow(wp.lat - position.lat, 2) + 
+        Math.pow(wp.lng - position.lng, 2)
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestIdx = idx;
+      }
+    });
+    
+    return nearestIdx;
+  };
+
   // Calculate remaining route (from current position to destination)
   const remainingRoute = useMemo(() => {
-    if (!currentPosition) return routeCoordinates;
+    if (!currentPosition || routeCoordinates.length === 0) return routeCoordinates;
     
-    const currentIdx = waypoints.findIndex(
-      (wp) => 
-        Math.abs(wp.lat - currentPosition.lat) < 0.0001 && 
-        Math.abs(wp.lng - currentPosition.lng) < 0.0001
-    );
+    // Find the nearest waypoint to current position
+    const nearestIdx = findNearestWaypointIndex(currentPosition);
     
-    if (currentIdx === -1) {
-      return [[currentPosition.lat, currentPosition.lng], ...routeCoordinates.slice(-1)] as [number, number][];
-    }
+    // Build the remaining route: current position + remaining waypoints
+    const remainingWaypoints = routeCoordinates.slice(nearestIdx);
     
-    return routeCoordinates.slice(currentIdx);
+    // Always start from current position for smooth visualization
+    return [[currentPosition.lat, currentPosition.lng], ...remainingWaypoints] as [number, number][];
   }, [currentPosition, waypoints, routeCoordinates]);
 
   // Completed route (from start to current position)
   const completedRoute = useMemo(() => {
-    if (!currentPosition) return [];
+    if (!currentPosition || routeCoordinates.length === 0) return [];
     
-    const currentIdx = waypoints.findIndex(
-      (wp) => 
-        Math.abs(wp.lat - currentPosition.lat) < 0.0001 && 
-        Math.abs(wp.lng - currentPosition.lng) < 0.0001
-    );
+    // Find the nearest waypoint to current position
+    const nearestIdx = findNearestWaypointIndex(currentPosition);
     
-    if (currentIdx === -1) return [];
+    // Include waypoints up to and including the nearest one, plus current position
+    const passedWaypoints = routeCoordinates.slice(0, nearestIdx + 1);
     
-    return routeCoordinates.slice(0, currentIdx + 1);
+    return [...passedWaypoints, [currentPosition.lat, currentPosition.lng]] as [number, number][];
   }, [currentPosition, waypoints, routeCoordinates]);
 
   // Calculate car rotation based on movement direction
