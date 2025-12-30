@@ -52,6 +52,7 @@ public class RouteEntity {
 
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("sequenceOrder ASC")
+    @Builder.Default
     private List<WaypointEntity> waypoints = new ArrayList<>();
 
     /**

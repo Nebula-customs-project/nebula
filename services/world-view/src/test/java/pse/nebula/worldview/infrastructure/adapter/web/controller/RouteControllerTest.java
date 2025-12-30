@@ -1,16 +1,14 @@
 package pse.nebula.worldview.infrastructure.adapter.web.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import pse.nebula.worldview.application.service.RouteService;
 import pse.nebula.worldview.domain.exception.RouteNotFoundException;
 import pse.nebula.worldview.domain.model.Coordinate;
 import pse.nebula.worldview.domain.model.DrivingRoute;
@@ -22,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -34,13 +31,10 @@ class RouteControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
+    @MockitoBean
     private RouteUseCase routeUseCase;
 
-    @MockBean
+    @MockitoBean
     private DtoMapper dtoMapper;
 
     private DrivingRoute testRoute1;
