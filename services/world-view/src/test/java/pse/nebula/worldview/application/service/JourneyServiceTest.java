@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pse.nebula.worldview.domain.exception.JourneyAlreadyExistsException;
+import pse.nebula.worldview.domain.exception.JourneyNotFoundException;
 import pse.nebula.worldview.domain.model.Coordinate;
 import pse.nebula.worldview.domain.model.DrivingRoute;
 import pse.nebula.worldview.domain.model.JourneyState;
@@ -101,7 +103,7 @@ class JourneyServiceTest {
             when(journeyStateRepository.exists(JOURNEY_ID)).thenReturn(true);
 
             // When & Then
-            assertThrows(JourneyService.JourneyAlreadyExistsException.class,
+            assertThrows(JourneyAlreadyExistsException.class,
                     () -> journeyService.startNewJourney(JOURNEY_ID, DEFAULT_SPEED));
 
             verify(journeyStateRepository, never()).save(any());
@@ -157,7 +159,7 @@ class JourneyServiceTest {
             when(journeyStateRepository.findById(JOURNEY_ID)).thenReturn(Optional.empty());
 
             // When & Then
-            assertThrows(JourneyService.JourneyNotFoundException.class,
+            assertThrows(JourneyNotFoundException.class,
                     () -> journeyService.getJourneyState(JOURNEY_ID));
         }
     }

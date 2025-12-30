@@ -3,6 +3,7 @@ package pse.nebula.worldview.application.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pse.nebula.worldview.domain.exception.RouteNotFoundException;
 import pse.nebula.worldview.domain.model.DrivingRoute;
 import pse.nebula.worldview.domain.port.inbound.RouteUseCase;
 import pse.nebula.worldview.domain.port.outbound.RouteRepository;
@@ -32,7 +33,7 @@ public class RouteService implements RouteUseCase {
     public DrivingRoute getRouteById(String routeId) {
         log.debug("Fetching route with ID: {}", routeId);
         return routeRepository.findById(routeId)
-            .orElseThrow(() -> new RouteNotFoundException("Route not found with ID: " + routeId));
+            .orElseThrow(() -> new RouteNotFoundException(routeId));
     }
 
     @Override
@@ -41,7 +42,7 @@ public class RouteService implements RouteUseCase {
         List<DrivingRoute> routes = routeRepository.findAll();
 
         if (routes.isEmpty()) {
-            throw new RouteNotFoundException("No routes available");
+            throw RouteNotFoundException.noRoutesAvailable();
         }
 
         int randomIndex = random.nextInt(routes.size());
@@ -54,15 +55,6 @@ public class RouteService implements RouteUseCase {
     @Override
     public int getRouteCount() {
         return routeRepository.count();
-    }
-
-    /**
-     * Exception thrown when a route is not found.
-     */
-    public static class RouteNotFoundException extends RuntimeException {
-        public RouteNotFoundException(String message) {
-            super(message);
-        }
     }
 }
 

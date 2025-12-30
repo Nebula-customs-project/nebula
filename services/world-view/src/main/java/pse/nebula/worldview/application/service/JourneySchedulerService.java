@@ -1,7 +1,7 @@
 package pse.nebula.worldview.application.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import pse.nebula.worldview.domain.model.JourneyState;
@@ -17,17 +17,24 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class JourneySchedulerService {
 
-    // Reduced interval for smoother animation (500ms = 0.5 seconds)
-    private static final double UPDATE_INTERVAL_SECONDS = 0.5;
-    private static final long UPDATE_INTERVAL_MS = 500;
-
     private final JourneyUseCase journeyUseCase;
+    private final long updateIntervalMs;
+    private final double updateIntervalSeconds;
 
     // Track active journey IDs
     private final Set<String> activeJourneyIds = ConcurrentHashMap.newKeySet();
+
+    public JourneySchedulerService(
+            JourneyUseCase journeyUseCase,
+            @Value("${journey.scheduler.update-interval-ms:500}") long updateIntervalMs) {
+        this.journeyUseCase = journeyUseCase;
+        this.updateIntervalMs = updateIntervalMs;
+        this.updateIntervalSeconds = updateIntervalMs / 1000.0;
+        log.info("JourneySchedulerService initialized with update interval: {}ms ({}s)", 
+                updateIntervalMs, updateIntervalSeconds);
+    }
 
     /**
      * Register a journey for scheduled updates.
@@ -70,10 +77,18 @@ public class JourneySchedulerService {
     }
 
     /**
-     * Scheduled task that runs every 500ms to update all active journeys.
+     * Get the configured update interval in milliseconds.
+     * @return update interval in ms
+     */
+    public long getUpdateIntervalMs() {
+        return updateIntervalMs;
+    }
+
+    /**
+     * Scheduled task that runs at configured interval to update all active journeys.
      * This advances each journey and publishes coordinate updates to the frontend.
      */
-    @Scheduled(fixedRate = UPDATE_INTERVAL_MS) // 500ms for smooth animation
+    @Scheduled(fixedRateString = "${journey.scheduler.update-interval-ms:500}")
     public void updateActiveJourneys() {
         if (activeJourneyIds.isEmpty()) {
             return;
@@ -111,7 +126,7 @@ public class JourneySchedulerService {
         }
 
         // Advance the journey - this publishes the coordinate update
-        journeyUseCase.advanceJourney(journeyId, UPDATE_INTERVAL_SECONDS);
+        journeyUseCase.advanceJourney(journeyId, updateIntervalSeconds);
 
         // Check if completed after advancement
         JourneyState updatedState = journeyUseCase.getJourneyState(journeyId);

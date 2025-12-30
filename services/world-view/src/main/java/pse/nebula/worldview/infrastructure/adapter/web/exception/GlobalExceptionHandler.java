@@ -6,8 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import pse.nebula.worldview.application.service.JourneyService;
-import pse.nebula.worldview.application.service.RouteService;
+import pse.nebula.worldview.domain.exception.JourneyAlreadyExistsException;
+import pse.nebula.worldview.domain.exception.JourneyNotFoundException;
+import pse.nebula.worldview.domain.exception.RouteNotFoundException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -20,20 +21,20 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RouteService.RouteNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleRouteNotFound(RouteService.RouteNotFoundException ex) {
+    @ExceptionHandler(RouteNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleRouteNotFound(RouteNotFoundException ex) {
         log.warn("Route not found: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.NOT_FOUND, "ROUTE_NOT_FOUND", ex.getMessage());
     }
 
-    @ExceptionHandler(JourneyService.JourneyNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleJourneyNotFound(JourneyService.JourneyNotFoundException ex) {
+    @ExceptionHandler(JourneyNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleJourneyNotFound(JourneyNotFoundException ex) {
         log.warn("Journey not found: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.NOT_FOUND, "JOURNEY_NOT_FOUND", ex.getMessage());
     }
 
-    @ExceptionHandler(JourneyService.JourneyAlreadyExistsException.class)
-    public ResponseEntity<Map<String, Object>> handleJourneyAlreadyExists(JourneyService.JourneyAlreadyExistsException ex) {
+    @ExceptionHandler(JourneyAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleJourneyAlreadyExists(JourneyAlreadyExistsException ex) {
         log.warn("Journey already exists: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.CONFLICT, "JOURNEY_ALREADY_EXISTS", ex.getMessage());
     }

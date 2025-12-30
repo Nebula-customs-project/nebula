@@ -35,7 +35,11 @@ build/
 ### VS Code ###
 .vscode/
 
-services/world-view/docs/.md*
+### Docs of world-view service ###
+services/world-view/docs/
+
+### Ignoring Frontend ###
+frontend/
 
 ### Frontend/Neon ###
 frontend/neon/node_modules

@@ -3,6 +3,8 @@ package pse.nebula.worldview.application.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pse.nebula.worldview.domain.exception.JourneyAlreadyExistsException;
+import pse.nebula.worldview.domain.exception.JourneyNotFoundException;
 import pse.nebula.worldview.domain.model.Coordinate;
 import pse.nebula.worldview.domain.model.DrivingRoute;
 import pse.nebula.worldview.domain.model.JourneyState;
@@ -47,7 +49,7 @@ public class JourneyService implements JourneyUseCase {
     private JourneyState createAndStartJourney(String journeyId, DrivingRoute route, double speedMetersPerSecond) {
         // Check if journey already exists
         if (journeyStateRepository.exists(journeyId)) {
-            throw new JourneyAlreadyExistsException("Journey already exists with ID: " + journeyId);
+            throw new JourneyAlreadyExistsException(journeyId);
         }
 
         // Create new journey state
@@ -67,7 +69,7 @@ public class JourneyService implements JourneyUseCase {
     @Override
     public JourneyState getJourneyState(String journeyId) {
         return journeyStateRepository.findById(journeyId)
-            .orElseThrow(() -> new JourneyNotFoundException("Journey not found with ID: " + journeyId));
+            .orElseThrow(() -> new JourneyNotFoundException(journeyId));
     }
 
     @Override
@@ -135,24 +137,6 @@ public class JourneyService implements JourneyUseCase {
     @Override
     public boolean journeyExists(String journeyId) {
         return journeyStateRepository.exists(journeyId);
-    }
-
-    /**
-     * Exception thrown when a journey is not found.
-     */
-    public static class JourneyNotFoundException extends RuntimeException {
-        public JourneyNotFoundException(String message) {
-            super(message);
-        }
-    }
-
-    /**
-     * Exception thrown when trying to create a journey that already exists.
-     */
-    public static class JourneyAlreadyExistsException extends RuntimeException {
-        public JourneyAlreadyExistsException(String message) {
-            super(message);
-        }
     }
 }
 

@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pse.nebula.worldview.application.service.RouteService;
+import pse.nebula.worldview.domain.exception.RouteNotFoundException;
 import pse.nebula.worldview.domain.model.Coordinate;
 import pse.nebula.worldview.domain.model.DrivingRoute;
 import pse.nebula.worldview.domain.port.inbound.RouteUseCase;
@@ -149,7 +150,7 @@ class RouteControllerTest {
         void shouldReturn404WhenNotFound() throws Exception {
             // Given
             when(routeUseCase.getRouteById("non-existent"))
-                    .thenThrow(new RouteService.RouteNotFoundException("Route not found"));
+                    .thenThrow(new RouteNotFoundException("non-existent"));
 
             // When & Then
             mockMvc.perform(get("/api/v1/routes/non-existent"))

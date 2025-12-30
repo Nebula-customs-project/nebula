@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pse.nebula.worldview.domain.exception.RouteNotFoundException;
 import pse.nebula.worldview.domain.model.Coordinate;
 import pse.nebula.worldview.domain.model.DrivingRoute;
 import pse.nebula.worldview.domain.port.outbound.RouteRepository;
@@ -130,7 +131,7 @@ class RouteServiceTest {
             when(routeRepository.findById("non-existent")).thenReturn(Optional.empty());
 
             // When & Then
-            assertThrows(RouteService.RouteNotFoundException.class,
+            assertThrows(RouteNotFoundException.class,
                     () -> routeService.getRouteById("non-existent"));
             verify(routeRepository, times(1)).findById("non-existent");
         }
@@ -163,7 +164,7 @@ class RouteServiceTest {
             when(routeRepository.findAll()).thenReturn(Collections.emptyList());
 
             // When & Then
-            assertThrows(RouteService.RouteNotFoundException.class,
+            assertThrows(RouteNotFoundException.class,
                     () -> routeService.getRandomRoute());
         }
 

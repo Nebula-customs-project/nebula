@@ -3,6 +3,7 @@ package pse.nebula.worldview.infrastructure.adapter.messaging;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import pse.nebula.worldview.domain.model.Coordinate;
 import pse.nebula.worldview.domain.model.JourneyState;
@@ -11,6 +12,9 @@ import pse.nebula.worldview.infrastructure.adapter.web.dto.CoordinateUpdateDto;
 import pse.nebula.worldview.infrastructure.adapter.web.mapper.DtoMapper;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MQTT-based implementation of CoordinatePublisher.
@@ -24,10 +28,14 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class MqttCoordinatePublisher implements CoordinatePublisher {
 
+    private static final int THREAD_POOL_SIZE = 4;
+    private static final int SHUTDOWN_TIMEOUT_SECONDS = 5;
+
     private final Mqtt5AsyncClient mqttClient;
     private final DtoMapper dtoMapper;
     private final ObjectMapper objectMapper;
     private final String topicPrefix;
+    private final ExecutorService mqttExecutor;
 
     public MqttCoordinatePublisher(Mqtt5AsyncClient mqttClient, DtoMapper dtoMapper, 
             ObjectMapper objectMapper, String topicPrefix) {
@@ -35,6 +43,31 @@ public class MqttCoordinatePublisher implements CoordinatePublisher {
         this.dtoMapper = dtoMapper;
         this.objectMapper = objectMapper;
         this.topicPrefix = topicPrefix;
+        this.mqttExecutor = Executors.newFixedThreadPool(THREAD_POOL_SIZE, r -> {
+            Thread thread = new Thread(r, "mqtt-publisher");
+            thread.setDaemon(true);
+            return thread;
+        });
+        log.info("MqttCoordinatePublisher initialized with {} threads", THREAD_POOL_SIZE);
+    }
+
+    /**
+     * Gracefully shutdown the executor service.
+     */
+    @PreDestroy
+    public void shutdown() {
+        log.info("Shutting down MQTT publisher executor...");
+        mqttExecutor.shutdown();
+        try {
+            if (!mqttExecutor.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                mqttExecutor.shutdownNow();
+                log.warn("MQTT publisher executor did not terminate gracefully");
+            }
+        } catch (InterruptedException e) {
+            mqttExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        log.info("MQTT publisher executor shutdown complete");
     }
 
     @Override
@@ -75,9 +108,9 @@ public class MqttCoordinatePublisher implements CoordinatePublisher {
     }
 
     private void publishMessage(String topic, Object payload, String messageType) {
-        // Run MQTT publishing in a separate thread to avoid blocking the main request thread
+        // Run MQTT publishing in executor thread pool to avoid blocking the main request thread
         // This ensures SSE works even if MQTT is slow or unavailable
-        new Thread(() -> {
+        mqttExecutor.submit(() -> {
             try {
                 String jsonPayload = objectMapper.writeValueAsString(payload);
                 
@@ -99,7 +132,7 @@ public class MqttCoordinatePublisher implements CoordinatePublisher {
             } catch (Exception e) {
                 log.warn("MQTT publishing failed for {}: {}", messageType, e.getMessage());
             }
-        }, "mqtt-publisher").start();
+        });
     }
 
     /**
