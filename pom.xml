@@ -23,6 +23,13 @@
         <postgresql.version>42.7.7</postgresql.version>
         <testcontainers.version>1.20.4</testcontainers.version>
         <netty.version>4.1.130.Final</netty.version>
+        
+        <!-- SonarQube Configuration -->
+        <sonar.host.url>http://localhost:9000</sonar.host.url>
+        <sonar.projectKey>nebula</sonar.projectKey>
+        <sonar.projectName>nebula</sonar.projectName>
+        <sonar.java.source>${java.version}</sonar.java.source>
+        <sonar.exclusions>**/target/**,**/node_modules/**,**/*.min.js</sonar.exclusions>
     </properties>
 
     <dependencyManagement>
@@ -64,5 +71,17 @@
     <modules>
         <module>services/world-view</module>
     </modules>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>5.0.0.4389</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
 </project>

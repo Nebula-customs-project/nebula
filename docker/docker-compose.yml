@@ -27,7 +27,7 @@ services:
 
   # RabbitMQ with MQTT Plugin
   rabbitmq:
-    image: rabbitmq:3.13-management-alpine
+    image: rabbitmq:4.0-management-alpine
     container_name: nebula-rabbitmq
     env_file:
       - .env
@@ -55,7 +55,7 @@ services:
 
   # SonarQube Server
   sonarqube:
-    image: sonarqube:lts-community
+    image: sonarqube:community
     container_name: nebula-sonarqube
     depends_on:
       sonarqube-db:
