@@ -233,7 +233,7 @@ class WorldViewIntegrationTest {
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertNotNull(response.getBody());
             assertEquals("route-3", response.getBody().getRoute().getId());
-            assertEquals("Esslingen Route", response.getBody().getRoute().getName());
+            assertEquals("Kornwestheim Route", response.getBody().getRoute().getName());
         }
 
         @Test

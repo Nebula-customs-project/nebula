@@ -1,4 +1,4 @@
-# World View Service
+# World View Service -- Need to be updated.
 
 A Spring Boot microservice that provides driving route simulation to **Porsche Zentrum Stuttgart** dealership. This service follows Hexagonal Architecture (Ports and Adapters pattern).
 
@@ -54,7 +54,7 @@ Coordinates: `48.8354, 9.1520`
 |-------|---------------|----------|----------|
 | 1 | Ludwigsburg Schloss | ~15 km | ~20 min |
 | 2 | Favoritepark (Ludwigsburg) | ~12 km | ~18 min |
-| 3 | Esslingen am Neckar | ~20 km | ~25 min |
+| 3 | Reutlingen | ~20 km | ~25 min |
 | 4 | Böblingen | ~22 km | ~28 min |
 | 5 | Sindelfingen | ~18 km | ~24 min |
 | 6 | Waiblingen | ~16 km | ~22 min |
@@ -148,45 +148,3 @@ java -jar target/world-view.jar
 # Or with Maven
 ./mvnw spring-boot:run
 ```
-
-## Response Format
-
-### Route Response
-
-```json
-{
-  "id": "route-1",
-  "name": "Ludwigsburg Schloss Route",
-  "description": "From Ludwigsburg Palace via B27 - Scenic castle start",
-  "start_point": {
-    "latitude": 48.8973,
-    "longitude": 9.1920
-  },
-  "end_point": {
-    "latitude": 48.8354,
-    "longitude": 9.1520
-  },
-  "waypoints": [...],
-  "total_distance_meters": 15000.0,
-  "estimated_duration_seconds": 1200,
-  "total_waypoints": 17
-}
-```
-
-### Coordinate Update (SSE Event)
-
-```json
-{
-  "journey_id": "journey-abc123",
-  "coordinate": {
-    "latitude": 48.8712,
-    "longitude": 9.1642
-  },
-  "progress_percentage": 35.5,
-  "status": "IN_PROGRESS",
-  "current_waypoint_index": 5,
-  "total_waypoints": 17,
-  "timestamp": "2025-12-26T15:30:00Z"
-}
-```
-

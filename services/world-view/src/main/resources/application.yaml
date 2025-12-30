@@ -96,3 +96,15 @@ route:
     latitude: 48.8354
     longitude: 9.1520
 
+# MQTT Configuration (RabbitMQ MQTT Plugin)
+mqtt:
+  enabled: ${MQTT_ENABLED:true}
+  broker:
+    host: ${MQTT_HOST:localhost}
+    port: ${MQTT_PORT:1883}
+  client:
+    id: ${MQTT_CLIENT_ID:world-view-service}
+  username: ${MQTT_USERNAME:nebula_user}
+  password: ${MQTT_PASSWORD:nebula@2025}
+  topic:
+    prefix: ${MQTT_TOPIC_PREFIX:nebula/journey}

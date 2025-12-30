@@ -27,8 +27,10 @@ public class SseCoordinatePublisher implements CoordinatePublisher {
         CoordinateUpdateDto update = dtoMapper.toCoordinateUpdate(journeyState);
         sseEmitterManager.sendUpdate(journeyId, update);
 
-        log.debug("Published coordinate update for journey: {} at [{}, {}]",
-            journeyId, coordinate.latitude(), coordinate.longitude());
+        log.debug("SSE: Sent coordinate update for journey: {} - Waypoint {}/{}", 
+            journeyId, 
+            journeyState.getCurrentWaypointIndex() + 1,
+            journeyState.getRoute().waypoints().size());
     }
 
     @Override

@@ -107,12 +107,12 @@ class PostgresRouteRepositoryTest {
         }
 
         @Test
-        @DisplayName("Routes should start from Stuttgart area (within reasonable bounds)")
+        @DisplayName("Routes should start from greater Stuttgart region")
         void routesShouldStartFromStuttgartArea() {
             List<DrivingRoute> routes = routeRepository.findAll();
 
-            // Stuttgart area bounds (approximate)
-            double minLat = 48.6;
+            // Greater Stuttgart region bounds (including Reutlingen, Böblingen, etc.)
+            double minLat = 48.4;  // Extended south for Reutlingen
             double maxLat = 49.0;
             double minLng = 8.9;
             double maxLng = 9.4;
@@ -120,9 +120,9 @@ class PostgresRouteRepositoryTest {
             for (DrivingRoute route : routes) {
                 Coordinate start = route.startPoint();
                 assertTrue(start.latitude() >= minLat && start.latitude() <= maxLat,
-                        "Route " + route.id() + " start latitude should be in Stuttgart area");
+                        "Route " + route.id() + " start latitude should be in Stuttgart region");
                 assertTrue(start.longitude() >= minLng && start.longitude() <= maxLng,
-                        "Route " + route.id() + " start longitude should be in Stuttgart area");
+                        "Route " + route.id() + " start longitude should be in Stuttgart region");
             }
         }
     }
@@ -214,7 +214,7 @@ class PostgresRouteRepositoryTest {
         @Test
         @DisplayName("Longer routes should have longer durations")
         void longerRoutesShouldHaveLongerDurations() {
-            List<DrivingRoute> routes = routeRepository.findAll();
+            List<DrivingRoute> routes = new java.util.ArrayList<>(routeRepository.findAll());
 
             // Sort by distance
             routes.sort((a, b) -> Double.compare(a.totalDistanceMeters(), b.totalDistanceMeters()));
@@ -284,15 +284,15 @@ class PostgresRouteRepositoryTest {
             DrivingRoute route = routeRepository.findById("route-2").orElseThrow();
 
             assertEquals("Favoritepark Route", route.name());
-            // Favoritepark coordinates
-            assertEquals(48.8821, route.startPoint().latitude(), 0.001);
-            assertEquals(9.1678, route.startPoint().longitude(), 0.001);
+            // Favoritepark coordinates (SWLB Mobilität)
+            assertEquals(48.907997, route.startPoint().latitude(), 0.001);
+            assertEquals(9.179710, route.startPoint().longitude(), 0.001);
         }
 
         @Test
-        @DisplayName("Route 8 (Kornwestheim) should be the shortest")
-        void route8ShouldBeShortest() {
-            DrivingRoute route8 = routeRepository.findById("route-8").orElseThrow();
+        @DisplayName("Route 3 (Kornwestheim) should be the shortest")
+        void route3ShouldBeShortest() {
+            DrivingRoute route3 = routeRepository.findById("route-3").orElseThrow();
             List<DrivingRoute> allRoutes = routeRepository.findAll();
 
             double minDistance = allRoutes.stream()
@@ -300,8 +300,8 @@ class PostgresRouteRepositoryTest {
                     .min()
                     .orElse(Double.MAX_VALUE);
 
-            assertEquals(minDistance, route8.totalDistanceMeters(),
-                    "Route 8 (Kornwestheim) should be the shortest route");
+            assertEquals(minDistance, route3.totalDistanceMeters(),
+                    "Route 3 (Kornwestheim) should be the shortest route");
         }
     }
 }
