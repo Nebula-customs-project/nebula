@@ -39,7 +39,8 @@ build/
 services/world-view/docs/
 
 ### Ignoring Frontend ###
-frontend/
+frontend/neon/
+frontend/world-view-FE/
 
 ### Frontend/Neon ###
 frontend/neon/node_modules
