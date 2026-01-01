@@ -9,7 +9,6 @@ import pse.nebula.worldview.infrastructure.adapter.persistence.entity.WaypointEn
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Mapper for converting between RouteEntity and DrivingRoute domain model.
@@ -31,17 +30,12 @@ public class RouteEntityMapper {
         List<Coordinate> waypoints = entity.getWaypoints().stream()
                 .sorted(Comparator.comparingInt(WaypointEntity::getSequenceOrder))
                 .map(wp -> new Coordinate(wp.getLatitude(), wp.getLongitude()))
-                .collect(Collectors.toList());
-
-        Coordinate startPoint = new Coordinate(entity.getStartLatitude(), entity.getStartLongitude());
-        Coordinate endPoint = new Coordinate(entity.getEndLatitude(), entity.getEndLongitude());
+                .toList();
 
         return new DrivingRoute(
                 entity.getRouteId(),
                 entity.getName(),
                 entity.getDescription(),
-                startPoint,
-                endPoint,
                 waypoints,
                 entity.getTotalDistanceMeters(),
                 entity.getEstimatedDurationSeconds()
@@ -87,4 +81,3 @@ public class RouteEntityMapper {
         return entity;
     }
 }
-

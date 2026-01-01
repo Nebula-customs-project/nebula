@@ -6,12 +6,16 @@ package pse.nebula.worldview.domain.model;
  */
 public record Coordinate(double latitude, double longitude) {
 
+    private static final double EARTH_RADIUS_METERS = 6_371_000;
+
     public Coordinate {
-        if (latitude < -90 || latitude > 90) {
-            throw new IllegalArgumentException("Latitude must be between -90 and 90 degrees");
+        if (!Double.isFinite(latitude) || latitude < -90 || latitude > 90) {
+            throw new IllegalArgumentException(
+                "Latitude must be a finite number between -90 and 90 degrees, got: " + latitude);
         }
-        if (longitude < -180 || longitude > 180) {
-            throw new IllegalArgumentException("Longitude must be between -180 and 180 degrees");
+        if (!Double.isFinite(longitude) || longitude < -180 || longitude > 180) {
+            throw new IllegalArgumentException(
+                "Longitude must be a finite number between -180 and 180 degrees, got: " + longitude);
         }
     }
 
@@ -20,9 +24,12 @@ public record Coordinate(double latitude, double longitude) {
      *
      * @param other The target coordinate
      * @return Distance in meters
+     * @throws IllegalArgumentException if other is null
      */
     public double distanceTo(Coordinate other) {
-        final double EARTH_RADIUS_METERS = 6_371_000;
+        if (other == null) {
+            throw new IllegalArgumentException("Target coordinate cannot be null");
+        }
 
         double lat1Rad = Math.toRadians(this.latitude);
         double lat2Rad = Math.toRadians(other.latitude);
@@ -44,10 +51,15 @@ public record Coordinate(double latitude, double longitude) {
      * @param target The target coordinate
      * @param fraction The fraction of the distance (0.0 to 1.0)
      * @return The interpolated coordinate
+     * @throws IllegalArgumentException if target is null or fraction is out of range
      */
     public Coordinate interpolateTo(Coordinate target, double fraction) {
-        if (fraction < 0 || fraction > 1) {
-            throw new IllegalArgumentException("Fraction must be between 0 and 1");
+        if (target == null) {
+            throw new IllegalArgumentException("Target coordinate cannot be null");
+        }
+        if (!Double.isFinite(fraction) || fraction < 0 || fraction > 1) {
+            throw new IllegalArgumentException(
+                "Fraction must be a finite number between 0 and 1, got: " + fraction);
         }
 
         double newLat = this.latitude + (target.latitude - this.latitude) * fraction;
@@ -56,9 +68,14 @@ public record Coordinate(double latitude, double longitude) {
         return new Coordinate(newLat, newLng);
     }
 
+    /**
+     * Returns a string representation of this coordinate.
+     * Format: Coordinate[lat=40.712800, lng=-74.006000]
+     *
+     * @return A non-null string representation of this coordinate
+     */
     @Override
     public String toString() {
         return String.format("Coordinate[lat=%.6f, lng=%.6f]", latitude, longitude);
     }
 }
-

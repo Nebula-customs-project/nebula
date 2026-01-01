@@ -44,8 +44,6 @@ class RouteServiceTest {
                 "route-1",
                 "Test Route 1",
                 "Test description 1",
-                start1,
-                end,
                 waypoints1,
                 10000,
                 600
@@ -58,8 +56,6 @@ class RouteServiceTest {
                 "route-2",
                 "Test Route 2",
                 "Test description 2",
-                start2,
-                end,
                 waypoints2,
                 12000,
                 720

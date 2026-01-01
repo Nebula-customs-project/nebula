@@ -9,4 +9,3 @@ public enum JourneyStatus {
     PAUSED,
     COMPLETED
 }
-

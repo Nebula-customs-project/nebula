@@ -21,8 +21,6 @@ class JourneyStateTest {
             "test-route",
             "Test Route",
             "A test route",
-            waypoints.get(0),
-            waypoints.get(waypoints.size() - 1),
             waypoints,
             10000,
             600

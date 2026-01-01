@@ -40,4 +40,3 @@ public interface JourneyStateRepository {
      */
     boolean exists(String journeyId);
 }
-

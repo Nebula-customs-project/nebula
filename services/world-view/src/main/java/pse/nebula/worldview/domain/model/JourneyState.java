@@ -1,9 +1,12 @@
 package pse.nebula.worldview.domain.model;
 
+import lombok.Getter;
+
 /**
  * Represents the current state of a journey on a route.
  * This is a mutable entity that tracks the car's position along the route.
  */
+@Getter
 public class JourneyState {
 
     private final String journeyId;
@@ -21,8 +24,9 @@ public class JourneyState {
         if (route == null) {
             throw new IllegalArgumentException("Route cannot be null");
         }
-        if (speedMetersPerSecond <= 0) {
-            throw new IllegalArgumentException("Speed must be positive");
+        if (!Double.isFinite(speedMetersPerSecond) || speedMetersPerSecond <= 0) {
+            throw new IllegalArgumentException(
+                "Speed must be a positive finite number, got: " + speedMetersPerSecond);
         }
 
         this.journeyId = journeyId;
@@ -36,40 +40,59 @@ public class JourneyState {
 
     /**
      * Start the journey.
+     *
+     * @throws IllegalStateException if journey is already completed or in progress
      */
     public void start() {
         if (status == JourneyStatus.COMPLETED) {
             throw new IllegalStateException("Cannot start a completed journey");
+        }
+        if (status == JourneyStatus.IN_PROGRESS) {
+            throw new IllegalStateException("Journey is already in progress");
         }
         this.status = JourneyStatus.IN_PROGRESS;
     }
 
     /**
      * Pause the journey.
+     *
+     * @throws IllegalStateException if journey is not in progress
      */
     public void pause() {
-        if (status == JourneyStatus.IN_PROGRESS) {
-            this.status = JourneyStatus.PAUSED;
+        if (status != JourneyStatus.IN_PROGRESS) {
+            throw new IllegalStateException(
+                "Cannot pause journey in state: " + status + ". Journey must be in progress.");
         }
+        this.status = JourneyStatus.PAUSED;
     }
 
     /**
      * Resume a paused journey.
+     *
+     * @throws IllegalStateException if journey is not paused
      */
     public void resume() {
-        if (status == JourneyStatus.PAUSED) {
-            this.status = JourneyStatus.IN_PROGRESS;
+        if (status != JourneyStatus.PAUSED) {
+            throw new IllegalStateException(
+                "Cannot resume journey in state: " + status + ". Journey must be paused.");
         }
+        this.status = JourneyStatus.IN_PROGRESS;
     }
 
     /**
      * Move the car forward based on elapsed time.
      * Returns true if the car has reached the destination.
      *
-     * @param elapsedSeconds The time elapsed since the last update
+     * @param elapsedSeconds The time elapsed since the last update (must be positive)
      * @return true if journey is completed
+     * @throws IllegalArgumentException if elapsedSeconds is not positive and finite
      */
     public boolean advance(double elapsedSeconds) {
+        if (!Double.isFinite(elapsedSeconds) || elapsedSeconds <= 0) {
+            throw new IllegalArgumentException(
+                "Elapsed time must be a positive finite number, got: " + elapsedSeconds);
+        }
+
         if (status != JourneyStatus.IN_PROGRESS) {
             return status == JourneyStatus.COMPLETED;
         }
@@ -123,43 +146,24 @@ public class JourneyState {
             completedDistance += segmentStart.distanceTo(currentPosition);
         }
 
-        progressPercentage = (completedDistance / route.totalDistanceMeters()) * 100.0;
+        progressPercentage = Math.min(100.0, (completedDistance / route.totalDistanceMeters()) * 100.0);
     }
 
-    // Getters
-    public String getJourneyId() {
-        return journeyId;
-    }
-
-    public DrivingRoute getRoute() {
-        return route;
-    }
-
-    public int getCurrentWaypointIndex() {
-        return currentWaypointIndex;
-    }
-
-    public Coordinate getCurrentPosition() {
-        return currentPosition;
-    }
-
-    public JourneyStatus getStatus() {
-        return status;
-    }
-
-    public double getSpeedMetersPerSecond() {
-        return speedMetersPerSecond;
-    }
-
-    public double getProgressPercentage() {
-        return progressPercentage;
-    }
-
+    /**
+     * Update the speed of the journey.
+     *
+     * @param speed The new speed in meters per second
+     * @throws IllegalArgumentException if speed is not positive and finite
+     * @throws IllegalStateException if journey is already completed
+     */
     public void setSpeedMetersPerSecond(double speed) {
-        if (speed <= 0) {
-            throw new IllegalArgumentException("Speed must be positive");
+        if (!Double.isFinite(speed) || speed <= 0) {
+            throw new IllegalArgumentException(
+                "Speed must be a positive finite number, got: " + speed);
+        }
+        if (status == JourneyStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot change speed of a completed journey");
         }
         this.speedMetersPerSecond = speed;
     }
 }
-

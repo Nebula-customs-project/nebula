@@ -50,8 +50,6 @@ class RouteControllerTest {
                 "route-1",
                 "Ludwigsburg Schloss Route",
                 "From Ludwigsburg Palace via B27",
-                start1,
-                end,
                 waypoints1,
                 15000,
                 1200
@@ -64,8 +62,6 @@ class RouteControllerTest {
                 "route-2",
                 "Favoritepark Route",
                 "From Favoritepark Ludwigsburg",
-                start2,
-                end,
                 waypoints2,
                 12000,
                 1080

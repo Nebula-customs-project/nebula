@@ -61,8 +61,6 @@ class JourneyServiceTest {
                 "route-1",
                 "Test Route",
                 "Test description",
-                start,
-                end,
                 waypoints,
                 10000,
                 600
@@ -193,7 +191,7 @@ class JourneyServiceTest {
             List<Coordinate> shortWaypoints = Arrays.asList(start, end);
             DrivingRoute shortRoute = new DrivingRoute(
                     "short-route", "Short", "Short route",
-                    start, end, shortWaypoints, 10, 1
+                    shortWaypoints, 10, 1
             );
 
             JourneyState journeyState = new JourneyState(JOURNEY_ID, shortRoute, 100.0); // High speed

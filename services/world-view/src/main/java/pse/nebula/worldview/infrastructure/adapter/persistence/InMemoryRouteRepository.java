@@ -292,11 +292,8 @@ public class InMemoryRouteRepository implements RouteRepository {
 
     private void addRoute(String id, String name, String description,
                           List<Coordinate> waypoints, double distanceMeters, int durationSeconds) {
-        Coordinate start = waypoints.get(0);
-        Coordinate end = waypoints.get(waypoints.size() - 1);
-
         DrivingRoute route = new DrivingRoute(
-            id, name, description, start, end, waypoints, distanceMeters, durationSeconds
+            id, name, description, waypoints, distanceMeters, durationSeconds
         );
 
         routes.put(id, route);

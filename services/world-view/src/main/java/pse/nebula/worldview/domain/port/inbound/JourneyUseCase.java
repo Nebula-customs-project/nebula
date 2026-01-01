@@ -75,4 +75,3 @@ public interface JourneyUseCase {
      */
     boolean journeyExists(String journeyId);
 }
-

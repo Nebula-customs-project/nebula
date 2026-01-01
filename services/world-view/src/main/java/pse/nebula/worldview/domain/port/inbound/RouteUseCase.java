@@ -40,4 +40,3 @@ public interface RouteUseCase {
      */
     int getRouteCount();
 }
-

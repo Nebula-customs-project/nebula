@@ -18,10 +18,8 @@ import java.util.*;
 
 /**
  * PostgreSQL implementation of RouteRepository.
- * 
  * Stores 8 predefined routes to Porsche Zentrum Stuttgart.
  * All waypoints follow actual roads (fetched from OSRM and hardcoded).
- * 
  * Destination: Porsche Zentrum Stuttgart
  * Address: Porschestraße 1, 70435 Stuttgart, Germany
  * Coordinates: 48.8354, 9.1520
@@ -865,9 +863,7 @@ public class PostgresRouteRepository implements RouteRepository {
     // ==================== HELPER METHODS ====================
     private DrivingRoute createRoute(String id, String name, String description,
                                      List<Coordinate> waypoints, double distanceMeters, int durationSeconds) {
-        Coordinate start = waypoints.get(0);
-        Coordinate end = waypoints.get(waypoints.size() - 1);
-        return new DrivingRoute(id, name, description, start, end, waypoints, distanceMeters, durationSeconds);
+        return new DrivingRoute(id, name, description, waypoints, distanceMeters, durationSeconds);
     }
 
     @Override

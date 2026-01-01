@@ -1,17 +1,17 @@
 package pse.nebula.worldview.domain.model;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a driving route from a starting location to the dealership.
  * Contains the route metadata and the list of coordinates that form the path.
+ * Immutable value object following Domain-Driven Design principles.
  */
 public record DrivingRoute(
     String id,
     String name,
     String description,
-    Coordinate startPoint,
-    Coordinate endPoint,
     List<Coordinate> waypoints,
     double totalDistanceMeters,
     int estimatedDurationSeconds
@@ -23,17 +23,41 @@ public record DrivingRoute(
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Route name cannot be null or empty");
         }
-        if (startPoint == null) {
-            throw new IllegalArgumentException("Start point cannot be null");
+        if (waypoints == null || waypoints.size() < 2) {
+            throw new IllegalArgumentException("Route must have at least 2 waypoints (start and end)");
         }
-        if (endPoint == null) {
-            throw new IllegalArgumentException("End point cannot be null");
+        // Validate no null waypoints
+        if (waypoints.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("Waypoints list cannot contain null elements");
         }
-        if (waypoints == null || waypoints.isEmpty()) {
-            throw new IllegalArgumentException("Waypoints cannot be null or empty");
+        if (!Double.isFinite(totalDistanceMeters) || totalDistanceMeters <= 0) {
+            throw new IllegalArgumentException(
+                "Total distance must be a positive finite number, got: " + totalDistanceMeters);
+        }
+        if (estimatedDurationSeconds <= 0) {
+            throw new IllegalArgumentException(
+                "Estimated duration must be positive, got: " + estimatedDurationSeconds);
         }
         // Make waypoints immutable
         waypoints = List.copyOf(waypoints);
+    }
+
+    /**
+     * Get the starting point of the route (first waypoint).
+     *
+     * @return The starting coordinate
+     */
+    public Coordinate startPoint() {
+        return waypoints.get(0);
+    }
+
+    /**
+     * Get the ending point of the route (last waypoint).
+     *
+     * @return The ending coordinate
+     */
+    public Coordinate endPoint() {
+        return waypoints.get(waypoints.size() - 1);
     }
 
     /**
@@ -56,4 +80,3 @@ public record DrivingRoute(
         return waypoints.get(index);
     }
 }
-

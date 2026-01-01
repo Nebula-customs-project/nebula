@@ -32,4 +32,3 @@ public interface CoordinatePublisher {
      */
     void publishJourneyCompleted(JourneyState journeyState);
 }
-
