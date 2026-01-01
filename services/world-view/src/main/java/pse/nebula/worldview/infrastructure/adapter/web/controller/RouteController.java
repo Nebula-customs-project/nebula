@@ -10,7 +10,6 @@ import pse.nebula.worldview.infrastructure.adapter.web.dto.RouteDto;
 import pse.nebula.worldview.infrastructure.adapter.web.mapper.DtoMapper;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * REST controller for route-related operations.
@@ -38,7 +37,7 @@ public class RouteController {
         List<DrivingRoute> routes = routeUseCase.getAllRoutes();
         List<RouteDto> routeDtos = routes.stream()
             .map(dtoMapper::toDto)
-            .collect(Collectors.toList());
+            .toList();
 
         return ResponseEntity.ok(routeDtos);
     }

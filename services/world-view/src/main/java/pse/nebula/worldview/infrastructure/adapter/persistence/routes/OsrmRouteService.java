@@ -81,6 +81,10 @@ public class OsrmRouteService {
 
             return parseOsrmResponse(response.body(), start, end);
 
+        } catch (InterruptedException e) {
+            log.error("Route fetch interrupted: {}", e.getMessage());
+            Thread.currentThread().interrupt(); // Restore interrupt status
+            return createFallbackWaypoints(start, end);
         } catch (Exception e) {
             log.error("Failed to fetch route from OSRM: {}", e.getMessage());
             return createFallbackWaypoints(start, end);

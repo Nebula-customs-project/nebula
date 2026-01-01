@@ -11,7 +11,6 @@ import pse.nebula.worldview.infrastructure.adapter.web.dto.RouteDto;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Mapper for converting between domain models and DTOs.
@@ -35,7 +34,7 @@ public class DtoMapper {
     public RouteDto toDto(DrivingRoute route) {
         List<CoordinateDto> waypointDtos = route.waypoints().stream()
             .map(this::toDto)
-            .collect(Collectors.toList());
+            .toList();
 
         return RouteDto.builder()
             .id(route.id())
