@@ -76,11 +76,12 @@ info:
     description: Driving route simulation service
     version: 1.0.0
 
-# Journey Configuration
+# Journey Configuration (Auto-managed journeys)
 journey:
   scheduler:
     update-interval-ms: ${JOURNEY_UPDATE_INTERVAL:2000}
     default-speed-mps: ${JOURNEY_DEFAULT_SPEED:13.89}
+    delay-between-journeys-ms: ${JOURNEY_DELAY_BETWEEN:5000}
 
 # Route Configuration
 route:
