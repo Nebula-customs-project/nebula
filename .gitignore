@@ -101,4 +101,4 @@ services/**/.env.local
 services/**/.env.*.local
 
 ### Spring Boot Development Profiles (contain credentials) ###
-services/world-view/src/main/resources/application-dev.yml*
+services/world-view/src/main/resources/application-dev.yaml
