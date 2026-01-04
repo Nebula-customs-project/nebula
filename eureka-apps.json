@@ -1,0 +1,100 @@
+﻿{
+    "applications":  {
+                         "versions__delta":  "1",
+                         "apps__hashcode":  "UP_2_",
+                         "application":  [
+                                             {
+                                                 "name":  "WORLD-VIEW",
+                                                 "instance":  [
+                                                                  {
+                                                                      "instanceId":  "host.docker.internal:world-view:8082",
+                                                                      "hostName":  "host.docker.internal",
+                                                                      "app":  "WORLD-VIEW",
+                                                                      "ipAddr":  "100.80.138.33",
+                                                                      "status":  "UP",
+                                                                      "overriddenStatus":  "UNKNOWN",
+                                                                      "port":  {
+                                                                                   "$":  8082,
+                                                                                   "@enabled":  "true"
+                                                                               },
+                                                                      "securePort":  {
+                                                                                         "$":  443,
+                                                                                         "@enabled":  "false"
+                                                                                     },
+                                                                      "countryId":  1,
+                                                                      "dataCenterInfo":  {
+                                                                                             "@class":  "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo",
+                                                                                             "name":  "MyOwn"
+                                                                                         },
+                                                                      "leaseInfo":  {
+                                                                                        "renewalIntervalInSecs":  30,
+                                                                                        "durationInSecs":  90,
+                                                                                        "registrationTimestamp":  1767566311008,
+                                                                                        "lastRenewalTimestamp":  1767566581129,
+                                                                                        "evictionTimestamp":  0,
+                                                                                        "serviceUpTimestamp":  1767566311008
+                                                                                    },
+                                                                      "metadata":  {
+                                                                                       "management.port":  "8082"
+                                                                                   },
+                                                                      "homePageUrl":  "http://host.docker.internal:8082/",
+                                                                      "statusPageUrl":  "http://host.docker.internal:8082/actuator/info",
+                                                                      "healthCheckUrl":  "http://host.docker.internal:8082/actuator/health",
+                                                                      "vipAddress":  "world-view",
+                                                                      "secureVipAddress":  "world-view",
+                                                                      "isCoordinatingDiscoveryServer":  "false",
+                                                                      "lastUpdatedTimestamp":  "1767566311008",
+                                                                      "lastDirtyTimestamp":  "1767566310976",
+                                                                      "actionType":  "ADDED"
+                                                                  }
+                                                              ]
+                                             },
+                                             {
+                                                 "name":  "GATEWAY-SERVICE",
+                                                 "instance":  [
+                                                                  {
+                                                                      "instanceId":  "host.docker.internal:gateway-service:8080",
+                                                                      "hostName":  "host.docker.internal",
+                                                                      "app":  "GATEWAY-SERVICE",
+                                                                      "ipAddr":  "100.80.138.33",
+                                                                      "status":  "UP",
+                                                                      "overriddenStatus":  "UNKNOWN",
+                                                                      "port":  {
+                                                                                   "$":  8080,
+                                                                                   "@enabled":  "true"
+                                                                               },
+                                                                      "securePort":  {
+                                                                                         "$":  443,
+                                                                                         "@enabled":  "false"
+                                                                                     },
+                                                                      "countryId":  1,
+                                                                      "dataCenterInfo":  {
+                                                                                             "@class":  "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo",
+                                                                                             "name":  "MyOwn"
+                                                                                         },
+                                                                      "leaseInfo":  {
+                                                                                        "renewalIntervalInSecs":  30,
+                                                                                        "durationInSecs":  90,
+                                                                                        "registrationTimestamp":  1767566291450,
+                                                                                        "lastRenewalTimestamp":  1767566561570,
+                                                                                        "evictionTimestamp":  0,
+                                                                                        "serviceUpTimestamp":  1767566291450
+                                                                                    },
+                                                                      "metadata":  {
+                                                                                       "management.port":  "8080"
+                                                                                   },
+                                                                      "homePageUrl":  "http://host.docker.internal:8080/",
+                                                                      "statusPageUrl":  "http://host.docker.internal:8080/actuator/info",
+                                                                      "healthCheckUrl":  "http://host.docker.internal:8080/actuator/health",
+                                                                      "vipAddress":  "gateway-service",
+                                                                      "secureVipAddress":  "gateway-service",
+                                                                      "isCoordinatingDiscoveryServer":  "false",
+                                                                      "lastUpdatedTimestamp":  "1767566291450",
+                                                                      "lastDirtyTimestamp":  "1767566291425",
+                                                                      "actionType":  "ADDED"
+                                                                  }
+                                                              ]
+                                             }
+                                         ]
+                     }
+}

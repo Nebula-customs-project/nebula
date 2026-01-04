@@ -70,6 +70,8 @@
 
     <modules>
         <module>services/world-view</module>
+        <module>services/platform-core</module>
+        <module>services/gateway-service</module>
     </modules>
 
     <build>
