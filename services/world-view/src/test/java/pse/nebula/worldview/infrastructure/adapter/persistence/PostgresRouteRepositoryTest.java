@@ -27,7 +27,7 @@ class PostgresRouteRepositoryTest {
     @Autowired
     private RouteRepository routeRepository;
 
-    // Porsche Zentrum Stuttgart - Destination for all routes
+    // Dealership - Destination for all routes
     private static final double DEALERSHIP_LAT = 48.8354;
     private static final double DEALERSHIP_LNG = 9.1520;
 
@@ -81,7 +81,7 @@ class PostgresRouteRepositoryTest {
     class RouteEndpointTests {
 
         @Test
-        @DisplayName("All routes should end at Porsche Zentrum Stuttgart")
+        @DisplayName("All routes should end at Dealership")
         void allRoutesShouldEndAtDealership() {
             List<DrivingRoute> routes = routeRepository.findAll();
 

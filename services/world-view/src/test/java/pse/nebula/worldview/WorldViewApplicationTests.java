@@ -87,7 +87,7 @@ class WorldViewApplicationTests {
 
         assertNotNull(response.getBody());
         for (RouteDto route : response.getBody()) {
-            // All routes should end at Porsche Zentrum Stuttgart
+            // All routes should end at Dealership
             assertEquals(48.8354, route.getEndPoint().getLatitude(), 0.0001,
                 "Route " + route.getId() + " should end at dealership latitude");
             assertEquals(9.152, route.getEndPoint().getLongitude(), 0.0001,

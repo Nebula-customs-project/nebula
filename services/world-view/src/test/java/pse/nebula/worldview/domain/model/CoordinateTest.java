@@ -32,7 +32,7 @@ class CoordinateTest {
 
     @Test
     void shouldCalculateDistance() {
-        // Ludwigsburg Schloss to Porsche Zentrum Stuttgart
+        // Ludwigsburg Schloss to Dealership
         Coordinate start = new Coordinate(48.8973, 9.1920);
         Coordinate end = new Coordinate(48.8354, 9.1520);
 

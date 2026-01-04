@@ -18,9 +18,9 @@ import java.util.*;
 
 /**
  * PostgreSQL implementation of RouteRepository.
- * Stores 8 predefined routes to Porsche Zentrum Stuttgart.
+ * Stores 8 predefined routes to Dealership.
  * All waypoints follow actual roads (fetched from OSRM and hardcoded).
- * Destination: Porsche Zentrum Stuttgart
+ * Destination: Dealership
  * Address: Porschestraße 1, 70435 Stuttgart, Germany
  * Coordinates: 48.8354, 9.1520
  */

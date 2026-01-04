@@ -8,20 +8,20 @@ import jakarta.annotation.PostConstruct;
 import java.util.*;
 
 /**
- * In-memory implementation of RouteRepository containing 8 predefined routes to Porsche Zentrum Stuttgart.
+ * In-memory implementation of RouteRepository containing 8 predefined routes to Dealership.
  * This is kept as a fallback/testing implementation.
  * The primary implementation is JpaRouteRepositoryAdapter.
  *
  * This adapter implements the outbound port for route persistence,
  * following the Hexagonal Architecture pattern.
  *
- * All routes end at the dealership: Porsche Zentrum Stuttgart
+ * All routes end at the dealership: Dealership
  * Address: Porschestraße 1, 70435 Stuttgart, Germany
  * Coordinates: 48.8354, 9.1520
  */
 public class InMemoryRouteRepositoryAdapter implements RouteRepository {
 
-    // Porsche Zentrum Stuttgart - Destination for all routes
+    // Dealership - Destination for all routes
     private static final Coordinate DEALERSHIP = new Coordinate(48.8354, 9.1520);
 
     private final Map<String, DrivingRoute> routes = new LinkedHashMap<>();
@@ -54,7 +54,7 @@ public class InMemoryRouteRepositoryAdapter implements RouteRepository {
     }
 
     /**
-     * Route 1: Ludwigsburg Schloss → Porsche Zentrum Stuttgart
+     * Route 1: Ludwigsburg Schloss → Dealership
      * Distance: ~15 km, Duration: ~20 min
      * Via B27 and Stammheimer Straße
      */
@@ -85,7 +85,7 @@ public class InMemoryRouteRepositoryAdapter implements RouteRepository {
     }
 
     /**
-     * Route 2: Favoritepark (Ludwigsburg) → Porsche Zentrum Stuttgart
+     * Route 2: Favoritepark (Ludwigsburg) → Dealership
      * Distance: ~12 km, Duration: ~18 min
      * Via Favoritepark and Stammheimer Straße
      */
@@ -114,7 +114,7 @@ public class InMemoryRouteRepositoryAdapter implements RouteRepository {
     }
 
     /**
-     * Route 3: Esslingen am Neckar → Porsche Zentrum Stuttgart
+     * Route 3: Esslingen am Neckar → Dealership
      * Distance: ~20 km, Duration: ~25 min
      * Via B10 and Neckartalstraße
      */
@@ -147,7 +147,7 @@ public class InMemoryRouteRepositoryAdapter implements RouteRepository {
     }
 
     /**
-     * Route 4: Böblingen → Porsche Zentrum Stuttgart
+     * Route 4: Böblingen → Dealership
      * Distance: ~22 km, Duration: ~28 min
      * Via A81 and B295
      */
@@ -181,7 +181,7 @@ public class InMemoryRouteRepositoryAdapter implements RouteRepository {
     }
 
     /**
-     * Route 5: Sindelfingen → Porsche Zentrum Stuttgart
+     * Route 5: Sindelfingen → Dealership
      * Distance: ~18 km, Duration: ~24 min
      * Via Mahdentalstraße and B14
      */
@@ -215,7 +215,7 @@ public class InMemoryRouteRepositoryAdapter implements RouteRepository {
     }
 
     /**
-     * Route 6: Waiblingen → Porsche Zentrum Stuttgart
+     * Route 6: Waiblingen → Dealership
      * Distance: ~16 km, Duration: ~22 min
      * Via B14 and B29
      */
@@ -243,7 +243,7 @@ public class InMemoryRouteRepositoryAdapter implements RouteRepository {
     }
 
     /**
-     * Route 7: Fellbach → Porsche Zentrum Stuttgart
+     * Route 7: Fellbach → Dealership
      * Distance: ~10 km, Duration: ~15 min
      * Via Fellbacher Straße and Schmidener Straße
      */
@@ -270,7 +270,7 @@ public class InMemoryRouteRepositoryAdapter implements RouteRepository {
     }
 
     /**
-     * Route 8: Kornwestheim → Porsche Zentrum Stuttgart
+     * Route 8: Kornwestheim → Dealership
      * Distance: ~5 km, Duration: ~10 min
      * Via Stammheimer Straße - Closest route
      */

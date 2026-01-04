@@ -1,21 +1,15 @@
 # =============================================================================
-# World View Service Configuration
+# World View Service - Development Profile
 # =============================================================================
-# This is the base configuration file. For local development, use:
-#   mvn spring-boot:run -Dspring-boot.run.profiles=dev
-#
-# Credentials are NOT stored here. Create application-dev.yaml & copy below content, fill the details & use locally.
+# Usage: mvn spring-boot:run -Dspring-boot.run.profiles=dev
 # =============================================================================
 
+# Database Configuration (Local PostgreSQL via Docker)
 spring:
-  application:
-    name: world-view
-
-  # Database Configuration (credentials from environment or profile)
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?currentSchema=world_view
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5434/nebula_db?currentSchema=world_view
+    username: nebula_user
+    password: nebula@2025
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -43,7 +37,7 @@ spring:
 
 # Server Configuration
 server:
-  port: ${SERVER_PORT:8082}
+  port: 8082
 
 # Logging Configuration
 logging:
@@ -86,15 +80,15 @@ route:
     latitude: 48.8354
     longitude: 9.1520
 
-# MQTT Configuration (credentials from environment or profile)
+# MQTT Configuration (Local RabbitMQ via Docker)
 mqtt:
-  enabled: ${MQTT_ENABLED:true}
+  enabled: true
   broker:
-    host: ${MQTT_HOST}
-    port: ${MQTT_PORT:1883}
+    host: localhost
+    port: 1883
   client:
-    id: ${MQTT_CLIENT_ID:world-view-service}
-  username: ${MQTT_USERNAME}
-  password: ${MQTT_PASSWORD}
+    id: world-view-service-dev
+  username: nebula_user
+  password: nebula@2025
   topic:
-    prefix: ${MQTT_TOPIC_PREFIX:nebula/journey}
+    prefix: nebula/journey

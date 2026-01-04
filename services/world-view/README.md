@@ -1,10 +1,10 @@
 # World View Service -- Need to be updated.
 
-A Spring Boot microservice that provides driving route simulation to **Porsche Zentrum Stuttgart** dealership. This service follows Hexagonal Architecture (Ports and Adapters pattern).
+A Spring Boot microservice that provides driving route simulation to **Dealership** dealership. This service follows Hexagonal Architecture (Ports and Adapters pattern).
 
 ## Features
 
-- **8 Predefined Routes**: Real coordinates from various Stuttgart-area locations to Porsche Zentrum Stuttgart
+- **8 Predefined Routes**: Real coordinates from various Stuttgart-area locations to Dealership
 - **Random Route Selection**: Each UI reload gets a randomly selected route
 - **Real-time Coordinate Streaming**: SSE (Server-Sent Events) for smooth car animation on the frontend
 - **Journey Management**: Start, pause, resume, and stop journeys
@@ -45,9 +45,9 @@ A Spring Boot microservice that provides driving route simulation to **Porsche Z
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Routes to Porsche Zentrum Stuttgart
+## Routes to Dealership
 
-All routes end at: **Porsche Zentrum Stuttgart** (Porschestraße 1, 70435 Stuttgart)
+All routes end at: **Dealership** (Porschestraße 1, 70435 Stuttgart)
 Coordinates: `48.8354, 9.1520`
 
 | Route | Start Location | Distance | Duration |

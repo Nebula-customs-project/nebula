@@ -62,7 +62,7 @@ journey:
 # Route Configuration
 route:
   dealership:
-    name: Porsche Zentrum Stuttgart
+    name: Dealership
     latitude: 48.8354
     longitude: 9.1520
 

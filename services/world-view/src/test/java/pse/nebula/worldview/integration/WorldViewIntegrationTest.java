@@ -72,7 +72,7 @@ class WorldViewIntegrationTest {
         }
 
         @Test
-        @DisplayName("All routes should end at Porsche Zentrum Stuttgart")
+        @DisplayName("All routes should end at Dealership")
         void allRoutesShouldEndAtDealership() {
             // Given
             double dealershipLat = 48.8354;
