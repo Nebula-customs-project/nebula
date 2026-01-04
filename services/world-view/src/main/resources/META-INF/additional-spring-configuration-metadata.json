@@ -1,0 +1,47 @@
+{
+  "hints": [
+    {
+      "name": "management.endpoints.web.exposure.include",
+      "values": [
+        {
+          "value": "health",
+          "description": "Displays application health information."
+        },
+        {
+          "value": "info",
+          "description": "Displays arbitrary application info."
+        },
+        {
+          "value": "metrics",
+          "description": "Shows metrics information for the current application."
+        },
+        {
+          "value": "prometheus",
+          "description": "Exposes metrics in a format that can be scraped by a Prometheus server."
+        }
+      ],
+      "providers": [
+        {
+          "name": "any"
+        }
+      ]
+    },
+    {
+      "name": "management.endpoint.health.show-details",
+      "values": [
+        {
+          "value": "never",
+          "description": "Never show details."
+        },
+        {
+          "value": "when-authorized",
+          "description": "Show details only to authorized users."
+        },
+        {
+          "value": "always",
+          "description": "Always show details."
+        }
+      ]
+    }
+  ]
+}

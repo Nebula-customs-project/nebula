@@ -1,0 +1,103 @@
+# =============================================================================
+# World View Service Configuration
+# =============================================================================
+# This is the base configuration file. For local development, use:
+#   mvn spring-boot:run -Dspring-boot.run.profiles=dev
+#
+# Credentials are NOT stored here. Create application-dev.yaml & copy below content, fill the details & use locally.
+# =============================================================================
+
+spring:
+  profiles:
+    active: dev
+
+  application:
+    name: world-view
+
+  # Database Configuration (credentials from environment or profile)
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?currentSchema=world_view
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 30000
+      connection-timeout: 20000
+      max-lifetime: 1800000
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: world_view
+    open-in-view: false
+
+  # Jackson Configuration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8082}
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    pse.nebula.worldview: INFO
+    # Suppress noisy framework logs
+    org.hibernate: WARN
+    com.zaxxer.hikari: WARN
+    org.springframework: WARN
+    org.apache: WARN
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Application Info
+info:
+  app:
+    name: World View Service
+    description: Driving route simulation service
+    version: 1.0.0
+
+# Journey Configuration
+journey:
+  scheduler:
+    update-interval-ms: ${JOURNEY_UPDATE_INTERVAL:2000}
+    default-speed-mps: ${JOURNEY_DEFAULT_SPEED:13.89}
+
+# Route Configuration
+route:
+  dealership:
+    name: Dealership
+    latitude: 48.8354
+    longitude: 9.1520
+
+# MQTT Configuration (credentials from environment or profile)
+mqtt:
+  enabled: ${MQTT_ENABLED:true}
+  broker:
+    host: ${MQTT_HOST}
+    port: ${MQTT_PORT:1883}
+  client:
+    id: ${MQTT_CLIENT_ID:world-view-service}
+  username: ${MQTT_USERNAME}
+  password: ${MQTT_PASSWORD}
+  topic:
+    prefix: ${MQTT_TOPIC_PREFIX:nebula/journey}

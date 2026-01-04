@@ -1,0 +1,72 @@
+# =============================================================================
+# Test Configuration for World View Service
+# Uses H2 in-memory database for testing
+# =============================================================================
+
+spring:
+  application:
+    name: world-view-test
+
+  # H2 Database Configuration for Testing
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;INIT=CREATE SCHEMA IF NOT EXISTS world_view
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # JPA Configuration for Testing
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        default_schema: world_view
+    open-in-view: false
+
+  # Jackson Configuration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+# Server Configuration
+server:
+  port: 0  # Random port for testing
+
+# Logging Configuration
+logging:
+  level:
+    root: WARN
+    pse.nebula.worldview: DEBUG
+    org.hibernate.SQL: DEBUG
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# Journey Configuration
+journey:
+  scheduler:
+    update-interval-ms: 100  # Faster updates for testing
+    default-speed-mps: 50.0  # Higher speed for testing
+
+# Route Configuration
+route:
+  dealership:
+    name: Dealership
+    latitude: 48.8354
+    longitude: 9.1520
+
+# MQTT Configuration - Disabled for testing
+mqtt:
+  enabled: false
+

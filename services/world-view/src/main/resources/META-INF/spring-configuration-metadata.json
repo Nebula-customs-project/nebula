@@ -1,0 +1,53 @@
+{
+  "groups": [
+    {
+      "name": "mqtt",
+      "type": "pse.nebula.telemetry.infrastructure.config.MqttProperties",
+      "sourceType": "pse.nebula.telemetry.infrastructure.config.MqttProperties"
+    },
+    {
+      "name": "mqtt.broker",
+      "type": "pse.nebula.telemetry.infrastructure.config.MqttProperties$Broker",
+      "sourceType": "pse.nebula.telemetry.infrastructure.config.MqttProperties",
+      "sourceMethod": "getBroker()"
+    },
+    {
+      "name": "mqtt.client",
+      "type": "pse.nebula.telemetry.infrastructure.config.MqttProperties$Client",
+      "sourceType": "pse.nebula.telemetry.infrastructure.config.MqttProperties",
+      "sourceMethod": "getClient()"
+    },
+    {
+      "name": "mqtt.topic",
+      "type": "pse.nebula.telemetry.infrastructure.config.MqttProperties$Topic",
+      "sourceType": "pse.nebula.telemetry.infrastructure.config.MqttProperties",
+      "sourceMethod": "getTopic()"
+    }
+  ],
+  "properties": [
+    {
+      "name": "mqtt.broker.host",
+      "type": "java.lang.String",
+      "sourceType": "pse.nebula.telemetry.infrastructure.config.MqttProperties$Broker",
+      "defaultValue": "localhost"
+    },
+    {
+      "name": "mqtt.broker.port",
+      "type": "java.lang.Integer",
+      "sourceType": "pse.nebula.telemetry.infrastructure.config.MqttProperties$Broker",
+      "defaultValue": 1883
+    },
+    {
+      "name": "mqtt.client.id",
+      "type": "java.lang.String",
+      "sourceType": "pse.nebula.telemetry.infrastructure.config.MqttProperties$Client"
+    },
+    {
+      "name": "mqtt.topic.telemetry",
+      "type": "java.lang.String",
+      "sourceType": "pse.nebula.telemetry.infrastructure.config.MqttProperties$Topic",
+      "defaultValue": "telemetry\/data"
+    }
+  ],
+  "hints": []
+}
