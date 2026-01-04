@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import pse.nebula.worldview.infrastructure.adapter.messaging.MqttCoordinatePublisher;
-import pse.nebula.worldview.infrastructure.adapter.web.mapper.DtoMapper;
+import pse.nebula.worldview.infrastructure.adapter.outbound.messaging.MqttCoordinatePublisherAdapter;
+import pse.nebula.worldview.infrastructure.adapter.inbound.web.mapper.DtoMapper;
 
 import java.util.UUID;
 
@@ -75,11 +75,11 @@ public class MqttConfig {
 
     @Bean
     @ConditionalOnProperty(name = "mqtt.enabled", havingValue = "true", matchIfMissing = true)
-    public MqttCoordinatePublisher mqttCoordinatePublisher(
-            Mqtt5AsyncClient mqttClient, 
+    public MqttCoordinatePublisherAdapter mqttCoordinatePublisher(
+            Mqtt5AsyncClient mqttClient,
             DtoMapper dtoMapper, 
             ObjectMapper objectMapper) {
-        log.info("Creating MqttCoordinatePublisher with topic prefix: {}", topicPrefix);
-        return new MqttCoordinatePublisher(mqttClient, dtoMapper, objectMapper, topicPrefix);
+        log.info("Creating MqttCoordinatePublisherAdapter with topic prefix: {}", topicPrefix);
+        return new MqttCoordinatePublisherAdapter(mqttClient, dtoMapper, objectMapper, topicPrefix);
     }
 }
