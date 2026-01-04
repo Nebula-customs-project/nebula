@@ -4,35 +4,33 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import pse.nebula.worldview.application.service.JourneySchedulerService;
 import pse.nebula.worldview.domain.model.JourneyState;
 import pse.nebula.worldview.domain.port.inbound.JourneyUseCase;
 import pse.nebula.worldview.infrastructure.adapter.inbound.web.dto.JourneyStateDto;
 import pse.nebula.worldview.infrastructure.adapter.inbound.web.dto.StartJourneyRequest;
 import pse.nebula.worldview.infrastructure.adapter.inbound.web.mapper.DtoMapper;
-import pse.nebula.worldview.infrastructure.adapter.inbound.web.sse.SseEmitterManager;
 
 import java.util.UUID;
 
 /**
  * REST controller for journey-related operations.
  * Provides endpoints to start, stop, and track journeys.
- * Also provides SSE endpoint for real-time coordinate streaming.
+ *
+ * Real-time coordinate streaming is handled via MQTT (RabbitMQ).
+ * Frontend subscribes to MQTT topics: nebula/journey/{journeyId}/position
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/journeys")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Allow frontend access
+@CrossOrigin(origins = "*")
 public class JourneyController {
 
     private final JourneyUseCase journeyUseCase;
     private final JourneySchedulerService journeySchedulerService;
-    private final SseEmitterManager sseEmitterManager;
     private final DtoMapper dtoMapper;
 
     /**
@@ -128,20 +126,6 @@ public class JourneyController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Subscribe to real-time coordinate updates for a journey via Server-Sent Events.
-     * The frontend should call this endpoint to receive coordinate updates as the car moves.
-     *
-     * @param journeyId The journey identifier
-     * @return SSE stream of coordinate updates
-     */
-    @GetMapping(value = "/{journeyId}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamCoordinates(@PathVariable String journeyId) {
-        String clientId = UUID.randomUUID().toString();
-        log.info("New SSE subscription for journey: {}, client: {}", journeyId, clientId);
-
-        return sseEmitterManager.createEmitter(journeyId, clientId);
-    }
 
     /**
      * Quick start a journey with random route and default speed.

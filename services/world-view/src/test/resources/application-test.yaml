@@ -66,3 +66,7 @@ route:
     latitude: 48.8354
     longitude: 9.1520
 
+# MQTT Configuration - Disabled for testing
+mqtt:
+  enabled: false
+

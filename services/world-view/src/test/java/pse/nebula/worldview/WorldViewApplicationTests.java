@@ -8,7 +8,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import pse.nebula.worldview.infrastructure.adapter.web.dto.RouteDto;
+import pse.nebula.worldview.infrastructure.adapter.inbound.web.dto.RouteDto;
 
 import static org.junit.jupiter.api.Assertions.*;
 

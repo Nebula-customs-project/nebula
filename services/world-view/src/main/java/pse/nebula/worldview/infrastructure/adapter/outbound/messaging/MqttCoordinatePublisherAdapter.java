@@ -21,12 +21,12 @@ import java.util.concurrent.TimeUnit;
  * Publishes coordinate updates to MQTT topics via RabbitMQ's MQTT plugin.
  * This allows frontend clients to subscribe via WebSocket MQTT.
  *
- * This adapter follows the Hexagonal Architecture pattern, implementing
- * an outbound port to push data to external consumers via MQTT.
+ * This is the PRIMARY publisher for real-time coordinate streaming.
+ * Bean is created in MqttConfig with proper configuration.
  *
  * Topic structure:
  * - nebula/journey/{journeyId}/position - Real-time coordinate updates
- * - nebula/journey/{journeyId}/events - Journey lifecycle events (started, completed, paused)
+ * - nebula/journey/{journeyId}/events - Journey lifecycle events (started, completed)
  */
 @Slf4j
 public class MqttCoordinatePublisherAdapter implements CoordinatePublisher {

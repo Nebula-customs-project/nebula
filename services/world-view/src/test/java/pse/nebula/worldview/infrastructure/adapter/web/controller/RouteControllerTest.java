@@ -14,7 +14,7 @@ import pse.nebula.worldview.domain.model.Coordinate;
 import pse.nebula.worldview.domain.model.DrivingRoute;
 import pse.nebula.worldview.domain.port.inbound.RouteUseCase;
 import pse.nebula.worldview.infrastructure.adapter.inbound.web.controller.RouteController;
-import pse.nebula.worldview.infrastructure.adapter.web.mapper.DtoMapper;
+import pse.nebula.worldview.infrastructure.adapter.inbound.web.mapper.DtoMapper;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,7 +71,7 @@ class RouteControllerTest {
         // Setup mapper mock behavior
         when(dtoMapper.toDto(org.mockito.ArgumentMatchers.any(DrivingRoute.class))).thenAnswer(invocation -> {
             DrivingRoute route = invocation.getArgument(0);
-            return pse.nebula.worldview.infrastructure.adapter.web.dto.RouteDto.builder()
+            return pse.nebula.worldview.infrastructure.adapter.inbound.web.dto.RouteDto.builder()
                     .id(route.id())
                     .name(route.name())
                     .description(route.description())
