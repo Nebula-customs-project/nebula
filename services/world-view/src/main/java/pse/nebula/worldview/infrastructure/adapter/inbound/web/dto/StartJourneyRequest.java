@@ -22,10 +22,9 @@ public class StartJourneyRequest {
     private String journeyId;
 
     @JsonProperty("route_id")
-    private String routeId;  // Optional - if not provided, a random route will be selected
+    private String routeId;  // If not provided, a random route will be selected
 
     @Positive(message = "Speed must be positive")
     @JsonProperty("speed_meters_per_second")
     private double speedMetersPerSecond;
 }
-

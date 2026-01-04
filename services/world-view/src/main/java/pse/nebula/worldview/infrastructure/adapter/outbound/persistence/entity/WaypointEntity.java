@@ -36,4 +36,3 @@ public class WaypointEntity {
     @JoinColumn(name = "route_id", nullable = false)
     private RouteEntity route;
 }
-

@@ -162,4 +162,3 @@ public class JourneyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(dtoMapper.toDto(journeyState));
     }
 }
-

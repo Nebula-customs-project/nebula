@@ -143,4 +143,3 @@ public class MqttCoordinatePublisherAdapter implements CoordinatePublisher {
      */
     public record JourneyEventMessage(String eventType, CoordinateUpdateDto data) {}
 }
-

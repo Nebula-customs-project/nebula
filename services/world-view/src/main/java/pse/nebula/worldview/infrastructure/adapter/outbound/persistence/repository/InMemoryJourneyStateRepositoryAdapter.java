@@ -56,4 +56,3 @@ public class InMemoryJourneyStateRepositoryAdapter implements JourneyStateReposi
         return journeyStates.size();
     }
 }
-

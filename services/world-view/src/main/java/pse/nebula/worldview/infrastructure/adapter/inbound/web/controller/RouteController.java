@@ -80,4 +80,3 @@ public class RouteController {
         return ResponseEntity.ok(routeUseCase.getRouteCount());
     }
 }
-

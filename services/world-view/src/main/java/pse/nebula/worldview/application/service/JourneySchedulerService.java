@@ -20,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JourneySchedulerService {
 
     private final JourneyUseCase journeyUseCase;
-    private final long updateIntervalMs;
     private final double updateIntervalSeconds;
 
     // Track active journey IDs
@@ -30,7 +29,6 @@ public class JourneySchedulerService {
             JourneyUseCase journeyUseCase,
             @Value("${journey.scheduler.update-interval-ms:500}") long updateIntervalMs) {
         this.journeyUseCase = journeyUseCase;
-        this.updateIntervalMs = updateIntervalMs;
         this.updateIntervalSeconds = updateIntervalMs / 1000.0;
         log.info("JourneySchedulerService initialized with update interval: {}ms ({}s)", 
                 updateIntervalMs, updateIntervalSeconds);
@@ -57,32 +55,6 @@ public class JourneySchedulerService {
         log.info("Unregistered journey from updates: {}", journeyId);
     }
 
-    /**
-     * Check if a journey is being tracked.
-     *
-     * @param journeyId The journey ID
-     * @return true if the journey is active
-     */
-    public boolean isJourneyActive(String journeyId) {
-        return activeJourneyIds.contains(journeyId);
-    }
-
-    /**
-     * Get the number of active journeys.
-     *
-     * @return The count of active journeys
-     */
-    public int getActiveJourneyCount() {
-        return activeJourneyIds.size();
-    }
-
-    /**
-     * Get the configured update interval in milliseconds.
-     * @return update interval in ms
-     */
-    public long getUpdateIntervalMs() {
-        return updateIntervalMs;
-    }
 
     /**
      * Scheduled task that runs at configured interval to update all active journeys.
@@ -102,7 +74,6 @@ public class JourneySchedulerService {
                 processJourney(journeyId);
             } catch (Exception e) {
                 log.error("Error processing journey: {}", journeyId, e);
-                // Continue with other journeys
             }
         }
     }
@@ -136,4 +107,3 @@ public class JourneySchedulerService {
         }
     }
 }
-

@@ -13,4 +13,3 @@ public class WorldViewConfig {
 
     // Additional configuration beans can be added here as needed
 }
-

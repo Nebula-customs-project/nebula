@@ -57,4 +57,3 @@ public class RouteService implements RouteUseCase {
         return routeRepository.count();
     }
 }
-

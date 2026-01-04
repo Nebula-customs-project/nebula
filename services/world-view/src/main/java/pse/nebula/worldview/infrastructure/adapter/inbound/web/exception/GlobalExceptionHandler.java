@@ -129,4 +129,3 @@ public class GlobalExceptionHandler {
             || lowerMessage.contains("stream closed");
     }
 }
-

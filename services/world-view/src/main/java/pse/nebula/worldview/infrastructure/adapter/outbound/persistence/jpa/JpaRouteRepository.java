@@ -10,4 +10,3 @@ import pse.nebula.worldview.infrastructure.adapter.outbound.persistence.entity.R
 @Repository
 public interface JpaRouteRepository extends JpaRepository<RouteEntity, String> {
 }
-

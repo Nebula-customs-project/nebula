@@ -139,4 +139,3 @@ public class JourneyService implements JourneyUseCase {
         return journeyStateRepository.exists(journeyId);
     }
 }
-

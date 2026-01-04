@@ -63,4 +63,3 @@ public class RouteEntity {
         waypoint.setRoute(this);
     }
 }
-

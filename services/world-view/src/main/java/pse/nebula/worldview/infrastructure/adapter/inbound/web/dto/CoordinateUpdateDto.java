@@ -38,4 +38,3 @@ public class CoordinateUpdateDto {
     @JsonProperty("timestamp")
     private Instant timestamp;
 }
-

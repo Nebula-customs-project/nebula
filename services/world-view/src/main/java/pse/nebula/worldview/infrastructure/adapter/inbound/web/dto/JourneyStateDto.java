@@ -36,4 +36,3 @@ public class JourneyStateDto {
     @JsonProperty("progress_percentage")
     private double progressPercentage;
 }
-

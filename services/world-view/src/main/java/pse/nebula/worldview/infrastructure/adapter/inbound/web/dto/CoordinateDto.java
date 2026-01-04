@@ -21,4 +21,3 @@ public class CoordinateDto {
     @JsonProperty("longitude")
     private double longitude;
 }
-
