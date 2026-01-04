@@ -1,5 +1,12 @@
 package pse.nebula.worldview.infrastructure.adapter.inbound.web.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,17 +26,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/routes")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Allow frontend access
+@CrossOrigin(origins = "*")
+@Tag(name = "Routes", description = "Endpoints for managing driving routes")
 public class RouteController {
 
     private final RouteUseCase routeUseCase;
     private final DtoMapper dtoMapper;
 
-    /**
-     * Get all available routes to the dealership.
-     *
-     * @return List of all routes
-     */
+    @Operation(summary = "Get all routes", description = "Returns all available driving routes to the dealership")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved all routes",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = RouteDto.class)))
+    })
     @GetMapping
     public ResponseEntity<List<RouteDto>> getAllRoutes() {
         log.info("Fetching all available routes");
@@ -42,26 +50,27 @@ public class RouteController {
         return ResponseEntity.ok(routeDtos);
     }
 
-    /**
-     * Get a specific route by ID.
-     *
-     * @param routeId The route identifier
-     * @return The route details
-     */
+    @Operation(summary = "Get route by ID", description = "Returns a specific route by its unique identifier")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Route found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = RouteDto.class))),
+            @ApiResponse(responseCode = "404", description = "Route not found", content = @Content)
+    })
     @GetMapping("/{routeId}")
-    public ResponseEntity<RouteDto> getRouteById(@PathVariable String routeId) {
+    public ResponseEntity<RouteDto> getRouteById(
+            @Parameter(description = "Unique route identifier", example = "route-1")
+            @PathVariable String routeId) {
         log.info("Fetching route with ID: {}", routeId);
 
         DrivingRoute route = routeUseCase.getRouteById(routeId);
         return ResponseEntity.ok(dtoMapper.toDto(route));
     }
 
-    /**
-     * Get a random route for a new journey.
-     * This is typically called on UI reload.
-     *
-     * @return A randomly selected route
-     */
+    @Operation(summary = "Get random route", description = "Returns a randomly selected route for a new journey")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Random route selected",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = RouteDto.class)))
+    })
     @GetMapping("/random")
     public ResponseEntity<RouteDto> getRandomRoute() {
         log.info("Selecting a random route");
@@ -70,11 +79,11 @@ public class RouteController {
         return ResponseEntity.ok(dtoMapper.toDto(route));
     }
 
-    /**
-     * Get the total number of available routes.
-     *
-     * @return The count
-     */
+    @Operation(summary = "Get route count", description = "Returns the total number of available routes")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Route count retrieved",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Integer.class)))
+    })
     @GetMapping("/count")
     public ResponseEntity<Integer> getRouteCount() {
         return ResponseEntity.ok(routeUseCase.getRouteCount());
