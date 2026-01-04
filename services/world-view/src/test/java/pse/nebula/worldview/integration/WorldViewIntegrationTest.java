@@ -12,15 +12,14 @@ import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import pse.nebula.worldview.infrastructure.adapter.inbound.web.dto.JourneyStateDto;
 import pse.nebula.worldview.infrastructure.adapter.inbound.web.dto.RouteDto;
-import pse.nebula.worldview.infrastructure.adapter.inbound.web.dto.StartJourneyRequest;
-
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration tests for the World View Service.
  * Tests the complete flow from REST API to database and back.
+ *
+ * Note: Journeys are now auto-managed, so manual journey control endpoints are removed.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -145,22 +144,6 @@ class WorldViewIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should get random route")
-        void shouldGetRandomRoute() {
-            // When
-            ResponseEntity<RouteDto> response = restTemplate.getForEntity(
-                    baseUrl + "/routes/random",
-                    RouteDto.class
-            );
-
-            // Then
-            assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertNotNull(response.getBody());
-            assertNotNull(response.getBody().getId());
-            assertTrue(response.getBody().getId().startsWith("route-"));
-        }
-
-        @Test
         @DisplayName("Should get route count")
         void shouldGetRouteCount() {
             // When
@@ -176,93 +159,36 @@ class WorldViewIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Journey API Integration Tests")
+    @DisplayName("Journey API Integration Tests (Auto-Managed)")
     class JourneyApiTests {
 
         @Test
-        @DisplayName("Should start a new journey with random route")
-        void shouldStartNewJourneyWithRandomRoute() {
-            // Given
-            String journeyId = UUID.randomUUID().toString();
-            StartJourneyRequest request = new StartJourneyRequest();
-            request.setJourneyId(journeyId);
-            request.setSpeedMetersPerSecond(13.89);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<StartJourneyRequest> entity = new HttpEntity<>(request, headers);
-
+        @DisplayName("Should check if journey is active")
+        void shouldCheckIfJourneyIsActive() {
             // When
-            ResponseEntity<JourneyStateDto> response = restTemplate.postForEntity(
-                    baseUrl + "/journeys",
-                    entity,
-                    JourneyStateDto.class
-            );
-
-            // Then
-            assertEquals(HttpStatus.CREATED, response.getStatusCode());
-            assertNotNull(response.getBody());
-            assertEquals(journeyId, response.getBody().getJourneyId());
-            assertEquals("IN_PROGRESS", response.getBody().getStatus());
-            assertNotNull(response.getBody().getRoute());
-            assertNotNull(response.getBody().getCurrentPosition());
-        }
-
-        @Test
-        @DisplayName("Should start journey on specific route")
-        void shouldStartJourneyOnSpecificRoute() {
-            // Given
-            String journeyId = UUID.randomUUID().toString();
-            StartJourneyRequest request = new StartJourneyRequest();
-            request.setJourneyId(journeyId);
-            request.setRouteId("route-3");
-            request.setSpeedMetersPerSecond(20.0);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<StartJourneyRequest> entity = new HttpEntity<>(request, headers);
-
-            // When
-            ResponseEntity<JourneyStateDto> response = restTemplate.postForEntity(
-                    baseUrl + "/journeys",
-                    entity,
-                    JourneyStateDto.class
-            );
-
-            // Then
-            assertEquals(HttpStatus.CREATED, response.getStatusCode());
-            assertNotNull(response.getBody());
-            assertEquals("route-3", response.getBody().getRoute().getId());
-            assertEquals("Kornwestheim Route", response.getBody().getRoute().getName());
-        }
-
-        @Test
-        @DisplayName("Should get journey state")
-        void shouldGetJourneyState() {
-            // Given - Start a journey first
-            String journeyId = UUID.randomUUID().toString();
-            StartJourneyRequest request = new StartJourneyRequest();
-            request.setJourneyId(journeyId);
-            request.setSpeedMetersPerSecond(13.89);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            restTemplate.postForEntity(
-                    baseUrl + "/journeys",
-                    new HttpEntity<>(request, headers),
-                    JourneyStateDto.class
-            );
-
-            // When
-            ResponseEntity<JourneyStateDto> response = restTemplate.getForEntity(
-                    baseUrl + "/journeys/" + journeyId,
-                    JourneyStateDto.class
+            ResponseEntity<Boolean> response = restTemplate.getForEntity(
+                    baseUrl + "/journeys/active",
+                    Boolean.class
             );
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
-            assertEquals(journeyId, response.getBody().getJourneyId());
+            // Initially might be true or false depending on scheduler timing
+        }
+
+        @Test
+        @DisplayName("Should get current journey if active")
+        void shouldGetCurrentJourneyIfActive() {
+            // When
+            ResponseEntity<JourneyStateDto> response = restTemplate.getForEntity(
+                    baseUrl + "/journeys/current",
+                    JourneyStateDto.class
+            );
+
+            // Then - Either 200 with journey or 204 no content
+            assertTrue(response.getStatusCode() == HttpStatus.OK ||
+                       response.getStatusCode() == HttpStatus.NO_CONTENT);
         }
 
         @Test
@@ -276,100 +202,6 @@ class WorldViewIntegrationTest {
 
             // Then
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        }
-
-        @Test
-        @DisplayName("Should pause and resume journey")
-        void shouldPauseAndResumeJourney() {
-            // Given - Start a journey first
-            String journeyId = UUID.randomUUID().toString();
-            StartJourneyRequest request = new StartJourneyRequest();
-            request.setJourneyId(journeyId);
-            request.setSpeedMetersPerSecond(13.89);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            restTemplate.postForEntity(
-                    baseUrl + "/journeys",
-                    new HttpEntity<>(request, headers),
-                    JourneyStateDto.class
-            );
-
-            // When - Pause the journey
-            ResponseEntity<JourneyStateDto> pauseResponse = restTemplate.postForEntity(
-                    baseUrl + "/journeys/" + journeyId + "/pause",
-                    null,
-                    JourneyStateDto.class
-            );
-
-            // Then
-            assertEquals(HttpStatus.OK, pauseResponse.getStatusCode());
-            assertEquals("PAUSED", pauseResponse.getBody().getStatus());
-
-            // When - Resume the journey
-            ResponseEntity<JourneyStateDto> resumeResponse = restTemplate.postForEntity(
-                    baseUrl + "/journeys/" + journeyId + "/resume",
-                    null,
-                    JourneyStateDto.class
-            );
-
-            // Then
-            assertEquals(HttpStatus.OK, resumeResponse.getStatusCode());
-            assertEquals("IN_PROGRESS", resumeResponse.getBody().getStatus());
-        }
-
-        @Test
-        @DisplayName("Should stop journey")
-        void shouldStopJourney() {
-            // Given - Start a journey first
-            String journeyId = UUID.randomUUID().toString();
-            StartJourneyRequest request = new StartJourneyRequest();
-            request.setJourneyId(journeyId);
-            request.setSpeedMetersPerSecond(13.89);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            restTemplate.postForEntity(
-                    baseUrl + "/journeys",
-                    new HttpEntity<>(request, headers),
-                    JourneyStateDto.class
-            );
-
-            // When - Stop the journey
-            restTemplate.delete(baseUrl + "/journeys/" + journeyId);
-
-            // Then - Journey should no longer exist
-            ResponseEntity<String> response = restTemplate.getForEntity(
-                    baseUrl + "/journeys/" + journeyId,
-                    String.class
-            );
-            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        }
-
-        @Test
-        @DisplayName("Should fail to start duplicate journey")
-        void shouldFailToStartDuplicateJourney() {
-            // Given - Start a journey first
-            String journeyId = UUID.randomUUID().toString();
-            StartJourneyRequest request = new StartJourneyRequest();
-            request.setJourneyId(journeyId);
-            request.setSpeedMetersPerSecond(13.89);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<StartJourneyRequest> entity = new HttpEntity<>(request, headers);
-
-            restTemplate.postForEntity(baseUrl + "/journeys", entity, JourneyStateDto.class);
-
-            // When - Try to start another journey with same ID
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    baseUrl + "/journeys",
-                    entity,
-                    String.class
-            );
-
-            // Then
-            assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         }
     }
 
