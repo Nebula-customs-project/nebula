@@ -1,4 +1,4 @@
-package pse.nebula.worldview;
+package pse.nebula.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,10 +6,11 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-public class WorldViewApplication {
+public class GatewayServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(WorldViewApplication.class, args);
+        SpringApplication.run(GatewayServiceApplication.class, args);
     }
 
 }
+
