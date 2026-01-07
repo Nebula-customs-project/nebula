@@ -38,10 +38,6 @@ build/
 ### Docs of world-view service ###
 services/world-view/docs/
 
-### Ignoring Frontend ###
-frontend/neon/
-frontend/world-view-FE/
-
 ### Frontend/Neon ###
 frontend/neon/node_modules
 frontend/neon/.pnp
