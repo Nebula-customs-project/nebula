@@ -19,9 +19,6 @@ target/
 *.iml
 *.ipr
 
-## Sonar-help ###
-sonar-help.txt
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -95,6 +92,3 @@ frontend/world-view-FE/*.tsbuildinfo
 services/**/.env
 services/**/.env.local
 services/**/.env.*.local
-
-### Spring Boot Development Profiles (contain credentials) ###
-services/world-view/src/main/resources/application-dev.yaml
