@@ -1,0 +1,60 @@
+# =============================================================================
+# Shared RabbitMQ/MQTT Configuration for Nebula Services
+# Services import this for messaging configuration
+# =============================================================================
+# Usage: Add to your service's application.yaml:
+#   spring.config.import: optional:configserver:http://localhost:8761
+#   spring.profiles.include: shared-rabbitmq
+# =============================================================================
+
+spring:
+  # RabbitMQ AMQP Configuration
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:nebula}
+    password: ${RABBITMQ_PASSWORD:nebula@2025}
+    virtual-host: ${RABBITMQ_VHOST:/}
+
+    # Connection Settings
+    connection-timeout: ${RABBITMQ_CONNECTION_TIMEOUT:10000}
+
+    # Publisher Settings
+    publisher-confirm-type: correlated
+    publisher-returns: true
+
+    # Listener Settings
+    listener:
+      simple:
+        acknowledge-mode: manual
+        prefetch: 10
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
+          max-interval: 10000
+          multiplier: 2.0
+
+# MQTT Configuration (RabbitMQ MQTT Plugin)
+mqtt:
+  enabled: ${MQTT_ENABLED:true}
+  broker:
+    host: ${MQTT_HOST:localhost}
+    port: ${MQTT_PORT:1883}
+  client:
+    id: ${spring.application.name}-mqtt-client
+  username: ${MQTT_USERNAME:nebula}
+  password: ${MQTT_PASSWORD:nebula@2025}
+  topic:
+    prefix: ${MQTT_TOPIC_PREFIX:nebula}
+
+  # Quality of Service
+  qos: ${MQTT_QOS:1}
+
+  # Connection Settings
+  connection:
+    timeout: ${MQTT_CONNECTION_TIMEOUT:30}
+    keep-alive: ${MQTT_KEEP_ALIVE:60}
+    clean-session: ${MQTT_CLEAN_SESSION:true}
+    auto-reconnect: ${MQTT_AUTO_RECONNECT:true}
+
