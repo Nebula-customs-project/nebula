@@ -113,8 +113,6 @@
                 <configuration>
                     <excludes>
                         <exclude>
-                        </exclude>
-                        <exclude>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-configuration-processor</artifactId>
                         </exclude>
