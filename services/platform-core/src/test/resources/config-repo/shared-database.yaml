@@ -1,0 +1,16 @@
+# Shared database configuration for tests
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/nebula_db
+    username: ${POSTGRES_USER:nebula_user}
+    password: ${POSTGRES_PASSWORD:nebula_password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
