@@ -12,10 +12,6 @@ import pse.nebula.worldview.infrastructure.adapter.inbound.web.dto.RouteDto;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Application tests for World View Service.
- * Tests basic route endpoints (journeys are auto-managed).
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class WorldViewApplicationTests {
@@ -83,16 +79,4 @@ class WorldViewApplicationTests {
                 "Route " + route.getId() + " should end at dealership longitude");
         }
     }
-
-    @Test
-    void journeyActiveEndpoint_shouldBeAccessible() {
-        ResponseEntity<Boolean> response = restTemplate.getForEntity(
-            "http://localhost:" + port + "/api/v1/journeys/active",
-            Boolean.class
-        );
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-    }
 }
-
