@@ -29,13 +29,13 @@ The gateway runs on port **8080** by default and connects to:
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SERVER_PORT` | 8080 | Gateway port |
+| Variable | Default   | Description |
+|----------|-----------|-------------|
+| `SERVER_PORT` | 8080      | Gateway port |
 | `EUREKA_HOST` | localhost | Eureka server host |
-| `EUREKA_PORT` | 8081 | Eureka server port |
+| `EUREKA_PORT` | 8761      | Eureka server port |
 | `CONFIG_SERVER_HOST` | localhost | Config server host |
-| `CONFIG_SERVER_PORT` | 8081 | Config server port |
+| `CONFIG_SERVER_PORT` | 8761      | Config server port |
 
 ## Routes
 

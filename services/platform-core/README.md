@@ -25,7 +25,7 @@ The service runs on port **8081** by default.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SERVER_PORT` | 8081 | Server port |
+| `SERVER_PORT` | 8761    | Server port |
 
 ## Running
 
