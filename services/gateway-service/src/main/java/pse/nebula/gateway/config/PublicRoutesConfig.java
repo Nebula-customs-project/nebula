@@ -32,8 +32,12 @@ public class PublicRoutesConfig {
         }
         if (pattern.endsWith("/*")) {
             String prefix = pattern.substring(0, pattern.length() - 2);
-            String remaining = path.substring(prefix.length());
-            return path.startsWith(prefix) && !remaining.contains("/");
+            // Path must start with prefix + '/' and have no additional '/' after that
+            if (!path.startsWith(prefix + "/")) {
+                return false;
+            }
+            String remaining = path.substring(prefix.length() + 1);
+            return remaining.length() > 0 && !remaining.contains("/");
         }
         return path.equals(pattern);
     }
