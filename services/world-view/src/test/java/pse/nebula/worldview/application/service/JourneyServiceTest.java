@@ -1,5 +1,6 @@
 package pse.nebula.worldview.application.service;
 
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -165,16 +166,7 @@ class JourneyServiceTest {
         @DisplayName("Should publish journey completed when destination reached")
         void shouldPublishCompletedWhenDestinationReached() {
             // Given - Create a very short route that will complete quickly
-            Coordinate start = new Coordinate(48.8354, 9.1520);
-            Coordinate end = new Coordinate(48.8354, 9.1521); // Very close
-            List<Coordinate> shortWaypoints = Arrays.asList(start, end);
-            DrivingRoute shortRoute = new DrivingRoute(
-                    "short-route", "Short", "Short route",
-                    shortWaypoints, 10, 1
-            );
-
-            JourneyState journeyState = new JourneyState(JOURNEY_ID, shortRoute, 100.0); // High speed
-            journeyState.start();
+            JourneyState journeyState = getJourneyState();
             when(journeyStateRepository.findById(JOURNEY_ID)).thenReturn(Optional.of(journeyState));
 
             // When - Advance enough to complete the journey
@@ -183,6 +175,21 @@ class JourneyServiceTest {
             // Then
             verify(coordinatePublisher).publishJourneyCompleted(journeyState);
         }
+    }
+
+    // Helper method for test case shouldPublishCompleteWhenDestinationReached to create a JourneyState that will complete quickly.
+    private static @NonNull JourneyState getJourneyState() {
+        Coordinate start = new Coordinate(48.8354, 9.1520);
+        Coordinate end = new Coordinate(48.8354, 9.1521); // Very close
+        List<Coordinate> shortWaypoints = Arrays.asList(start, end);
+        DrivingRoute shortRoute = new DrivingRoute(
+                "short-route", "Short", "Short route",
+                shortWaypoints, 10, 1
+        );
+
+        JourneyState journeyState = new JourneyState(JOURNEY_ID, shortRoute, 100.0); // High speed
+        journeyState.start();
+        return journeyState;
     }
 
 
