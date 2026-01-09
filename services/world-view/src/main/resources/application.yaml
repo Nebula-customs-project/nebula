@@ -7,8 +7,6 @@
 # =============================================================================
 
 spring:
-  profiles:
-    active: dev
 
   application:
     name: world-view
