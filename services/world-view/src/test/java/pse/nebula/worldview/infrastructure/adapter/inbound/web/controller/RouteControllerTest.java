@@ -1,4 +1,4 @@
-package pse.nebula.worldview.infrastructure.adapter.web.controller;
+package pse.nebula.worldview.infrastructure.adapter.inbound.web.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,7 +13,6 @@ import pse.nebula.worldview.domain.exception.RouteNotFoundException;
 import pse.nebula.worldview.domain.model.Coordinate;
 import pse.nebula.worldview.domain.model.DrivingRoute;
 import pse.nebula.worldview.domain.port.inbound.RouteUseCase;
-import pse.nebula.worldview.infrastructure.adapter.inbound.web.controller.RouteController;
 import pse.nebula.worldview.infrastructure.adapter.inbound.web.mapper.DtoMapper;
 
 import java.util.Arrays;
@@ -169,4 +168,3 @@ class RouteControllerTest {
         }
     }
 }
-
