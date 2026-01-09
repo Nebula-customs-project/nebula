@@ -1,0 +1,51 @@
+# =============================================================================
+# Shared Database Configuration for Nebula Services
+# Services import this for PostgreSQL + JPA configuration
+# =============================================================================
+# Usage: Add to your service's application.yaml:
+#   spring.config.import: optional:configserver:http://localhost:8761
+#   spring.profiles.active: shared-database
+#
+# Required Environment Variables (from .env file):
+#   POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
+#
+# Override schema in your service:
+#   spring.jpa.properties.hibernate.default_schema: YOUR_SCHEMA
+# =============================================================================
+
+spring:
+  # PostgreSQL Datasource Configuration
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+    # HikariCP Connection Pool Settings
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+      idle-timeout: ${DB_POOL_IDLE_TIMEOUT:30000}
+      connection-timeout: ${DB_POOL_CONNECTION_TIMEOUT:20000}
+      max-lifetime: ${DB_POOL_MAX_LIFETIME:1800000}
+      pool-name: ${spring.application.name}-pool
+
+  # JPA/Hibernate Configuration
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+    open-in-view: false
+
+  # Jackson JSON Configuration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+    time-zone: UTC
+

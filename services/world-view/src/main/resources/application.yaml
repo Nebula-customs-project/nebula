@@ -1,60 +1,51 @@
 # =============================================================================
 # World View Service Configuration
+# Service for driving route simulation to Porsche Zentrum Stuttgart
 # =============================================================================
-# This is the base configuration file. For local development, use:
-#   mvn spring-boot:run -Dspring-boot.run.profiles=dev
-#
-# Credentials are NOT stored here. Create application-dev.yaml & copy below content, fill the details & use locally.
+# Database config comes from Config Server via shared-database profile
+# Only service-specific overrides (like schema) are defined here
 # =============================================================================
 
 spring:
-  profiles:
-    active: dev
 
   application:
     name: world-view
 
-  # Database Configuration (credentials from environment or profile)
-  datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?currentSchema=world_view
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 2
-      idle-timeout: 30000
-      connection-timeout: 20000
-      max-lifetime: 1800000
+  # Import configurations from Config Server
+  config:
+    import: optional:configserver:http://localhost:8761
 
-  # JPA Configuration
+  # Activate shared-database profile to get DB config from config server
+  profiles:
+    active: shared-database
+
+  # ============ SERVICE-SPECIFIC OVERRIDES ONLY ============
+  # Only override JPA schema - all other DB config comes from config server
   jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
     properties:
       hibernate:
-        format_sql: true
         default_schema: world_view
-    open-in-view: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  # Jackson Configuration
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
-    default-property-inclusion: non_null
 
 # Server Configuration
 server:
   port: ${SERVER_PORT:8082}
 
-# Logging Configuration
+# Service-specific Eureka instance configuration
+eureka:
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.name}:${server.port}
+
+# Service-specific Logging
 logging:
   level:
     root: INFO
     pse.nebula.worldview: INFO
     # Suppress noisy framework logs
     org.hibernate: WARN
+    org.hibernate.SQL: WARN
     com.zaxxer.hikari: WARN
     org.springframework: WARN
     org.apache: WARN
@@ -83,22 +74,16 @@ journey:
     default-speed-mps: ${JOURNEY_DEFAULT_SPEED:13.89}
     delay-between-journeys-ms: ${JOURNEY_DELAY_BETWEEN:5000}
 
-# Route Configuration
+# Route Configuration (Service-specific)
 route:
   dealership:
     name: Dealership
     latitude: 48.8354
     longitude: 9.1520
 
-# MQTT Configuration (credentials from environment or profile)
+# MQTT Topic Override (Service-specific)
 mqtt:
-  enabled: ${MQTT_ENABLED:true}
-  broker:
-    host: ${MQTT_HOST}
-    port: ${MQTT_PORT:1883}
   client:
-    id: ${MQTT_CLIENT_ID:world-view-service}
-  username: ${MQTT_USERNAME}
-  password: ${MQTT_PASSWORD}
+    id: world-view-mqtt-client
   topic:
-    prefix: ${MQTT_TOPIC_PREFIX:nebula/journey}
+    prefix: nebula/journey

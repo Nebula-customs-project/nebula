@@ -1,0 +1,37 @@
+# =============================================================================
+# Default Configuration for ALL Nebula Services
+# This file is automatically loaded by Config Server for every service
+# =============================================================================
+
+# Eureka Client Configuration (Service Discovery)
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: false
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
+# Default Logging Configuration
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud: WARN
+    com.netflix: WARN

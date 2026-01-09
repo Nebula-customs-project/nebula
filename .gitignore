@@ -32,13 +32,130 @@ build/
 ### VS Code ###
 .vscode/
 
-### Environment Variables ###
+### Docs of world-view service ###
+services/world-view/docs/
+
+### Ignoring Frontend ###
+frontend/neon/
+frontend/world-view-FE/
+
+### Frontend/Neon ###
+frontend/neon/node_modules
+frontend/neon/.pnp
+frontend/neon/.pnp.*
+frontend/neon/.yarn/*
+!frontend/neon/.yarn/patches
+!frontend/neon/.yarn/plugins
+!frontend/neon/.yarn/releases
+!frontend/neon/.yarn/versions
+frontend/neon/coverage
+frontend/neon/.next/
+frontend/neon/out/
+frontend/neon/build
+frontend/neon/.DS_Store
+frontend/neon/*.pem
+frontend/neon/npm-debug.log*
+frontend/neon/yarn-debug.log*
+frontend/neon/yarn-error.log*
+frontend/neon/.pnpm-debug.log*
+frontend/neon/.env*
+frontend/neon/.vercel
+frontend/neon/*.tsbuildinfo
+frontend/neon/next-env.d.ts
+
+### Frontend/World-View-FE ###
+frontend/world-view-FE/node_modules
+frontend/world-view-FE/.pnp
+frontend/world-view-FE/.pnp.*
+frontend/world-view-FE/.yarn/*
+!frontend/world-view-FE/.yarn/patches
+!frontend/world-view-FE/.yarn/plugins
+!frontend/world-view-FE/.yarn/releases
+!frontend/world-view-FE/.yarn/versions
+frontend/world-view-FE/coverage
+frontend/world-view-FE/.next/
+frontend/world-view-FE/out/
+frontend/world-view-FE/build
+frontend/world-view-FE/.DS_Store
+frontend/world-view-FE/*.pem
+frontend/world-view-FE/npm-debug.log*
+frontend/world-view-FE/yarn-debug.log*
+frontend/world-view-FE/yarn-error.log*
+frontend/world-view-FE/.pnpm-debug.log*
+frontend/world-view-FE/.env*
+frontend/world-view-FE/.vercel
+frontend/world-view-FE/*.tsbuildinfo
+
+### Sensitive Files & Secrets ###
+# Environment Variables
 .env
+.env.*
 .env.local
-.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 **/.env
+**/.env.*
 **/.env.local
-**/.env.*.local
 services/**/.env
+services/**/.env.*
 services/**/.env.local
-services/**/.env.*.local
+docker/.env
+docker/.env.*
+
+# Credentials & Keys
+**/credentials.yml
+**/credentials.yaml
+**/secrets.yml
+**/secrets.yaml
+*.key
+*.pem
+*.p12
+*.pfx
+*.cer
+*.crt
+*.der
+*.jks
+*.keystore
+*.truststore
+application-secrets.yml
+application-secrets.yaml
+application-credentials.yml
+application-credentials.yaml
+
+# Configuration files with sensitive data
+**/application-prod.yml
+**/application-prod.yaml
+**/application-production.yml
+**/application-production.yaml
+**/config/secrets/
+**/config/credentials/
+
+# Database dumps & backups
+*.sql
+*.dump
+*.backup
+*.bak
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs with potentially sensitive data
+*.log
+logs/
+**/logs/
+
+# Docker secrets
+docker-compose.override.yml
+docker-compose.prod.yml
+docker-compose.production.yml
+
+# IDE configuration with sensitive data
+.run/
+.idea/dataSources.xml
+.idea/dataSources.local.xml
+.idea/httpRequests/
+
+# Test data with sensitive information
+**/test-data/sensitive/
+**/fixtures/sensitive/
