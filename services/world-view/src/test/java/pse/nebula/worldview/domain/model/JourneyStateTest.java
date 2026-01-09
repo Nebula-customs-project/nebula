@@ -1,6 +1,9 @@
 package pse.nebula.worldview.domain.model;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Arrays;
 import java.util.List;
@@ -139,5 +142,187 @@ class JourneyStateTest {
             journey.setSpeedMetersPerSecond(0));
         assertThrows(IllegalArgumentException.class, () ->
             journey.setSpeedMetersPerSecond(-5));
+    }
+
+    @ParameterizedTest(name = "Should reject invalid journey ID: \"{0}\"")
+    @NullAndEmptySource
+    @ValueSource(strings = {"   "})
+    void shouldRejectInvalidJourneyId(String invalidJourneyId) {
+        DrivingRoute route = createTestRoute();
+        assertThrows(IllegalArgumentException.class, () ->
+            new JourneyState(invalidJourneyId, route, 10.0));
+    }
+
+    @Test
+    void shouldRejectNullRoute() {
+        assertThrows(IllegalArgumentException.class, () ->
+            new JourneyState("journey-1", null, 10.0));
+    }
+
+    @Test
+    void shouldRejectZeroSpeed() {
+        DrivingRoute route = createTestRoute();
+        assertThrows(IllegalArgumentException.class, () ->
+            new JourneyState("journey-1", route, 0));
+    }
+
+    @Test
+    void shouldRejectNegativeSpeed() {
+        DrivingRoute route = createTestRoute();
+        assertThrows(IllegalArgumentException.class, () ->
+            new JourneyState("journey-1", route, -10.0));
+    }
+
+    @Test
+    void shouldRejectNaNSpeed() {
+        DrivingRoute route = createTestRoute();
+        assertThrows(IllegalArgumentException.class, () ->
+            new JourneyState("journey-1", route, Double.NaN));
+    }
+
+    @Test
+    void shouldRejectInfiniteSpeed() {
+        DrivingRoute route = createTestRoute();
+        assertThrows(IllegalArgumentException.class, () ->
+            new JourneyState("journey-1", route, Double.POSITIVE_INFINITY));
+    }
+
+    @Test
+    void shouldNotStartCompletedJourney() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 100000.0);
+        journey.start();
+        journey.advance(100.0); // Complete the journey
+
+        assertEquals(JourneyStatus.COMPLETED, journey.getStatus());
+        assertThrows(IllegalStateException.class, journey::start);
+    }
+
+    @Test
+    void shouldNotStartAlreadyStartedJourney() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 10.0);
+        journey.start();
+
+        assertThrows(IllegalStateException.class, journey::start);
+    }
+
+    @Test
+    void shouldNotPauseNotStartedJourney() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 10.0);
+
+        assertThrows(IllegalStateException.class, journey::pause);
+    }
+
+    @Test
+    void shouldNotResumeNotPausedJourney() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 10.0);
+        journey.start();
+
+        assertThrows(IllegalStateException.class, journey::resume);
+    }
+
+    @Test
+    void shouldNotChangeSpeedOfCompletedJourney() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 100000.0);
+        journey.start();
+        journey.advance(100.0); // Complete the journey
+
+        assertThrows(IllegalStateException.class, () ->
+            journey.setSpeedMetersPerSecond(20.0));
+    }
+
+    @Test
+    void shouldRejectNaNSpeedUpdate() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 10.0);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            journey.setSpeedMetersPerSecond(Double.NaN));
+    }
+
+    @Test
+    void shouldRejectInfiniteSpeedUpdate() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 10.0);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            journey.setSpeedMetersPerSecond(Double.POSITIVE_INFINITY));
+    }
+
+    @Test
+    void shouldRejectNegativeElapsedTime() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 10.0);
+        journey.start();
+
+        assertThrows(IllegalArgumentException.class, () ->
+            journey.advance(-1.0));
+    }
+
+    @Test
+    void shouldRejectZeroElapsedTime() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 10.0);
+        journey.start();
+
+        assertThrows(IllegalArgumentException.class, () ->
+            journey.advance(0));
+    }
+
+    @Test
+    void shouldRejectNaNElapsedTime() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 10.0);
+        journey.start();
+
+        assertThrows(IllegalArgumentException.class, () ->
+            journey.advance(Double.NaN));
+    }
+
+    @Test
+    void shouldReturnTrueWhenAlreadyCompleted() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 100000.0);
+        journey.start();
+        journey.advance(100.0); // Complete
+
+        boolean result = journey.advance(1.0);
+
+        assertTrue(result);
+        assertEquals(JourneyStatus.COMPLETED, journey.getStatus());
+    }
+
+    @Test
+    void shouldTrackProgressPercentage() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 1000.0);
+        journey.start();
+
+        assertEquals(0.0, journey.getProgressPercentage(), 0.1);
+
+        journey.advance(5.0); // Advance a bit
+
+        assertTrue(journey.getProgressPercentage() > 0);
+        assertTrue(journey.getProgressPercentage() < 100);
+    }
+
+    @Test
+    void shouldGetRoute() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 10.0);
+
+        assertEquals(route, journey.getRoute());
+    }
+
+    @Test
+    void shouldGetJourneyId() {
+        DrivingRoute route = createTestRoute();
+        JourneyState journey = new JourneyState("journey-1", route, 10.0);
+
+        assertEquals("journey-1", journey.getJourneyId());
     }
 }
