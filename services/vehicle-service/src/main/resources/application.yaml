@@ -1,0 +1,73 @@
+# =============================================================================
+# Vehicle Service Configuration
+# Service for Cars Overview and Car Configurator
+# =============================================================================
+
+spring:
+
+  application:
+    name: vehicle-service
+
+  # Import configurations from Config Server (optional - won't fail if unavailable)
+  config:
+    import: optional:configserver:http://localhost:8761
+
+  # ============ DATABASE CONFIGURATION ============
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5434}/${POSTGRES_DB:nebula_db}
+    username: ${POSTGRES_USER:nebula_user}
+    password: ${POSTGRES_PASSWORD:nebula@2025}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+
+  # ============ JPA CONFIGURATION ============
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: vehicle_service
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8083}
+
+# Eureka Configuration (optional - won't block startup)
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:${server.port}
+
+
+# Logging
+logging:
+  level:
+    root: INFO
+    pse.nebula.vehicleservice: INFO
+    org.hibernate: WARN
+    org.hibernate.SQL: WARN
+    com.zaxxer.hikari: WARN
+    org.springframework: WARN
+    org.apache: WARN
+
+# OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
