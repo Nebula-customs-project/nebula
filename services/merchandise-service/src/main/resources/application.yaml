@@ -2,7 +2,7 @@ spring:
   application:
     name: merchandise-service
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/merchandise_db?allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://mysql:3306/merchandise_db?allowPublicKeyRetrieval=true&useSSL=false
     username: merchandise_user
     password: merchandise_password
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,7 +16,7 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
 
 server:
@@ -30,7 +30,7 @@ logging:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
   instance:

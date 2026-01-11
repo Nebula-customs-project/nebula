@@ -5,10 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import pse.nebula.merchandise.cart.application.dto.AddCartItemRequest;
 import pse.nebula.merchandise.cart.application.dto.CartItemResponse;
@@ -16,27 +14,24 @@ import pse.nebula.merchandise.cart.application.dto.CartResponse;
 import pse.nebula.merchandise.cart.application.dto.ProductResponse;
 import pse.nebula.merchandise.cart.domain.model.Cart;
 import pse.nebula.merchandise.cart.domain.model.CartItem;
-import pse.nebula.merchandise.infrastructure.ProductClient;
+import pse.nebula.merchandise.application.service.ProductService;
 
 @Service
 @Transactional(readOnly = true)
 public class CartService {
 
     private final RedisTemplate<String, Cart> redisTemplate;
-    private final ProductClient productClient;
+    private final ProductService productService;
     private static final String KEY_PREFIX = "cart:";
 
-    public CartService(RedisTemplate<String, Cart> redisTemplate, ProductClient productClient) {
+    public CartService(RedisTemplate<String, Cart> redisTemplate, ProductService productService) {
         this.redisTemplate = redisTemplate;
-        this.productClient = productClient;
+        this.productService = productService;
     }
 
     @Transactional
     public CartResponse addItem(String userId, AddCartItemRequest request) {
-        ProductResponse product = productClient.getProduct(request.getProductId());
-        if (product == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
-        }
+        ProductResponse product = productService.findById(request.getProductId());
 
         Cart cart = loadCart(userId);
         List<CartItem> items = cart.getItems();
