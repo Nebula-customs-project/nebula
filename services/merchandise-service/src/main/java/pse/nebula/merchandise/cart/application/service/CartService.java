@@ -8,13 +8,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import pse.nebula.merchandise.application.dto.ProductResponse;
+import pse.nebula.merchandise.application.service.ProductService;
 import pse.nebula.merchandise.cart.application.dto.AddCartItemRequest;
 import pse.nebula.merchandise.cart.application.dto.CartItemResponse;
 import pse.nebula.merchandise.cart.application.dto.CartResponse;
-import pse.nebula.merchandise.cart.application.dto.ProductResponse;
 import pse.nebula.merchandise.cart.domain.model.Cart;
 import pse.nebula.merchandise.cart.domain.model.CartItem;
-import pse.nebula.merchandise.application.service.ProductService;
 
 @Service
 @Transactional(readOnly = true)
