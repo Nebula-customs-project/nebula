@@ -19,7 +19,7 @@ class CartControllerTest {
     @Test
     void getCart_shouldReturnOk() throws Exception {
         var mockMvc = MockMvcBuilders.standaloneSetup(new CartController(cartService)).build();
-        mockMvc.perform(get("/api/v1/cart/testuser"))
+        mockMvc.perform(get("/api/v1/merchandise/carts/testuser"))
                 .andExpect(status().isOk());
     }
 }
