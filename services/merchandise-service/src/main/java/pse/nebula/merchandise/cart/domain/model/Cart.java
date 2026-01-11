@@ -16,7 +16,7 @@ public class Cart {
     @Id
     private String userId;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CartItem> items = new ArrayList<>();
 
     public Cart() {}
@@ -28,8 +28,21 @@ public class Cart {
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
-    public List<CartItem> getItems() { return items; }
-    public void setItems(List<CartItem> items) { this.items = items; }
+    public List<CartItem> getItems() { return new ArrayList<>(items); }
+    public void setItems(List<CartItem> items) {
+        this.items.clear();
+
+        if (items == null) {
+            return;
+        }
+
+        for (CartItem item : items) {
+            if (item != null) {
+                item.setCart(this);
+                this.items.add(item);
+            }
+        }
+    }
 
     public static CartBuilder builder() { return new CartBuilder(); }
 

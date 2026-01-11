@@ -65,9 +65,6 @@ public class CartService {
         List<CartItem> items = cart.getItems();
 
         items.removeIf(item -> item.getProductId().equals(productId));
-        for (CartItem item : items) {
-            item.setCart(cart);
-        }
 
         cartRepository.save(cart);
         return toResponse(cart);
