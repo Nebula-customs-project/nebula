@@ -42,7 +42,7 @@ class VehicleControllerTest {
     private ConfigurationService configurationService;
 
     @Nested
-    @DisplayName("GET /api/vehicles")
+    @DisplayName("GET /api/v1/vehicles")
     class GetAllVehiclesTests {
 
         @Test
@@ -54,7 +54,7 @@ class VehicleControllerTest {
             when(vehicleService.getAllVehicles(any(Pageable.class))).thenReturn(vehiclePage);
 
             // When/Then
-            mockMvc.perform(get("/api/vehicles")
+            mockMvc.perform(get("/api/v1/vehicles")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.vehicles", hasSize(1)))
@@ -73,7 +73,7 @@ class VehicleControllerTest {
             when(vehicleService.getAllVehicles(any(Pageable.class))).thenReturn(emptyPage);
 
             // When/Then
-            mockMvc.perform(get("/api/vehicles")
+            mockMvc.perform(get("/api/v1/vehicles")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.vehicles", hasSize(0)));
@@ -81,7 +81,7 @@ class VehicleControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/vehicles/{id}")
+    @DisplayName("GET /api/v1/vehicles/{id}")
     class GetVehicleByIdTests {
 
         @Test
@@ -92,7 +92,7 @@ class VehicleControllerTest {
             when(vehicleService.getVehicleById(1)).thenReturn(vehicle);
 
             // When/Then
-            mockMvc.perform(get("/api/vehicles/1")
+            mockMvc.perform(get("/api/v1/vehicles/1")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.carName", is("Panamera")))
@@ -107,7 +107,7 @@ class VehicleControllerTest {
             when(vehicleService.getVehicleById(999)).thenThrow(new VehicleNotFoundException(999));
 
             // When/Then
-            mockMvc.perform(get("/api/vehicles/999")
+            mockMvc.perform(get("/api/v1/vehicles/999")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.status", is(404)))
@@ -117,7 +117,7 @@ class VehicleControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/vehicles/{id}/configuration")
+    @DisplayName("GET /api/v1/vehicles/{id}/configuration")
     class GetVehicleConfigurationTests {
 
         @Test
@@ -139,7 +139,7 @@ class VehicleControllerTest {
             when(configurationService.getConfigurationForVehicle(1)).thenReturn(config);
 
             // When/Then
-            mockMvc.perform(get("/api/vehicles/1/configuration")
+            mockMvc.perform(get("/api/v1/vehicles/1/configuration")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.carType", is("SPORTS")))
@@ -162,7 +162,7 @@ class VehicleControllerTest {
                     .thenThrow(new VehicleNotFoundException(999));
 
             // When/Then
-            mockMvc.perform(get("/api/vehicles/999/configuration")
+            mockMvc.perform(get("/api/v1/vehicles/999/configuration")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.status", is(404)))
@@ -170,4 +170,3 @@ class VehicleControllerTest {
         }
     }
 }
-

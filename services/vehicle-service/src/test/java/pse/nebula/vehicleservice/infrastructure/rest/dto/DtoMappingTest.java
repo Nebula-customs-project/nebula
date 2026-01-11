@@ -101,13 +101,13 @@ class DtoMappingTest {
     @DisplayName("ErrorResponse should create with all fields")
     void errorResponseShouldCreateWithAllFields() {
         // When
-        ErrorResponse error = ErrorResponse.of(404, "Not Found", "Vehicle not found", "/api/vehicles/999");
+        ErrorResponse error = ErrorResponse.of(404, "Not Found", "Vehicle not found", "/api/v1/vehicles/999");
 
         // Then
         assertThat(error.status()).isEqualTo(404);
         assertThat(error.error()).isEqualTo("Not Found");
         assertThat(error.message()).isEqualTo("Vehicle not found");
-        assertThat(error.path()).isEqualTo("/api/vehicles/999");
+        assertThat(error.path()).isEqualTo("/api/v1/vehicles/999");
         assertThat(error.timestamp()).isNotNull();
     }
 }

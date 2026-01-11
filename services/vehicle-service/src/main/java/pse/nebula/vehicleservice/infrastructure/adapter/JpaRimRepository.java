@@ -20,6 +20,7 @@ public interface JpaRimRepository extends JpaRepository<Rim, Integer>, RimReposi
      * Find all rims that have a price for the given car type.
      * Eagerly fetches only the prices for the specified car type to avoid loading unnecessary data.
      */
+    @Override
     @Query("SELECT DISTINCT r FROM Rim r " +
            "LEFT JOIN FETCH r.prices rp " +
            "WHERE rp.carType = :carType")

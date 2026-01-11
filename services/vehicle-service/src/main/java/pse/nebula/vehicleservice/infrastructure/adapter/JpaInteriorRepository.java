@@ -20,6 +20,7 @@ public interface JpaInteriorRepository extends JpaRepository<Interior, Integer>,
      * Find all interiors that have a price for the given car type.
      * Eagerly fetches only the prices for the specified car type to avoid loading unnecessary data.
      */
+    @Override
     @Query("SELECT DISTINCT i FROM Interior i " +
            "LEFT JOIN FETCH i.prices ip " +
            "WHERE ip.carType = :carType")

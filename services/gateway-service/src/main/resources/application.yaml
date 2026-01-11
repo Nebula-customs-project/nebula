@@ -28,7 +28,7 @@ spring:
         - id: vehicle-service-vehicles
           uri: lb://VEHICLE-SERVICE
           predicates:
-            - Path=/api/vehicles/**
+            - Path=/api/v1/vehicles/**
 
       globalcors:
         corsConfigurations:
@@ -91,7 +91,7 @@ security:
     - /api/v1/journeys/**
 
     # Vehicle-service routes - PUBLIC for testing (remove in production)
-    - /api/vehicles/**
+    - /api/v1/vehicles/**
 
 management:
   endpoints:

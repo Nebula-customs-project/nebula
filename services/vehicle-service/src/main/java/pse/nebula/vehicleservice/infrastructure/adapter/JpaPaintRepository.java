@@ -20,6 +20,7 @@ public interface JpaPaintRepository extends JpaRepository<Paint, Integer>, Paint
      * Find all paints that have a price for the given car type.
      * Eagerly fetches only the prices for the specified car type to avoid loading unnecessary data.
      */
+    @Override
     @Query("SELECT DISTINCT p FROM Paint p " +
            "LEFT JOIN FETCH p.prices pp " +
            "WHERE pp.carType = :carType")

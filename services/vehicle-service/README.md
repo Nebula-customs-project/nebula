@@ -42,8 +42,8 @@ All tables are created in the `vehicle_service` schema. See `docker/init-scripts
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/vehicles` | Get all vehicles for overview |
-| GET | `/api/vehicles/{id}/configuration` | Get configuration options for a vehicle |
+| GET | `/api/v1/vehicles` | Get all vehicles for overview |
+| GET | `/api/v1/vehicles/{id}/configuration` | Get configuration options for a vehicle |
 
 ## Running Locally
 
