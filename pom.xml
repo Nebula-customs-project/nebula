@@ -72,6 +72,7 @@
         <module>services/world-view</module>
         <module>services/platform-core</module>
         <module>services/gateway-service</module>
+        <module>services/user-service</module>
     </modules>
 
     <build>
