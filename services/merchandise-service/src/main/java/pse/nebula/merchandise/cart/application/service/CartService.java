@@ -62,16 +62,13 @@ public class CartService {
     @Transactional
     public CartResponse removeItem(String userId, Long productId) {
         Cart cart = cartRepository.findById(userId).orElseGet(() -> new Cart(userId, new ArrayList<>()));
-        List<CartItem> updated = new ArrayList<>();
-        for (CartItem item : cart.getItems()) {
-            if (!item.getProductId().equals(productId)) {
-                updated.add(item);
-            }
-        }
-        for (CartItem item : updated) {
+        List<CartItem> items = cart.getItems();
+
+        items.removeIf(item -> item.getProductId().equals(productId));
+        for (CartItem item : items) {
             item.setCart(cart);
         }
-        cart.setItems(updated);
+
         cartRepository.save(cart);
         return toResponse(cart);
     }
