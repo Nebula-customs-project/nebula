@@ -22,18 +22,16 @@ public class JwtUtil {
 
     private PrivateKey privateKey;
 
-    public String generateToken(String userId, String email, String roles) {
+    public String generateToken(String userId, String email, String[] roles) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", email);
-        if (roles != null && !roles.isEmpty()) {
-            claims.put("roles", roles);
-        }
+        claims.put("roles", roles != null ? roles : new String[]{});
 
         return Jwts.builder()
                 .claims(claims)
                 .subject(userId)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour (3600 seconds)
                 .signWith(getPrivateKey(), SignatureAlgorithm.RS256)
                 .compact();
     }

@@ -1,10 +1,9 @@
 package pse.nebula.user.service;
 
 import pse.nebula.user.model.User;
-import pse.nebula.user.model.UserVehicle;
 import pse.nebula.user.repository.UserRepository;
-import pse.nebula.user.repository.UserVehicleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,8 +15,11 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+
     @Autowired
-    private UserVehicleRepository vehicleRepository;
+    private JwtUtil jwtUtil;
+
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -31,7 +33,13 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    public Optional<User> getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
     public User createUser(User user) {
+        // Hash the password before saving
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -43,20 +51,25 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    // Vehicle methods
-    public List<UserVehicle> getAllVehicles() {
-        return vehicleRepository.findAll();
+    /**
+     * Authenticate user and return JWT token
+     */
+    public String authenticateUser(String email, String password) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+
+        User user = userOpt.get();
+
+        // Verify password
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid password");
+        }
+
+        // Generate JWT token
+        return jwtUtil.generateToken(user.getId().toString(), user.getEmail(), null);
     }
 
-    public Optional<UserVehicle> getVehicleById(String vehicleId) {
-        return vehicleRepository.findByVehicleId(vehicleId);
-    }
-
-    public UserVehicle createVehicle(UserVehicle vehicle) {
-        return vehicleRepository.save(vehicle);
-    }
-
-    public UserVehicle updateVehicle(UserVehicle vehicle) {
-        return vehicleRepository.save(vehicle);
-    }
 }

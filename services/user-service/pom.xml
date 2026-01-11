@@ -80,12 +80,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- MQTT Client for real-time data -->
-        <dependency>
-            <groupId>com.hivemq</groupId>
-            <artifactId>hivemq-mqtt-client</artifactId>
-        </dependency>
-
         <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

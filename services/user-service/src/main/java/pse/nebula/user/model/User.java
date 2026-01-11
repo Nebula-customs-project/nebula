@@ -34,9 +34,5 @@ public class User {
     private String email;
 
     @NotBlank
-    private String password; // In production, hash this!
-
-    // For MyPSECar - link to vehicle
-    @Column(unique = true)
-    private String vehicleId; // Reference to vehicle in another service or table
+    private String password;
 }

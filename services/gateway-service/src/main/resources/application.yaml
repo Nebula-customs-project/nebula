@@ -13,6 +13,12 @@ spring:
         locator:
           enabled: false
       routes:
+        # User Service Routes
+        - id: user-service-routes
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/users/**
+
         # World-View Service Routes
         - id: world-view-routes
           uri: lb://WORLD-VIEW
@@ -71,7 +77,7 @@ jwt:
 # Security Configuration
 security:
   public-routes:
-    # User service endpoints (when ready)
+    # User service endpoints
     - /api/users/register
     - /api/users/login
     - /api/users/.well-known/jwks.json
