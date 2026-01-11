@@ -1,5 +1,8 @@
 package pse.nebula.vehicleservice.application.service;
 
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pse.nebula.vehicleservice.domain.exception.VehicleNotFoundException;
@@ -16,6 +19,9 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class VehicleService {
 
+    public static final String CACHE_VEHICLES = "vehicles";
+    public static final String CACHE_VEHICLE_BY_ID = "vehicleById";
+
     private final VehicleRepository vehicleRepository;
 
     public VehicleService(VehicleRepository vehicleRepository) {
@@ -27,8 +33,20 @@ public class VehicleService {
      *
      * @return list of all vehicles
      */
+    @Cacheable(value = CACHE_VEHICLES)
     public List<Vehicle> getAllVehicles() {
         return vehicleRepository.findAll();
+    }
+
+    /**
+     * Get all vehicles with pagination for the Cars Overview page.
+     *
+     * @param pageable pagination information
+     * @return page of vehicles
+     */
+    @Cacheable(value = CACHE_VEHICLES, key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    public Page<Vehicle> getAllVehicles(Pageable pageable) {
+        return vehicleRepository.findAll(pageable);
     }
 
     /**
@@ -38,6 +56,7 @@ public class VehicleService {
      * @return the vehicle
      * @throws VehicleNotFoundException if vehicle not found
      */
+    @Cacheable(value = CACHE_VEHICLE_BY_ID, key = "#vehicleId")
     public Vehicle getVehicleById(Integer vehicleId) {
         return vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new VehicleNotFoundException(vehicleId));

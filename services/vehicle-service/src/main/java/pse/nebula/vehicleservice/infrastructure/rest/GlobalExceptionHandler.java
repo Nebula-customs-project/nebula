@@ -1,6 +1,8 @@
 package pse.nebula.vehicleservice.infrastructure.rest;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import pse.nebula.vehicleservice.domain.exception.VehicleNotFoundException;
 import pse.nebula.vehicleservice.infrastructure.rest.dto.ErrorResponse;
+
+import java.util.stream.Collectors;
 
 /**
  * Global exception handler for REST controllers.
@@ -41,6 +45,33 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * Handle ConstraintViolationException for validation errors on path variables and request parameters.
+     *
+     * @param ex the exception
+     * @param request the HTTP request
+     * @return error response with 400 status
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(
+            ConstraintViolationException ex, HttpServletRequest request) {
+
+        logger.warn("Validation error: {}", ex.getMessage());
+
+        String message = ex.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
+
+        ErrorResponse error = ErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                message,
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     /**

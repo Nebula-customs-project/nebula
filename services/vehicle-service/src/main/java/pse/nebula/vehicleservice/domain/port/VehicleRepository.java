@@ -1,5 +1,7 @@
 package pse.nebula.vehicleservice.domain.port;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import pse.nebula.vehicleservice.domain.model.Vehicle;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +18,14 @@ public interface VehicleRepository {
      * @return list of all vehicles
      */
     List<Vehicle> findAll();
+
+    /**
+     * Find all vehicles with pagination.
+     *
+     * @param pageable pagination information
+     * @return page of vehicles
+     */
+    Page<Vehicle> findAll(Pageable pageable);
 
     /**
      * Find a vehicle by its ID.

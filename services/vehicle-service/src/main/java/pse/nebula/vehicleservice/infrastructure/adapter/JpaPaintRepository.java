@@ -18,11 +18,11 @@ public interface JpaPaintRepository extends JpaRepository<Paint, Integer>, Paint
 
     /**
      * Find all paints that have a price for the given car type.
-     * Eagerly fetches the prices collection to avoid lazy loading issues.
+     * Eagerly fetches only the prices for the specified car type to avoid loading unnecessary data.
      */
     @Query("SELECT DISTINCT p FROM Paint p " +
-           "JOIN FETCH p.prices " +
-           "WHERE EXISTS (SELECT 1 FROM PaintPrice pp WHERE pp.paint = p AND pp.carType = :carType)")
+           "LEFT JOIN FETCH p.prices pp " +
+           "WHERE pp.carType = :carType")
     List<Paint> findAllWithPricesForCarType(@Param("carType") CarType carType);
 }
 

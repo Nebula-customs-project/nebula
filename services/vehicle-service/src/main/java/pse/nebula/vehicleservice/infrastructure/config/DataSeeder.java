@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.transaction.support.TransactionTemplate;
 import pse.nebula.vehicleservice.domain.model.*;
 import pse.nebula.vehicleservice.domain.port.*;
 
@@ -28,7 +29,8 @@ public class DataSeeder {
             VehicleRepository vehicleRepository,
             PaintRepository paintRepository,
             RimRepository rimRepository,
-            InteriorRepository interiorRepository) {
+            InteriorRepository interiorRepository,
+            TransactionTemplate transactionTemplate) {
 
         return args -> {
             // Only seed if database is empty (SQL init script may have already populated data)
@@ -43,10 +45,13 @@ public class DataSeeder {
             if (!hasVehicles && !hasPaints) {
                 logger.info("Seeding database with initial data...");
 
-                seedVehicles(vehicleRepository);
-                seedPaints(paintRepository);
-                seedRims(rimRepository);
-                seedInteriors(interiorRepository);
+                // Wrap all seeding operations in a single transaction
+                transactionTemplate.executeWithoutResult(status -> {
+                    seedVehicles(vehicleRepository);
+                    seedPaints(paintRepository);
+                    seedRims(rimRepository);
+                    seedInteriors(interiorRepository);
+                });
 
                 logger.info("Database seeding completed successfully!");
             } else {

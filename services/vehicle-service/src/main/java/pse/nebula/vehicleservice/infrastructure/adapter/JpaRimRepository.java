@@ -18,11 +18,11 @@ public interface JpaRimRepository extends JpaRepository<Rim, Integer>, RimReposi
 
     /**
      * Find all rims that have a price for the given car type.
-     * Eagerly fetches the prices collection to avoid lazy loading issues.
+     * Eagerly fetches only the prices for the specified car type to avoid loading unnecessary data.
      */
     @Query("SELECT DISTINCT r FROM Rim r " +
-           "JOIN FETCH r.prices " +
-           "WHERE EXISTS (SELECT 1 FROM RimPrice rp WHERE rp.rim = r AND rp.carType = :carType)")
+           "LEFT JOIN FETCH r.prices rp " +
+           "WHERE rp.carType = :carType")
     List<Rim> findAllWithPricesForCarType(@Param("carType") CarType carType);
 }
 

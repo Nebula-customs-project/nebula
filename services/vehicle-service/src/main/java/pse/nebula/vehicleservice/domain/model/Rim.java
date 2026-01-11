@@ -28,7 +28,7 @@ public class Rim {
     @Column(name = "image", nullable = false)
     private String image;
 
-    @OneToMany(mappedBy = "rim", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "rim", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<RimPrice> prices = new ArrayList<>();
 
     // Default constructor for JPA

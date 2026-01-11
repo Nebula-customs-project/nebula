@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,6 +20,8 @@ import pse.nebula.vehicleservice.domain.model.*;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.when;
@@ -45,7 +50,8 @@ class VehicleControllerTest {
         void shouldReturnVehiclesList() throws Exception {
             // Given
             Vehicle vehicle = new Vehicle("911 Carrera", CarType.SPORTS, 379, new BigDecimal("106100.00"), "911-carrera-hero");
-            when(vehicleService.getAllVehicles()).thenReturn(List.of(vehicle));
+            Page<Vehicle> vehiclePage = new PageImpl<>(List.of(vehicle));
+            when(vehicleService.getAllVehicles(any(Pageable.class))).thenReturn(vehiclePage);
 
             // When/Then
             mockMvc.perform(get("/api/vehicles")
@@ -63,7 +69,8 @@ class VehicleControllerTest {
         @DisplayName("should return 200 with empty list when no vehicles")
         void shouldReturnEmptyList() throws Exception {
             // Given
-            when(vehicleService.getAllVehicles()).thenReturn(Collections.emptyList());
+            Page<Vehicle> emptyPage = new PageImpl<>(Collections.emptyList());
+            when(vehicleService.getAllVehicles(any(Pageable.class))).thenReturn(emptyPage);
 
             // When/Then
             mockMvc.perform(get("/api/vehicles")

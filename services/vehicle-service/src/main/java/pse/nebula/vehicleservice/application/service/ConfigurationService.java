@@ -1,5 +1,6 @@
 package pse.nebula.vehicleservice.application.service;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pse.nebula.vehicleservice.domain.exception.VehicleNotFoundException;
@@ -16,6 +17,8 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 public class ConfigurationService {
+
+    public static final String CACHE_VEHICLE_CONFIGURATION = "vehicleConfiguration";
 
     private final VehicleRepository vehicleRepository;
     private final PaintRepository paintRepository;
@@ -41,6 +44,7 @@ public class ConfigurationService {
      * @return configuration options with resolved prices
      * @throws VehicleNotFoundException if vehicle not found
      */
+    @Cacheable(value = CACHE_VEHICLE_CONFIGURATION, key = "#vehicleId")
     public VehicleConfiguration getConfigurationForVehicle(Integer vehicleId) {
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new VehicleNotFoundException(vehicleId));

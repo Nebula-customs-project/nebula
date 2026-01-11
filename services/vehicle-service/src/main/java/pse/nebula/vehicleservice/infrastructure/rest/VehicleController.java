@@ -1,26 +1,35 @@
 package pse.nebula.vehicleservice.infrastructure.rest;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pse.nebula.vehicleservice.application.service.ConfigurationService;
 import pse.nebula.vehicleservice.application.service.ConfigurationService.VehicleConfiguration;
 import pse.nebula.vehicleservice.application.service.VehicleService;
+import pse.nebula.vehicleservice.domain.model.Vehicle;
 import pse.nebula.vehicleservice.infrastructure.rest.dto.*;
-
-import java.util.List;
 
 /**
  * REST controller for vehicle operations.
  * Provides endpoints for Cars Overview and Car Configurator.
  */
 @RestController
-@RequestMapping("/api/vehicles")
+@RequestMapping("/api/v1/vehicles")
+@Validated
 @Tag(name = "Vehicles", description = "Vehicle and configuration operations")
 public class VehicleController {
 
@@ -33,22 +42,30 @@ public class VehicleController {
     }
 
     /**
-     * Get all vehicles for the Cars Overview page.
+     * Get all vehicles for the Cars Overview page with pagination.
      *
-     * @return list of all vehicles
+     * @param page the page number (0-based)
+     * @param size the page size
+     * @return paginated list of vehicles
      */
     @GetMapping
-    @Operation(summary = "Get all vehicles", description = "Returns all available vehicles for the Cars Overview page")
+    @Operation(summary = "Get all vehicles", description = "Returns all available vehicles for the Cars Overview page with pagination")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved vehicles",
-                    content = @Content(schema = @Schema(implementation = VehiclesOverviewResponse.class)))
+                    content = @Content(schema = @Schema(implementation = VehiclesOverviewResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid pagination parameters",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<VehiclesOverviewResponse> getAllVehicles() {
-        List<VehicleDto> vehicles = vehicleService.getAllVehicles().stream()
-                .map(VehicleDto::fromEntity)
-                .toList();
+    public ResponseEntity<VehiclesOverviewResponse> getAllVehicles(
+            @Parameter(description = "Page number (0-based)")
+            @RequestParam(defaultValue = "0") @Min(value = 0, message = "Page must be >= 0") int page,
+            @Parameter(description = "Page size (1-100)")
+            @RequestParam(defaultValue = "20") @Min(value = 1, message = "Size must be >= 1") @Max(value = 100, message = "Size must be <= 100") int size) {
 
-        return ResponseEntity.ok(VehiclesOverviewResponse.of(vehicles));
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Vehicle> vehiclePage = vehicleService.getAllVehicles(pageable);
+
+        return ResponseEntity.ok(VehiclesOverviewResponse.fromPage(vehiclePage));
     }
 
     /**
@@ -63,9 +80,13 @@ public class VehicleController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved vehicle",
                     content = @Content(schema = @Schema(implementation = VehicleDto.class))),
             @ApiResponse(responseCode = "404", description = "Vehicle not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid vehicle ID",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<VehicleDto> getVehicleById(@PathVariable Integer id) {
+    public ResponseEntity<VehicleDto> getVehicleById(
+            @Parameter(description = "Vehicle ID", required = true)
+            @PathVariable @NotNull @Positive(message = "Vehicle ID must be a positive number") Integer id) {
         VehicleDto vehicle = VehicleDto.fromEntity(vehicleService.getVehicleById(id));
         return ResponseEntity.ok(vehicle);
     }
@@ -84,9 +105,13 @@ public class VehicleController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved configuration",
                     content = @Content(schema = @Schema(implementation = ConfigurationResponse.class))),
             @ApiResponse(responseCode = "404", description = "Vehicle not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid vehicle ID",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<ConfigurationResponse> getVehicleConfiguration(@PathVariable Integer id) {
+    public ResponseEntity<ConfigurationResponse> getVehicleConfiguration(
+            @Parameter(description = "Vehicle ID", required = true)
+            @PathVariable @NotNull @Positive(message = "Vehicle ID must be a positive number") Integer id) {
         VehicleConfiguration configuration = configurationService.getConfigurationForVehicle(id);
         return ResponseEntity.ok(ConfigurationResponse.fromVehicleConfiguration(configuration));
     }

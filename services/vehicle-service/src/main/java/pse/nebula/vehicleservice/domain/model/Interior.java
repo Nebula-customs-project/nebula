@@ -28,7 +28,7 @@ public class Interior {
     @Column(name = "image", nullable = false)
     private String image;
 
-    @OneToMany(mappedBy = "interior", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "interior", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<InteriorPrice> prices = new ArrayList<>();
 
     // Default constructor for JPA
