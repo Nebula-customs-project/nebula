@@ -105,6 +105,12 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
+        <!-- Redis for session caching and token blacklist -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
         <!-- OpenAPI / Swagger UI -->
         <dependency>
             <groupId>org.springdoc</groupId>

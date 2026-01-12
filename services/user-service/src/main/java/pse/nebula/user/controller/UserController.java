@@ -2,14 +2,17 @@ package pse.nebula.user.controller;
 
 import pse.nebula.user.model.User;
 import pse.nebula.user.service.UserService;
+import pse.nebula.user.service.TokenBlacklistService;
 import pse.nebula.user.dto.LoginRequest;
 import pse.nebula.user.dto.LoginResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +22,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
 
     /**
      * Register a new user
@@ -55,6 +61,36 @@ public class UserController {
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    /**
+     * Logout user and blacklist token
+     * POST /users/logout
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+        try {
+            // Extract token from "Bearer <token>" header
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Missing or invalid Authorization header");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            }
+
+            String token = authHeader.substring(7); // Remove "Bearer " prefix
+
+            // Add token to blacklist
+            tokenBlacklistService.blacklistToken(token);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Logged out successfully");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Logout failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 
