@@ -109,7 +109,10 @@ export default function Vehicle3DScene({ vehicleName, configuration }) {
   const currentMaterial = colorMap[paintColor] || colorMap['racing-red']
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative bg-gradient-to-br from-gray-900 via-black to-gray-900">
+      {/* Ambient background glow */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50 pointer-events-none"></div>
+      
       {/* 3D Canvas */}
       <Canvas
         shadows
@@ -119,7 +122,7 @@ export default function Vehicle3DScene({ vehicleName, configuration }) {
           toneMappingExposure: 1.2,
           outputColorSpace: THREE.SRGBColorSpace,
         }}
-        className="bg-gradient-to-b from-gray-900 via-gray-800 to-black"
+        className="bg-gradient-to-b from-black via-gray-900 to-black"
       >
         {/* Camera setup */}
         <PerspectiveCamera makeDefault position={[4, 2, 6]} fov={50} />
@@ -170,25 +173,27 @@ export default function Vehicle3DScene({ vehicleName, configuration }) {
         </Suspense>
       </Canvas>
 
-      {/* Status badges overlay - Red theme */}
-      <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-md px-4 py-2.5 rounded-full border border-gray-600 flex items-center gap-2 shadow-lg pointer-events-none">
+      {/* Status badges overlay - Enhanced Red theme */}
+      <div className="absolute top-6 left-6 bg-black/80 backdrop-blur-md px-5 py-3 rounded-xl border-2 border-red-500/50 flex items-center gap-2 shadow-2xl shadow-red-500/20 pointer-events-none z-20">
         <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
         </span>
-        <span className="text-gray-200 text-xs font-bold">3D REAL-TIME</span>
+        <span className="text-white text-xs font-bold tracking-wider">3D REAL-TIME</span>
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/10 to-transparent pointer-events-none"></div>
       </div>
 
-      <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-red-500/50 pointer-events-none">
-        <span className="text-red-300 text-xs font-medium">
+      <div className="absolute top-6 right-6 bg-black/80 backdrop-blur-md px-5 py-2.5 rounded-xl border-2 border-red-500/50 shadow-2xl shadow-red-500/20 pointer-events-none z-20">
+        <span className="text-red-300 text-xs font-semibold tracking-wider">
           {paintColor.replace(/-/g, ' ').toUpperCase()}
         </span>
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/10 to-transparent pointer-events-none"></div>
       </div>
 
-      {/* Controls hint */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-md px-6 py-2 rounded-full border border-gray-700 pointer-events-none">
-        <p className="text-gray-300 text-xs">
-          🖱️ <strong>Drag</strong> to rotate • <strong>Scroll</strong> to zoom • <strong>Right-click</strong> to pan
+      {/* Controls hint - Enhanced */}
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-md px-8 py-3 rounded-xl border border-red-500/30 shadow-xl pointer-events-none z-20">
+        <p className="text-gray-200 text-xs font-medium">
+          🖱️ <strong className="text-red-300">Drag</strong> to rotate • <strong className="text-red-300">Scroll</strong> to zoom • <strong className="text-red-300">Right-click</strong> to pan
         </p>
       </div>
     </div>
