@@ -6,12 +6,14 @@ spring:
   main:
     web-application-type: reactive
   
-  # Redis Configuration for token blacklist
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
-    password: ${REDIS_PASSWORD:}
-    timeout: 2000ms
+  # R2DBC Configuration for token blacklist
+  r2dbc:
+    url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:nebula_db}
+    username: ${DB_USER:nebula_user}
+    password: ${DB_PASSWORD:nebula_password}
+    pool:
+      initial-size: 10
+      max-size: 20
   
   cloud:
     config:

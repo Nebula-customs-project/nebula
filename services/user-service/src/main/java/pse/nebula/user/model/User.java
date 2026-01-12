@@ -53,6 +53,11 @@ public class User {
     @Column(length = 100)
     private String city;
 
+    // Role
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;  // Default role is USER
+
     // Metadata
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

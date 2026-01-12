@@ -68,8 +68,8 @@ public class UserService {
             throw new RuntimeException("Invalid password");
         }
 
-        // Generate JWT token
-        return jwtUtil.generateToken(user.getId().toString(), user.getEmail(), null);
+        // Generate JWT token with user role
+        return jwtUtil.generateToken(user.getId().toString(), user.getEmail(), user.getRole().name());
     }
 
 }

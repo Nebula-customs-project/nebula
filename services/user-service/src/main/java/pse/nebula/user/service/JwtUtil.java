@@ -22,10 +22,10 @@ public class JwtUtil {
 
     private PrivateKey privateKey;
 
-    public String generateToken(String userId, String email, String[] roles) {
+    public String generateToken(String userId, String email, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", email);
-        claims.put("roles", roles != null ? roles : new String[]{});
+        claims.put("role", role);
 
         return Jwts.builder()
                 .claims(claims)

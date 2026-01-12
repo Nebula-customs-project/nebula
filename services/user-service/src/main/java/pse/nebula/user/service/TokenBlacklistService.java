@@ -2,85 +2,81 @@ package pse.nebula.user.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pse.nebula.user.model.BlacklistedToken;
+import pse.nebula.user.repository.BlacklistedTokenRepository;
 
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 @Service
+@Slf4j
 public class TokenBlacklistService {
 
-    private static final Logger log = LoggerFactory.getLogger(TokenBlacklistService.class);
-    private static final String BLACKLIST_PREFIX = "blacklist:";
-
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private BlacklistedTokenRepository blacklistedTokenRepository;
 
     @Value("${jwt.test-public-key}")
     private String publicKeyPem;
 
-    private PublicKey publicKey;
-
-    /**
-     * Add token to blacklist (called on logout)
-     * Token is stored with TTL = time until expiration
-     */
+    @Transactional
     public void blacklistToken(String token) {
         try {
-            // Parse token to get expiration time
+            // Parse the token to get expiration time
             Claims claims = parseToken(token);
             Date expiration = claims.getExpiration();
             
-            // Calculate seconds until expiration
-            long now = System.currentTimeMillis();
-            long expirationTime = expiration.getTime();
-            long secondsUntilExpiry = (expirationTime - now) / 1000;
-
-            if (secondsUntilExpiry <= 0) {
-                log.warn("Attempted to blacklist already expired token");
-                return;
-            }
-
-            // Store in Redis with TTL
-            String key = BLACKLIST_PREFIX + token;
-            redisTemplate.opsForValue().set(key, "revoked", secondsUntilExpiry, TimeUnit.SECONDS);
+            LocalDateTime expiresAt = expiration.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
             
-            log.info("Token blacklisted for user: {} (expires in {} seconds)", 
-                     claims.getSubject(), secondsUntilExpiry);
-
+            // Check if token is already expired
+            if (expiresAt.isAfter(LocalDateTime.now())) {
+                // Save to database
+                BlacklistedToken blacklistedToken = new BlacklistedToken(token, expiresAt);
+                blacklistedTokenRepository.save(blacklistedToken);
+                log.info("Token blacklisted successfully for user: {}, expires at: {}", 
+                         claims.getSubject(), expiresAt);
+            } else {
+                log.warn("Token already expired, not adding to blacklist");
+            }
         } catch (Exception e) {
-            log.error("Failed to blacklist token: {}", e.getMessage());
+            log.error("Error blacklisting token", e);
             throw new RuntimeException("Failed to blacklist token", e);
         }
     }
 
-    /**
-     * Check if token is blacklisted
-     */
     public boolean isBlacklisted(String token) {
         try {
-            String key = BLACKLIST_PREFIX + token;
-            Boolean exists = redisTemplate.hasKey(key);
-            return Boolean.TRUE.equals(exists);
+            return blacklistedTokenRepository.existsByToken(token);
         } catch (Exception e) {
-            log.error("Failed to check blacklist: {}", e.getMessage());
-            // Fail-safe: if Redis is down, don't block requests
-            return false;
+            log.error("Error checking blacklist", e);
+            return false; // Fail-safe: if database is down, don't block the request
         }
     }
 
-    /**
-     * Parse token to extract claims (for getting expiration)
-     */
+    // Cleanup expired tokens every hour
+    @Scheduled(fixedRate = 3600000) // 1 hour in milliseconds
+    @Transactional
+    public void cleanupExpiredTokens() {
+        try {
+            blacklistedTokenRepository.deleteExpiredTokens(LocalDateTime.now());
+            log.info("Cleaned up expired blacklisted tokens");
+        } catch (Exception e) {
+            log.error("Error cleaning up expired tokens", e);
+        }
+    }
+
     private Claims parseToken(String token) {
         try {
             PublicKey key = getPublicKey();
@@ -97,28 +93,24 @@ public class TokenBlacklistService {
         }
     }
 
-    /**
-     * Load public key from PEM format
-     */
     private PublicKey getPublicKey() {
-        if (publicKey != null) {
-            return publicKey;
-        }
-
         try {
-            String publicKeyPEM = publicKeyPem
+            if (publicKeyPem == null || publicKeyPem.isBlank()) {
+                throw new IllegalStateException("JWT public key is not configured");
+            }
+
+            String publicKeyContent = publicKeyPem
                     .replace("-----BEGIN PUBLIC KEY-----", "")
                     .replace("-----END PUBLIC KEY-----", "")
                     .replaceAll("\\s", "");
 
-            byte[] encoded = Base64.getDecoder().decode(publicKeyPEM);
+            byte[] keyBytes = Base64.getDecoder().decode(publicKeyContent);
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
-            publicKey = keyFactory.generatePublic(keySpec);
-            return publicKey;
+            return keyFactory.generatePublic(spec);
         } catch (Exception e) {
             log.error("Failed to load public key: {}", e.getMessage());
-            throw new RuntimeException("Failed to load public key", e);
+            throw new RuntimeException("Failed to load JWT public key", e);
         }
     }
 }

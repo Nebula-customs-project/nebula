@@ -115,7 +115,7 @@ public class JwtValidator {
      * Extract roles from token (optional)
      */
     public String getRoles(Claims claims) {
-        Object roles = claims.get("roles");
-        return roles != null ? roles.toString() : "";
+        Object role = claims.get("role");
+        return role != null ? role.toString() : "";
     }
 }

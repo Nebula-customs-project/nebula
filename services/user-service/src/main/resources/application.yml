@@ -18,19 +18,6 @@ spring:
   # All database config comes from Platform-Core Config Server
   jpa:
     show-sql: true
-  
-  # Redis Configuration for session caching
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
-    password: ${REDIS_PASSWORD:}
-    timeout: 2000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
-        max-wait: -1ms
 
 eureka:
   client:
