@@ -6,22 +6,45 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import FallbackCar from './FallbackCar'
 
-export default function CarModel({ configuration, paintMaterial, onError }) {
+/**
+ * CarModel Component
+ * 
+ * Loads and renders a 3D car model with material customization.
+ * 
+ * @param {Object} props
+ * @param {string} props.modelPath - Path to the 3D model file
+ * @param {Object} props.configuration - Vehicle configuration
+ * @param {Object} props.paintMaterial - Paint material properties
+ * @param {Function} props.onError - Error callback
+ * @param {Function} props.onLoad - Load complete callback
+ */
+export default function CarModel({ modelPath, configuration, paintMaterial, onError, onLoad }) {
   const groupRef = useRef()
   const [hasError, setHasError] = useState(false)
 
   // Load the 3D model - useGLTF handles errors internally
-  const { scene } = useGLTF('/models/furarri.glb', true, true, (loader) => {
+  const { scene } = useGLTF(modelPath || '/models/furarri.glb', true, true, (loader) => {
     loader.manager.onError = (url) => {
       console.error('Failed to load model:', url)
       setHasError(true)
-      onError()
+      onError?.()
     }
   })
 
+  // Notify when model is loaded
+  useEffect(() => {
+    if (scene && !hasError) {
+      // Small delay to ensure model is fully rendered
+      const timer = setTimeout(() => {
+        onLoad?.()
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [scene, hasError, onLoad, modelPath])
+
   // Apply materials to the car
   useEffect(() => {
-    if (scene) {
+    if (scene && paintMaterial) {
       scene.traverse((child) => {
         if (child.isMesh) {
           // Create PBR material for car body
@@ -136,7 +159,7 @@ export default function CarModel({ configuration, paintMaterial, onError }) {
         }
       })
     }
-  }, [scene, paintMaterial])
+  }, [scene, paintMaterial, configuration])
 
   // Subtle rotation animation
   useFrame((state) => {
@@ -162,6 +185,3 @@ export default function CarModel({ configuration, paintMaterial, onError }) {
     </group>
   )
 }
-
-// Preload models
-useGLTF.preload('/models/car.glb')
