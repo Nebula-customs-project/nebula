@@ -64,31 +64,53 @@ export default function CarConfiguratorPage() {
   const customizationCost = totalPrice - mockVehicle.basePrice
 
   return (
-    <div className="flex flex-col h-screen bg-black text-white">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left: 3D Viewer */}
-        <div className="flex-1 overflow-hidden">
-          <Vehicle3DViewer
-            vehicleName={mockVehicle.name}
-            configuration={configuration}
-          />
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Decorative corner accents */}
+        <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-red-500/10 to-transparent pointer-events-none z-10"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-red-500/10 to-transparent pointer-events-none z-10"></div>
+        
+        {/* Left: 3D Viewer with Premium Border */}
+        <div className="flex-1 overflow-hidden p-6">
+          <div className="w-full h-full relative rounded-2xl overflow-hidden border-2 border-gray-700/50 shadow-2xl">
+            {/* Animated border glow effect */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-500/20 via-transparent to-red-500/20 opacity-50 animate-pulse pointer-events-none"></div>
+            
+            {/* Inner border for depth */}
+            <div className="absolute inset-[2px] rounded-2xl border border-red-500/30 pointer-events-none"></div>
+            
+            {/* Corner accent decorations */}
+            <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-red-500/50 rounded-tl-2xl pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-red-500/50 rounded-tr-2xl pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-red-500/50 rounded-bl-2xl pointer-events-none"></div>
+            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-red-500/50 rounded-br-2xl pointer-events-none"></div>
+            
+            <div className="w-full h-full relative">
+              <Vehicle3DViewer
+                vehicleName={mockVehicle.name}
+                configuration={configuration}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Right: Customization Panel */}
-        <div className="w-96 border-l border-gray-800 overflow-hidden">
-          <CustomizationPanel
-            categories={mockVehicle.categories}
-            activeCategory={activeCategory}
-            setActiveCategory={setActiveCategory}
-            configuration={configuration}
-            onPartSelect={handlePartSelect}
-          />
+        {/* Right: Customization Panel with Enhanced Border */}
+        <div className="w-96 border-l-2 border-gray-700/50 overflow-hidden bg-gray-900/50 backdrop-blur-sm shadow-2xl">
+          <div className="h-full border-l border-red-500/20">
+            <CustomizationPanel
+              categories={mockVehicle.categories}
+              activeCategory={activeCategory}
+              setActiveCategory={setActiveCategory}
+              configuration={configuration}
+              onPartSelect={handlePartSelect}
+            />
+          </div>
         </div>
       </div>
 
       {/* Footer: Premium Price Summary */}
-      <footer className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-gray-700/50 backdrop-blur-sm">
+      <footer className="bg-gradient-to-r from-gray-900 via-black to-gray-900 border-t-2 border-gray-700/50 backdrop-blur-sm shadow-2xl">
         <div className="px-8 py-6">
           <div className="flex items-center justify-between gap-8">
             {/* Left: Branding & Summary */}

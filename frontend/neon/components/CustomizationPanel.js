@@ -12,33 +12,36 @@ export default function CustomizationPanel({
   const currentCategory = categories.find((cat) => cat.id === activeCategory)
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 text-white">
-      {/* Category Tabs */}
-      <div className="bg-gray-800 border-b border-gray-700">
+    <div className="flex flex-col h-full bg-gradient-to-b from-gray-900 to-black text-white">
+      {/* Category Tabs - Enhanced */}
+      <div className="bg-gray-900/80 backdrop-blur-sm border-b-2 border-gray-700/50 shadow-lg">
         <div className="flex overflow-x-auto scrollbar-hide">
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`shrink-0 px-6 py-4 text-sm font-medium transition-all duration-200 border-b-2 ${
+              className={`shrink-0 px-6 py-4 text-sm font-medium transition-all duration-200 border-b-2 relative ${
                 activeCategory === category.id
-                  ? "bg-gray-900 border-red-500 text-white"
-                  : "border-transparent text-gray-400 hover:text-white hover:bg-gray-700"
+                  ? "bg-gray-800/50 border-red-500 text-white shadow-lg shadow-red-500/20"
+                  : "border-transparent text-gray-400 hover:text-white hover:bg-gray-800/30"
               }`}
             >
-              <span className="mr-2">{category.icon}</span>
-              {category.name}
+              {activeCategory === category.id && (
+                <div className="absolute inset-0 bg-gradient-to-b from-red-500/10 to-transparent pointer-events-none"></div>
+              )}
+              <span className="mr-2 relative z-10">{category.icon}</span>
+              <span className="relative z-10">{category.name}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Parts List */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-3">
+      <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-gradient-to-b from-transparent via-gray-900/20 to-transparent">
         {currentCategory && (
           <>
-            <div className="mb-4">
-              <h3 className="text-xl font-bold text-white">
+            <div className="mb-6 pb-4 border-b border-gray-700/30">
+              <h3 className="text-2xl font-bold text-white mb-1">
                 {currentCategory.name}
               </h3>
               <p className="text-gray-400 text-sm">
@@ -57,10 +60,10 @@ export default function CustomizationPanel({
                     onClick={() =>
                       onPartSelect(currentCategory.id, part.visualKey)
                     }
-                    className={`group relative p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                    className={`group relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                       isSelected
-                        ? "bg-red-500/20 border-red-500 shadow-lg shadow-red-500/20"
-                        : "bg-gray-800/50 border-gray-700 hover:border-gray-600 hover:bg-gray-800"
+                        ? "bg-red-500/20 border-red-500 shadow-xl shadow-red-500/30 backdrop-blur-sm"
+                        : "bg-gray-800/30 border-gray-700/50 hover:border-red-500/50 hover:bg-gray-800/50"
                     }`}
                   >
                     <div className="flex items-start justify-between">
@@ -134,13 +137,13 @@ export default function CustomizationPanel({
         )}
       </div>
 
-      {/* Category Info Footer */}
-      <div className="p-4 bg-gray-800 border-t border-gray-700">
+      {/* Category Info Footer - Enhanced */}
+      <div className="p-4 bg-gray-900/80 backdrop-blur-sm border-t-2 border-gray-700/50 shadow-lg">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">
+          <span className="text-gray-400 font-medium">
             {currentCategory?.parts.length} options available
           </span>
-          <span className="text-gray-400">
+          <span className="text-red-400 text-xs font-semibold uppercase tracking-wider">
             Tap to customize
           </span>
         </div>
