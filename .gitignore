@@ -4,6 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Development profile files (contain sensitive data) ###
+**/application-dev.yaml
+**/application-dev.yml
+
 ### STS ###
 .apt_generated
 .classpath
