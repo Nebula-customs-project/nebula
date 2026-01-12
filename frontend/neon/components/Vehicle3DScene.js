@@ -89,6 +89,16 @@ function SceneLighting() {
   )
 }
 
+/**
+ * Vehicle3DScene Component
+ * 
+ * Renders the 3D interactive car viewer using React Three Fiber.
+ * Displays the car model with real-time color/material updates based on configuration.
+ * 
+ * @param {Object} props
+ * @param {string} props.vehicleName - Name of the vehicle to display
+ * @param {Object} props.configuration - Current vehicle configuration
+ */
 export default function Vehicle3DScene({ vehicleName, configuration }) {
   const [modelError, setModelError] = useState(false)
 

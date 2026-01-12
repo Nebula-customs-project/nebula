@@ -1,3 +1,10 @@
+/**
+ * Vehicle Data Structure
+ * 
+ * Contains the vehicle model data, customization categories, and parts.
+ * This is the single source of truth for all configurator data.
+ */
+
 // Vehicle data structure for Nebula car configurator
 export const mockVehicle = {
   id: "nebula-apex",
@@ -231,7 +238,12 @@ export const mockVehicle = {
   ],
 };
 
-// Default configuration
+/**
+ * Default Configuration
+ * 
+ * Initial configuration state when the configurator loads.
+ * Uses the first/default option from each category.
+ */
 export const defaultConfiguration = {
   paint: "racing-red",
   rims: "sport",
