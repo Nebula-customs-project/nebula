@@ -1,9 +1,23 @@
 'use client'
 
-import React, { useState } from 'react'
-import Vehicle3DViewer from '../../components/Vehicle3DViewer'
+/**
+ * Car Configurator Page
+ * 
+ * Main page component for the Nebula car configurator feature.
+ * Allows users to customize their vehicle with real-time 3D preview.
+ * 
+ * Features:
+ * - 3D interactive car viewer
+ * - Customization panel with multiple categories
+ * - Real-time price calculation
+ * - Configuration management
+ */
+
+import React, { useState, useMemo } from 'react'
+import Vehicle3DScene from '../../components/Vehicle3DScene'
 import CustomizationPanel from '../../components/CustomizationPanel'
 import { mockVehicle, defaultConfiguration } from '../data/vehicleData'
+import { PROGRESS_MAX_COST } from './constants'
 
 export default function CarConfiguratorPage() {
   // State management
@@ -12,7 +26,11 @@ export default function CarConfiguratorPage() {
     mockVehicle.categories[0].id
   )
 
-  // Function to update configuration when a part is selected
+  /**
+   * Handles part selection in a category
+   * @param {string} categoryId - The ID of the category
+   * @param {string} partVisualKey - The visual key of the selected part
+   */
   const handlePartSelect = (categoryId, partVisualKey) => {
     setConfiguration((prev) => ({
       ...prev,
@@ -20,48 +38,45 @@ export default function CarConfiguratorPage() {
     }))
   }
 
-  // Function to calculate total price
-  const calculateTotalPrice = () => {
-    let totalCost = mockVehicle.basePrice
+  /**
+   * Calculate pricing and selected parts count
+   * Memoized for performance optimization
+   */
+  const { totalPrice, customizationCost, selectedPartsCount } = useMemo(() => {
+    let total = mockVehicle.basePrice
+    const selectedParts = []
 
-    // Iterate through each category and find the selected part's cost
     mockVehicle.categories.forEach((category) => {
       const selectedPartKey = configuration[category.id]
       const selectedPart = category.parts.find(
         (part) => part.visualKey === selectedPartKey
       )
       if (selectedPart) {
-        totalCost += selectedPart.cost
+        total += selectedPart.cost
+        if (selectedPart.cost > 0) {
+          selectedParts.push({ category: category.name, part: selectedPart })
+        }
       }
     })
 
-    return totalCost
-  }
+    return {
+      totalPrice: total,
+      customizationCost: total - mockVehicle.basePrice,
+      selectedPartsCount: selectedParts.length,
+    }
+  }, [configuration])
 
-  // Function to reset configuration to default
+  /**
+   * Resets the configuration to default values
+   */
   const handleReset = () => {
     setConfiguration(defaultConfiguration)
   }
 
-  // Function to get selected part details
-  const getSelectedPartDetails = () => {
-    const details = []
-
-    mockVehicle.categories.forEach((category) => {
-      const selectedPartKey = configuration[category.id]
-      const selectedPart = category.parts.find(
-        (part) => part.visualKey === selectedPartKey
-      )
-      if (selectedPart) {
-        details.push({ category: category.name, part: selectedPart })
-      }
-    })
-
-    return details
-  }
-
-  const totalPrice = calculateTotalPrice()
-  const customizationCost = totalPrice - mockVehicle.basePrice
+  /**
+   * Calculate customization progress percentage
+   */
+  const progressPercentage = Math.round((customizationCost / PROGRESS_MAX_COST) * 100)
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
@@ -87,7 +102,7 @@ export default function CarConfiguratorPage() {
             <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-red-500/50 rounded-br-2xl pointer-events-none"></div>
             
             <div className="w-full h-full relative">
-              <Vehicle3DViewer
+              <Vehicle3DScene
                 vehicleName={mockVehicle.name}
                 configuration={configuration}
               />
@@ -120,9 +135,9 @@ export default function CarConfiguratorPage() {
                   <span className="text-white font-bold text-base">N</span>
                 </div>
                 <div>
-                  <p className="text-white font-semibold text-sm">Nebula Apex</p>
+                  <p className="text-white font-semibold text-sm">{mockVehicle.name}</p>
                   <p className="text-gray-400 text-xs">
-                    {getSelectedPartDetails().filter((d) => d.part.cost > 0).length} premium upgrades
+                    {selectedPartsCount} premium upgrade{selectedPartsCount !== 1 ? 's' : ''}
                   </p>
                 </div>
               </div>
@@ -190,7 +205,7 @@ export default function CarConfiguratorPage() {
                 <span className="text-gray-400 text-xs uppercase tracking-wider font-semibold">Customization Progress</span>
                 <div className="h-1 w-1 rounded-full bg-gray-500"></div>
                 <span className="text-gray-500 text-xs">
-                  {Math.round((customizationCost / 50000) * 100)}% complete
+                  {progressPercentage}% complete
                 </span>
               </div>
               <span className="text-gray-500 text-xs">
@@ -201,7 +216,7 @@ export default function CarConfiguratorPage() {
               <div
                 className="h-full bg-gradient-to-r from-red-500 via-red-600 to-red-500 transition-all duration-700 shadow-lg shadow-red-500/50"
                 style={{
-                  width: `${Math.min((customizationCost / 50000) * 100, 100)}%`,
+                  width: `${Math.min((customizationCost / PROGRESS_MAX_COST) * 100, 100)}%`,
                 }}
               ></div>
             </div>

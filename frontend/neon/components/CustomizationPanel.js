@@ -1,5 +1,19 @@
 'use client'
 
+/**
+ * CustomizationPanel Component
+ * 
+ * Displays customization options for the selected category.
+ * Shows parts list with selection state, pricing, and descriptions.
+ * 
+ * @param {Object} props
+ * @param {Array} props.categories - Array of customization categories
+ * @param {string} props.activeCategory - Currently active category ID
+ * @param {Function} props.setActiveCategory - Function to change active category
+ * @param {Object} props.configuration - Current configuration state
+ * @param {Function} props.onPartSelect - Callback when a part is selected
+ */
+
 import React from 'react'
 
 export default function CustomizationPanel({
