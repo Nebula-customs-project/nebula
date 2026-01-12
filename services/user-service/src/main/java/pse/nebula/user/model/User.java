@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -35,4 +38,23 @@ public class User {
 
     @NotBlank
     private String password;
+
+    // Personal Information
+    @Column(length = 20)
+    private String phoneNumber;
+
+    @Column(length = 500)
+    private String profileImage;
+
+    // Location Information
+    @Column(length = 100)
+    private String country;
+
+    @Column(length = 100)
+    private String city;
+
+    // Metadata
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime registrationDate;
 }
