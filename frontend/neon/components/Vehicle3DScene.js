@@ -99,7 +99,19 @@ function SceneLighting() {
  * @param {string} props.vehicleName - Name of the vehicle to display
  * @param {Object} props.configuration - Current vehicle configuration
  */
-export default function Vehicle3DScene({ vehicleName, configuration }) {
+/**
+ * Vehicle3DScene Component
+ * 
+ * Renders the 3D interactive car viewer using React Three Fiber.
+ * Displays the car model with real-time color/material updates based on configuration.
+ * 
+ * @param {Object} props
+ * @param {string} props.vehicleName - Name of the vehicle to display
+ * @param {Object} props.configuration - Current vehicle configuration
+ * @param {string} props.modelPath - Path to the 3D car model
+ * @param {Function} props.onModelLoad - Callback when model finishes loading
+ */
+export default function Vehicle3DScene({ vehicleName, configuration, modelPath, onModelLoad }) {
   const [modelError, setModelError] = useState(false)
 
   // Get paint color from configuration
@@ -149,11 +161,14 @@ export default function Vehicle3DScene({ vehicleName, configuration }) {
 
         {/* Suspense boundary for async model loading */}
         <Suspense fallback={<Loader />}>
-          {/* Main car model (with automatic fallback) */}
+          {/* Main car model (with automatic fallback) - Key forces remount on model change */}
           <CarModel
+            key={modelPath}
+            modelPath={modelPath}
             configuration={configuration}
             paintMaterial={currentMaterial}
             onError={() => setModelError(true)}
+            onLoad={onModelLoad}
           />
           
           {/* Contact shadows for realism */}

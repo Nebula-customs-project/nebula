@@ -13,10 +13,13 @@
  * - Configuration management
  */
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import Vehicle3DScene from '../../components/Vehicle3DScene'
 import CustomizationPanel from '../../components/CustomizationPanel'
+import CarSelector from '../../components/CarSelector'
+import RenderingEffect from '../../components/RenderingEffect'
 import { mockVehicle, defaultConfiguration } from '../data/vehicleData'
+import { availableCars } from './carModels'
 import { PROGRESS_MAX_COST } from './constants'
 
 export default function CarConfiguratorPage() {
@@ -25,6 +28,34 @@ export default function CarConfiguratorPage() {
   const [activeCategory, setActiveCategory] = useState(
     mockVehicle.categories[0].id
   )
+  const [currentCarId, setCurrentCarId] = useState(availableCars[0].id)
+  const [isRendering, setIsRendering] = useState(true)
+  const [modelLoaded, setModelLoaded] = useState(false)
+
+  // Get current car model path
+  const currentCar = availableCars.find((car) => car.id === currentCarId) || availableCars[0]
+
+  /**
+   * Handles car change with rendering effect
+   */
+  const handleCarChange = useCallback((newCarId) => {
+    if (newCarId !== currentCarId) {
+      setModelLoaded(false)
+      setIsRendering(true)
+      setCurrentCarId(newCarId)
+      // Reset configuration when changing cars
+      setConfiguration(defaultConfiguration)
+    }
+  }, [currentCarId])
+
+  /**
+   * Called when 3D model finishes loading
+   */
+  const handleModelLoad = useCallback(() => {
+    setModelLoaded(true)
+    // Let the rendering effect handle the completion timing
+    // It will complete when progress reaches 70%+ if model is loaded
+  }, [])
 
   /**
    * Handles part selection in a category
@@ -80,6 +111,13 @@ export default function CarConfiguratorPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+      {/* Rendering Effect Overlay */}
+      <RenderingEffect 
+        isRendering={isRendering}
+        modelLoaded={modelLoaded}
+        onComplete={() => setIsRendering(false)}
+      />
+
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Decorative corner accents */}
@@ -102,9 +140,12 @@ export default function CarConfiguratorPage() {
             <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-red-500/50 rounded-br-2xl pointer-events-none"></div>
             
             <div className="w-full h-full relative">
+              {/* 3D Scene */}
               <Vehicle3DScene
-                vehicleName={mockVehicle.name}
+                vehicleName={currentCar.name}
                 configuration={configuration}
+                modelPath={currentCar.modelPath}
+                onModelLoad={handleModelLoad}
               />
             </div>
           </div>
@@ -135,7 +176,7 @@ export default function CarConfiguratorPage() {
                   <span className="text-white font-bold text-base">N</span>
                 </div>
                 <div>
-                  <p className="text-white font-semibold text-sm">{mockVehicle.name}</p>
+                  <p className="text-white font-semibold text-sm">{currentCar.name}</p>
                   <p className="text-gray-400 text-xs">
                     {selectedPartsCount} premium upgrade{selectedPartsCount !== 1 ? 's' : ''}
                   </p>
@@ -143,58 +184,70 @@ export default function CarConfiguratorPage() {
               </div>
             </div>
 
-            {/* Center: Price Breakdown - Premium Design */}
-            <div className="flex items-center gap-8 flex-1 justify-center">
-              <div className="text-center">
-                <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1.5 font-semibold">Base Price</p>
-                <p className="text-white text-xl font-bold">
-                  €{mockVehicle.basePrice.toLocaleString()}
-                </p>
-              </div>
-              
-              <div className="h-12 w-px bg-gradient-to-b from-transparent via-gray-600 to-transparent"></div>
-              
-              <div className="text-center">
-                <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1.5 font-semibold">Customization</p>
-                <p
-                  className={`text-xl font-bold transition-colors ${
-                    customizationCost > 0 
-                      ? "text-red-400" 
-                      : "text-gray-500"
-                  }`}
-                >
-                  {customizationCost > 0 ? "+" : ""}€{customizationCost.toLocaleString()}
-                </p>
-              </div>
-              
-              <div className="h-12 w-px bg-gradient-to-b from-transparent via-gray-600 to-transparent"></div>
-              
-              <div className="text-center relative">
-                <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1.5 font-semibold">Total Price</p>
-                <div className="relative">
-                  <p className="text-green-400 text-4xl font-bold tracking-tight">
-                    €{totalPrice.toLocaleString()}
-                  </p>
-                  <div className="absolute -inset-2 bg-green-400/20 blur-2xl rounded-lg"></div>
-                </div>
-              </div>
+            {/* Center: Car Selector */}
+            <div className="flex items-center justify-center flex-1">
+              <CarSelector
+                currentCarId={currentCarId}
+                onCarChange={handleCarChange}
+                availableCars={availableCars}
+              />
             </div>
 
-            {/* Right: Action Buttons */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleReset}
-                className="px-5 py-2.5 bg-gray-800/80 hover:bg-gray-700 rounded-lg text-sm font-semibold transition-all duration-200 border border-gray-700 hover:border-gray-600 backdrop-blur-sm"
-                title="Reset All Customizations"
-              >
-                Reset All
-              </button>
-              
-              <button 
-                className="px-8 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-sm font-bold transition-all duration-200 shadow-xl shadow-red-500/40 hover:shadow-red-500/60 transform hover:scale-105"
-              >
-                Save Configuration
-              </button>
+            {/* Right: Price Breakdown & Action Buttons */}
+            <div className="flex items-center gap-6">
+              {/* Price Breakdown - Moved to Right */}
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1.5 font-semibold">Base Price</p>
+                  <p className="text-white text-xl font-bold">
+                    €{mockVehicle.basePrice.toLocaleString()}
+                  </p>
+                </div>
+                
+                <div className="h-12 w-px bg-gradient-to-b from-transparent via-gray-600 to-transparent"></div>
+                
+                <div className="text-center">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1.5 font-semibold">Customization</p>
+                  <p
+                    className={`text-xl font-bold transition-colors ${
+                      customizationCost > 0 
+                        ? "text-red-400" 
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {customizationCost > 0 ? "+" : ""}€{customizationCost.toLocaleString()}
+                  </p>
+                </div>
+                
+                <div className="h-12 w-px bg-gradient-to-b from-transparent via-gray-600 to-transparent"></div>
+                
+                <div className="text-center relative">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1.5 font-semibold">Total Price</p>
+                  <div className="relative">
+                    <p className="text-green-400 text-4xl font-bold tracking-tight">
+                      €{totalPrice.toLocaleString()}
+                    </p>
+                    <div className="absolute -inset-2 bg-green-400/20 blur-2xl rounded-lg"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleReset}
+                  className="px-5 py-2.5 bg-gray-800/80 hover:bg-gray-700 rounded-lg text-sm font-semibold transition-all duration-200 border border-gray-700 hover:border-gray-600 backdrop-blur-sm"
+                  title="Reset All Customizations"
+                >
+                  Reset All
+                </button>
+                
+                <button 
+                  className="px-8 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-sm font-bold transition-all duration-200 shadow-xl shadow-red-500/40 hover:shadow-red-500/60 transform hover:scale-105"
+                >
+                  Save Configuration
+                </button>
+              </div>
             </div>
           </div>
 
