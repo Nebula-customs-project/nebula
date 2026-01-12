@@ -25,7 +25,7 @@ export default function CarsPage() {
                   <span className="text-red-500 font-bold text-xl">{car.price}</span>
                   <span className="text-gray-400">{car.power}</span>
                 </div>
-                <Link href="/configurator" className="block w-full mt-4 bg-red-600 hover:bg-red-700 py-2 rounded transition text-center">
+                <Link href="/car-configurator" className="block w-full mt-4 bg-red-600 hover:bg-red-700 py-2 rounded transition text-center">
                   Configure
                 </Link>
               </div>

@@ -10,7 +10,7 @@ export default function Navigation() {
   const navigation = [
     { href: '/', label: 'Home', icon: Car },
     { href: '/cars', label: 'Cars', icon: Car },
-    { href: '/configurator', label: 'Configurator', icon: Settings },
+    { href: '/car-configurator', label: 'Car Configurator', icon: Settings },
     { href: '/world-drive', label: 'World Drive', icon: MapPin },
     { href: '/merchandise', label: 'Merchandise', icon: ShoppingCart },
     { href: '/my-car', label: 'My PSE Car', icon: User }

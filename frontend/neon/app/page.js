@@ -183,7 +183,7 @@ export default function Home() {
                         </div>
                         {isCenter && (
                           <Link
-                            href="/configurator"
+                            href="/car-configurator"
                             className="block w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-center font-semibold transition transform hover:scale-105"
                           >
                             Configure Now
@@ -312,7 +312,7 @@ export default function Home() {
               <h3 className="text-lg font-bold mb-4">Quick Links</h3>
               <ul className="space-y-2">
                 <li><Link href="/cars" className="text-gray-400 hover:text-red-500 transition">Our Cars</Link></li>
-                <li><Link href="/configurator" className="text-gray-400 hover:text-red-500 transition">Configurator</Link></li>
+                <li><Link href="/car-configurator" className="text-gray-400 hover:text-red-500 transition">Car Configurator</Link></li>
                 <li><Link href="/world-drive" className="text-gray-400 hover:text-red-500 transition">World Drive</Link></li>
                 <li><Link href="/merchandise" className="text-gray-400 hover:text-red-500 transition">Merchandise</Link></li>
                 <li><Link href="/my-car" className="text-gray-400 hover:text-red-500 transition">My Nebula Car</Link></li>
