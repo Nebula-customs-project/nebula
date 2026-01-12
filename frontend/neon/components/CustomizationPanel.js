@@ -8,13 +8,12 @@ export default function CustomizationPanel({
   setActiveCategory,
   configuration,
   onPartSelect,
-  onReset,
 }) {
   const currentCategory = categories.find((cat) => cat.id === activeCategory)
 
   return (
     <div className="flex flex-col h-full bg-gray-900 text-white">
-      {/* Category Tabs with Action Buttons */}
+      {/* Category Tabs */}
       <div className="bg-gray-800 border-b border-gray-700">
         <div className="flex overflow-x-auto scrollbar-hide">
           {categories.map((category) => (
@@ -32,18 +31,6 @@ export default function CustomizationPanel({
             </button>
           ))}
         </div>
-        {/* Action Buttons in Header */}
-        {onReset && (
-          <div className="px-4 py-2 flex items-center justify-end gap-2 border-t border-gray-700/50">
-            <button
-              onClick={onReset}
-              className="px-3 py-1.5 bg-gray-700/50 hover:bg-gray-700 rounded text-xs font-medium transition-colors border border-gray-600 hover:border-gray-500"
-              title="Reset All Customizations"
-            >
-              ↻ Reset
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Parts List */}
