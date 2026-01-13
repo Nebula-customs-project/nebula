@@ -5,6 +5,7 @@ import pse.nebula.user.service.UserService;
 import pse.nebula.user.service.TokenBlacklistService;
 import pse.nebula.user.dto.LoginRequest;
 import pse.nebula.user.dto.LoginResponse;
+import pse.nebula.user.dto.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -27,16 +29,34 @@ public class UserController {
     private TokenBlacklistService tokenBlacklistService;
 
     /**
+     * Convert User entity to UserDTO (excludes password)
+     */
+    private UserDTO convertToDTO(User user) {
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setEmail(user.getEmail());
+        dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setProfileImage(user.getProfileImage());
+        dto.setCountry(user.getCountry());
+        dto.setCity(user.getCity());
+        dto.setRole(user.getRole());
+        dto.setRegistrationDate(user.getRegistrationDate());
+        return dto;
+    }
+
+    /**
      * Register a new user
      * POST /users/register
      */
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody User user) {
+    public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody User user) {
         try {
             User createdUser = userService.createUser(user);
-            // Don't return password in response
-            createdUser.setPassword(null);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+            // Return UserDTO without password
+            return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(createdUser));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -95,31 +115,36 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserDTO> getAllUsers() {
+        return userService.getAllUsers().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
+                .map(this::convertToDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/by-username/{username}")
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String username) {
         return userService.getUserByUsername(username)
+                .map(this::convertToDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
         if (!userService.getUserById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
         user.setId(id);
-        return ResponseEntity.ok(userService.updateUser(user));
+        User updatedUser = userService.updateUser(user);
+        return ResponseEntity.ok(convertToDTO(updatedUser));
     }
 
     @DeleteMapping("/{id}")
