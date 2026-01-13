@@ -204,12 +204,9 @@ class JwtAuthenticationFilterTest {
 
         verify(chain).filter(argThat(modifiedExchange -> {
             var headers = modifiedExchange.getRequest().getHeaders();
-            var userId = headers.getFirst("X-User-Id");
-            var userEmail = headers.getFirst("X-User-Email");
-            var userRoles = headers.getFirst("X-User-Roles");
-            return userId != null && userId.isEmpty() &&
-                   userEmail != null && userEmail.isEmpty() &&
-                   userRoles != null && userRoles.isEmpty();
+            return "".equals(headers.getFirst("X-User-Id")) &&
+                   "".equals(headers.getFirst("X-User-Email")) &&
+                   "".equals(headers.getFirst("X-User-Roles"));
         }));
     }
 
