@@ -61,7 +61,7 @@ public class TokenBlacklistService {
             return blacklistedTokenRepository.existsByToken(token);
         } catch (Exception e) {
             log.error("Error checking blacklist", e);
-            return false; // Fail-safe: if database is down, don't block the request
+            throw new RuntimeException("Failed to check token blacklist", e);
         }
     }
 

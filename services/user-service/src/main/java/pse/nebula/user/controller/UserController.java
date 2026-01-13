@@ -1,5 +1,6 @@
 package pse.nebula.user.controller;
 
+import pse.nebula.user.dto.AuthenticationResult;
 import pse.nebula.user.model.User;
 import pse.nebula.user.service.UserService;
 import pse.nebula.user.service.TokenBlacklistService;
@@ -9,11 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -47,14 +50,14 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
-            String token = userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
-            User user = userService.getUserByEmail(loginRequest.getEmail()).get();
+            AuthenticationResult authResult = userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
+            User user = authResult.getUser();
 
             LoginResponse response = new LoginResponse();
             response.setUserId(user.getId());
             response.setEmail(user.getEmail());
             response.setUsername(user.getUsername());
-            response.setToken(token);
+            response.setToken(authResult.getToken());
 
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
@@ -92,11 +95,6 @@ public class UserController {
         }
     }
 
-    @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
@@ -111,22 +109,32 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Update user profile
+     * Users can only update their own profile unless they are admins
+     */
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
+        // Get authenticated user ID from SecurityContext
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        String authenticatedUserId = authentication.getPrincipal().toString();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        // Check if user is trying to update their own profile or is an admin
+        if (!authenticatedUserId.equals(id.toString()) && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
         if (!userService.getUserById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
         user.setId(id);
         return ResponseEntity.ok(userService.updateUser(user));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        if (!userService.getUserById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
     }
 
 }

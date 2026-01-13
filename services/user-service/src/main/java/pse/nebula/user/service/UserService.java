@@ -1,5 +1,6 @@
 package pse.nebula.user.service;
 
+import pse.nebula.user.dto.AuthenticationResult;
 import pse.nebula.user.model.User;
 import pse.nebula.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,9 +70,9 @@ public class UserService {
     }
 
     /**
-     * Authenticate user and return JWT token
+     * Authenticate user and return JWT token with user object
      */
-    public String authenticateUser(String email, String password) {
+    public AuthenticationResult authenticateUser(String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(email);
 
         if (userOpt.isEmpty()) {
@@ -86,7 +87,9 @@ public class UserService {
         }
 
         // Generate JWT token with user role
-        return jwtUtil.generateToken(user.getId().toString(), user.getEmail(), user.getRole().name());
+        String token = jwtUtil.generateToken(user.getId().toString(), user.getEmail(), user.getRole().name());
+        
+        return new AuthenticationResult(token, user);
     }
 
 }

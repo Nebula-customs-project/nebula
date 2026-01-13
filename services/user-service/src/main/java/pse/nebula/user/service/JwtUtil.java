@@ -20,7 +20,7 @@ public class JwtUtil {
     @Value("${jwt.test-private-key}")
     private String testPrivateKeyPem;
 
-    private PrivateKey privateKey;
+    private volatile PrivateKey privateKey;
 
     public String generateToken(String userId, String email, String role) {
         Map<String, Object> claims = new HashMap<>();
