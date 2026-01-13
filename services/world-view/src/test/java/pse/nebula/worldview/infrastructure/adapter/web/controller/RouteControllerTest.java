@@ -149,6 +149,25 @@ class RouteControllerTest {
         }
     }
 
+    @Nested
+    @DisplayName("GET /api/v1/routes/random Tests")
+    class GetRandomRouteTests {
+
+        @Test
+        @DisplayName("Should return a random route")
+        void shouldReturnRandomRoute() throws Exception {
+            // Given
+            when(routeUseCase.getRandomRoute()).thenReturn(testRoute1);
+
+            // When & Then
+            mockMvc.perform(get("/api/v1/routes/random"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.id", notNullValue()));
+
+            verify(routeUseCase, times(1)).getRandomRoute();
+        }
+    }
 
     @Nested
     @DisplayName("GET /api/v1/routes/count Tests")

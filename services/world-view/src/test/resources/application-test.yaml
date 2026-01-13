@@ -58,7 +58,6 @@ journey:
   scheduler:
     update-interval-ms: 100  # Faster updates for testing
     default-speed-mps: 50.0  # Higher speed for testing
-    delay-between-journeys-ms: 100  # Short delay for testing
 
 # Route Configuration
 route:

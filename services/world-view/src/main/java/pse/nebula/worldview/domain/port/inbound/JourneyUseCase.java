@@ -5,22 +5,28 @@ import pse.nebula.worldview.domain.model.JourneyState;
 
 /**
  * Inbound port for journey-related use cases.
- * Handles journey lifecycle and querying.
- *
- * Note: Journeys are automatically managed by the system.
- * Users cannot manually start, stop, or pause journeys.
+ * Handles starting, controlling, and querying journeys.
  */
 public interface JourneyUseCase {
 
     /**
      * Start a new journey on a randomly selected route.
-     * This is called internally by the auto-scheduler.
      *
      * @param journeyId Unique identifier for the journey
      * @param speedMetersPerSecond The speed of the car in m/s
      * @return The initial journey state
      */
     JourneyState startNewJourney(String journeyId, double speedMetersPerSecond);
+
+    /**
+     * Start a new journey on a specific route.
+     *
+     * @param journeyId Unique identifier for the journey
+     * @param routeId The route to use
+     * @param speedMetersPerSecond The speed of the car in m/s
+     * @return The initial journey state
+     */
+    JourneyState startJourneyOnRoute(String journeyId, String routeId, double speedMetersPerSecond);
 
     /**
      * Get the current state of a journey.
@@ -31,8 +37,8 @@ public interface JourneyUseCase {
     JourneyState getJourneyState(String journeyId);
 
     /**
-     * Advance the journey and return the new position.
-     * This is called internally by the auto-scheduler.
+     * Get the next coordinate in the journey.
+     * This advances the journey state and returns the new position.
      *
      * @param journeyId The journey identifier
      * @param elapsedSeconds Time elapsed since last update
@@ -41,8 +47,21 @@ public interface JourneyUseCase {
     Coordinate advanceJourney(String journeyId, double elapsedSeconds);
 
     /**
+     * Pause an active journey.
+     *
+     * @param journeyId The journey identifier
+     */
+    void pauseJourney(String journeyId);
+
+    /**
+     * Resume a paused journey.
+     *
+     * @param journeyId The journey identifier
+     */
+    void resumeJourney(String journeyId);
+
+    /**
      * Stop and remove a journey.
-     * This is called internally when a journey completes.
      *
      * @param journeyId The journey identifier
      */

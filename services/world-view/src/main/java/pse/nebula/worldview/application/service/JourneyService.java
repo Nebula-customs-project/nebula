@@ -16,8 +16,6 @@ import pse.nebula.worldview.domain.port.outbound.JourneyStateRepository;
 /**
  * Application service that implements journey-related use cases.
  * Orchestrates the journey lifecycle and coordinates between domain and infrastructure.
- *
- * Journeys are automatically managed - no manual control is exposed.
  */
 @Slf4j
 @Service
@@ -35,6 +33,20 @@ public class JourneyService implements JourneyUseCase {
         // Get a random route
         DrivingRoute route = routeUseCase.getRandomRoute();
 
+        return createAndStartJourney(journeyId, route, speedMetersPerSecond);
+    }
+
+    @Override
+    public JourneyState startJourneyOnRoute(String journeyId, String routeId, double speedMetersPerSecond) {
+        log.info("Starting journey with ID: {} on route: {} at speed: {} m/s",
+            journeyId, routeId, speedMetersPerSecond);
+
+        DrivingRoute route = routeUseCase.getRouteById(routeId);
+
+        return createAndStartJourney(journeyId, route, speedMetersPerSecond);
+    }
+
+    private JourneyState createAndStartJourney(String journeyId, DrivingRoute route, double speedMetersPerSecond) {
         // Check if journey already exists
         if (journeyStateRepository.exists(journeyId)) {
             throw new JourneyAlreadyExistsException(journeyId);
@@ -100,6 +112,21 @@ public class JourneyService implements JourneyUseCase {
         return currentPosition;
     }
 
+    @Override
+    public void pauseJourney(String journeyId) {
+        log.info("Pausing journey: {}", journeyId);
+        JourneyState journeyState = getJourneyState(journeyId);
+        journeyState.pause();
+        journeyStateRepository.save(journeyState);
+    }
+
+    @Override
+    public void resumeJourney(String journeyId) {
+        log.info("Resuming journey: {}", journeyId);
+        JourneyState journeyState = getJourneyState(journeyId);
+        journeyState.resume();
+        journeyStateRepository.save(journeyState);
+    }
 
     @Override
     public void stopJourney(String journeyId) {
