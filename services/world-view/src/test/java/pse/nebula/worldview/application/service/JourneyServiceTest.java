@@ -26,6 +26,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for JourneyService.
+ * Tests the simplified auto-managed journey service.
+ */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("JourneyService Unit Tests")
 class JourneyServiceTest {
@@ -106,8 +110,23 @@ class JourneyServiceTest {
             verify(journeyStateRepository, never()).save(any());
             verify(coordinatePublisher, never()).publishJourneyStarted(any());
         }
-    }
 
+        @Test
+        @DisplayName("Should set initial position at route start")
+        void shouldSetInitialPositionAtRouteStart() {
+            // Given
+            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
+            when(journeyStateRepository.exists(JOURNEY_ID)).thenReturn(false);
+
+            // When
+            JourneyState result = journeyService.startNewJourney(JOURNEY_ID, DEFAULT_SPEED);
+
+            // Then
+            assertEquals(testRoute.startPoint(), result.getCurrentPosition());
+            assertEquals(0, result.getCurrentWaypointIndex());
+            assertEquals(0.0, result.getProgressPercentage(), 0.01);
+        }
+    }
 
     @Nested
     @DisplayName("getJourneyState Tests")
@@ -183,8 +202,22 @@ class JourneyServiceTest {
             // Then
             verify(coordinatePublisher).publishJourneyCompleted(journeyState);
         }
-    }
 
+        @Test
+        @DisplayName("Should update progress percentage during advancement")
+        void shouldUpdateProgressDuringAdvancement() {
+            // Given
+            JourneyState journeyState = new JourneyState(JOURNEY_ID, testRoute, 1000.0); // Fast speed
+            journeyState.start();
+            when(journeyStateRepository.findById(JOURNEY_ID)).thenReturn(Optional.of(journeyState));
+
+            // When
+            journeyService.advanceJourney(JOURNEY_ID, 1.0);
+
+            // Then
+            assertTrue(journeyState.getProgressPercentage() > 0);
+        }
+    }
 
     @Nested
     @DisplayName("stopJourney Tests")
@@ -232,3 +265,4 @@ class JourneyServiceTest {
         }
     }
 }
+
