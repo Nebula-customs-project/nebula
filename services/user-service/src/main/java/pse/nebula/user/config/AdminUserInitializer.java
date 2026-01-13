@@ -19,7 +19,7 @@ import java.util.Optional;
 public class AdminUserInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Value("${admin.default.email:admin@nebula.com}")
     private String adminEmail;

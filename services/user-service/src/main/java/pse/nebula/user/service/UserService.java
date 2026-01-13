@@ -12,14 +12,16 @@ import java.util.Optional;
 @Service
 public class UserService {
 
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
+    private final BCryptPasswordEncoder passwordEncoder;
+
     @Autowired
-    private UserRepository userRepository;
-
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    public UserService(UserRepository userRepository, JwtUtil jwtUtil, BCryptPasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -53,13 +55,8 @@ public class UserService {
         // Handle password updates securely
         String newPassword = user.getPassword();
         if (newPassword != null && !newPassword.isBlank()) {
-            // Only re-encode if the provided password is different from the existing one
-            if (!passwordEncoder.matches(newPassword, existingUser.getPassword())) {
-                user.setPassword(passwordEncoder.encode(newPassword));
-            } else {
-                // Password is effectively unchanged; keep the existing hashed password
-                user.setPassword(existingUser.getPassword());
-            }
+            // A new password was provided; always hash and update it
+            user.setPassword(passwordEncoder.encode(newPassword));
         } else {
             // No new password provided; retain existing hashed password
             user.setPassword(existingUser.getPassword());
