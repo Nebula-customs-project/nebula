@@ -27,6 +27,14 @@ eureka:
     hostname: localhost
     instance-id: ${spring.application.name}:${server.port}
 
+# Admin User Configuration
+# Set ADMIN_DEFAULT_PASSWORD environment variable to create default admin user on first startup
+# Example: export ADMIN_DEFAULT_PASSWORD=your-secure-password
+admin:
+  default:
+    email: ${ADMIN_DEFAULT_EMAIL:admin@nebula.com}
+    password: ${ADMIN_DEFAULT_PASSWORD}
+
 # JWT Configuration
 jwt:
   test-private-key: |
