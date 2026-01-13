@@ -14,7 +14,6 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import pse.nebula.gateway.config.PublicRoutesConfig;
-import pse.nebula.gateway.service.TokenBlacklistService;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -27,9 +26,6 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     @Autowired
     private PublicRoutesConfig publicRoutesConfig;
-
-    @Autowired
-    private TokenBlacklistService tokenBlacklistService;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -52,42 +48,33 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             return onError(exchange, "Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer" prefix
+        String token = authHeader.substring(7); // Remove "Bearer " prefix
 
-        // Check if token is blacklisted (reactive)
-        return tokenBlacklistService.isBlacklisted(token)
-                .flatMap(isBlacklisted -> {
-                    if (Boolean.TRUE.equals(isBlacklisted)) {
-                        log.warn("Blocked blacklisted token for path: {}", path);
-                        return onError(exchange, "Token has been revoked", HttpStatus.UNAUTHORIZED);
-                    }
+        try {
+            // Validate token
+            Claims claims = jwtValidator.validateToken(token);
 
-                    try {
-                        // Validate token
-                        Claims claims = jwtValidator.validateToken(token);
+            // Extract user information
+            String userId = jwtValidator.getUserId(claims);
+            String email = jwtValidator.getEmail(claims);
+            String roles = jwtValidator.getRoles(claims);
 
-                        // Extract user information
-                        String userId = jwtValidator.getUserId(claims);
-                        String email = jwtValidator.getEmail(claims);
-                        String roles = jwtValidator.getRoles(claims);
+            log.info("Authenticated user: {} ({})", userId, email);
 
-                        log.info("Authenticated user: {} ({})", userId, email);
+            // Add user info to request headers for downstream services
+            ServerHttpRequest modifiedRequest = request.mutate()
+                    .header("X-User-Id", userId != null ? userId : "")
+                    .header("X-User-Email", email != null ? email : "")
+                    .header("X-User-Roles", roles != null ? roles : "")
+                    .build();
 
-                        // Add user info to request headers for downstream services
-                        ServerHttpRequest modifiedRequest = request.mutate()
-                                .header("X-User-Id", userId != null ? userId : "")
-                                .header("X-User-Email", email != null ? email : "")
-                                .header("X-User-Roles", roles != null ? roles : "")
-                                .build();
+            // Continue with modified request
+            return chain.filter(exchange.mutate().request(modifiedRequest).build());
 
-                        // Continue with modified request
-                        return chain.filter(exchange.mutate().request(modifiedRequest).build());
-
-                    } catch (Exception e) {
-                        log.error("Token validation failed: {}", e.getMessage());
-                        return onError(exchange, "Invalid or expired token", HttpStatus.UNAUTHORIZED);
-                    }
-                });
+        } catch (Exception e) {
+            log.error("Token validation failed: {}", e.getMessage());
+            return onError(exchange, "Invalid or expired token", HttpStatus.UNAUTHORIZED);
+        }
     }
 
     private Mono<Void> onError(ServerWebExchange exchange, String message, HttpStatus status) {
