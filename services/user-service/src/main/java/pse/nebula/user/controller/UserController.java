@@ -32,6 +32,9 @@ public class UserController {
      * Convert User entity to UserDTO (excludes password)
      */
     private UserDTO convertToDTO(User user) {
+        if (user == null) {
+            return null;
+        }
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
