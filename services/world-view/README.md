@@ -28,10 +28,13 @@ This service follows **Hexagonal Architecture** (Ports and Adapters), ensuring b
 │             ▼                      ▼                     ▼              │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
 │  │                    APPLICATION LAYER                              │  │
-│  │  ┌─────────────┐  ┌─────────────────┐  ┌──────────────────────────────┐ │  │
-│  │  │RouteService │  │ JourneyService  │  │AutoJourneySchedulerService   │ │  │
-│  │  └─────────────┘  └─────────────────┘  └──────────────────────────────┘ │  │
-│  │  (Scheduled task runs every 500ms to manage journey lifecycle)   │  │
+│  │  ┌─────────────┐  ┌─────────────────┐  ┌───────────────────────┐ │  │
+│  │  │RouteService │  │ JourneyService  │  │AutoJourneyScheduler   │ │  │
+│  │  └─────────────┘  └─────────────────┘  └───────────────────────┘ │  │
+│  │  ┌──────────────────────────────────────────────────────────────┐ │  │
+│  │  │           JourneySchedulerService                            │ │  │
+│  │  │  (Scheduled updates for active journeys)                     │ │  │
+│  │  └──────────────────────────────────────────────────────────────┘ │  │
 │  └──────────────────────────────────────────────────────────────────┘  │
 │                                  │                                      │
 │  ┌───────────────────────────────┼──────────────────────────────────┐  │
@@ -52,10 +55,11 @@ This service follows **Hexagonal Architecture** (Ports and Adapters), ensuring b
 
 ### How It Works
 
-1. **AutoJourneySchedulerService** automatically starts new journeys on random routes and advances active journeys at configured intervals (default: 500ms)
-2. Coordinate updates are published to **MQTT (RabbitMQ)** in real-time
-3. Frontend subscribes to MQTT topic: `nebula/journey/{journeyId}/position`
-4. When a journey completes, a new one starts automatically after a configurable delay (default: 5 seconds)
+1. **AutoJourneySchedulerService** automatically starts new journeys on random routes
+2. **JourneySchedulerService** advances active journeys at configured intervals (default: 500ms)
+3. Coordinate updates are published to **MQTT (RabbitMQ)** in real-time
+4. Frontend subscribes to MQTT topic: `nebula/journey/{journeyId}/position`
+5. When a journey completes, a new one starts automatically after a configurable delay
 
 ## 🗺️ Routes to Dealership
 
@@ -66,10 +70,10 @@ Coordinates: `48.8354, 9.1520`
 |----------|---------------|-------------|-----------|
 | route-1 | Ludwigsburg Schloss | 48.8977, 9.1952 | 45 |
 | route-2 | Favoritepark (Ludwigsburg) | 48.9111, 9.1866 | 38 |
-| route-3 | Kornwestheim | 48.8598, 9.1856 | 52 |
+| route-3 | Reutlingen | 48.4919, 9.2041 | 52 |
 | route-4 | Böblingen | 48.6855, 9.0143 | 48 |
-| route-5 | Reutlingen | 48.4827, 9.2052 | 52 |
-| route-6 | Waiblingen | 48.8304, 9.3165 | 40 |
+| route-5 | Sindelfingen | 48.7135, 9.0001 | 42 |
+| route-6 | Waiblingen | 48.8297, 9.3178 | 40 |
 | route-7 | Fellbach | 48.8108, 9.2785 | 35 |
 | route-8 | Esslingen | 48.7408, 9.3050 | 46 |
 
@@ -83,28 +87,27 @@ Coordinates: `48.8354, 9.1520`
 |--------|----------|-------------|
 | GET | `/api/v1/routes` | Get all available routes |
 | GET | `/api/v1/routes/{routeId}` | Get a specific route by ID |
+| GET | `/api/v1/routes/random` | Get a randomly selected route |
 | GET | `/api/v1/routes/count` | Get total number of routes |
 
 ### Journeys
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/journeys/current` | Get the current active journey state |
-| GET | `/api/v1/journeys/active` | Check if there is an active journey |
-| GET | `/api/v1/journeys/{journeyId}` | Get state of a specific journey by ID |
-
-**Note:** Journeys are automatically managed by the system. Users cannot manually start, pause, or stop journeys.
+| POST | `/api/v1/journeys` | Start a new journey with specific route and speed |
+| POST | `/api/v1/journeys/quick-start` | Quick start with auto-generated ID, random route, and default speed |
+| GET | `/api/v1/journeys/{journeyId}` | Get current journey state and progress |
+| DELETE | `/api/v1/journeys/{journeyId}` | Stop an active journey |
 
 **Real-time Updates:** Subscribe to MQTT topic `nebula/journey/{journeyId}/position` for live coordinate streaming.
 
-## 💡 Usage Examples
+## Usage Examples
 
-**Note:** Journeys are automatically managed by the AutoJourneySchedulerService. The following examples show how to query journey state and routes.
-
-### Get Current Active Journey
+### Start a Journey with Random Route (Quick Start)
 
 ```bash
-curl http://localhost:8082/api/v1/journeys/current
+curl -X POST http://localhost:8082/api/v1/journeys/quick-start \
+  -H "Content-Type: application/json"
 ```
 
 **Response:**
@@ -113,55 +116,50 @@ curl http://localhost:8082/api/v1/journeys/current
   "journey_id": "journey-a1b2c3d4",
   "route": {
     "id": "route-3",
-    "name": "Kornwestheim Route",
-    "start_location": "Kornwestheim",
+    "name": "Reutlingen to Dealership",
+    "start_location": "Reutlingen",
     "end_location": "Dealership"
   },
   "status": "IN_PROGRESS",
-  "speed_meters_per_second": 13.89,
-  "progress_percentage": 45.2,
-  "current_position": {
-    "latitude": 48.8456,
-    "longitude": 9.1723
-  },
-  "current_waypoint_index": 24,
-  "total_waypoints": 52
+  "speed_meters_per_second": 15.0,
+  "progress_percentage": 0.0
 }
 ```
 
-### Check If Journey is Active
+### Start a Journey on Specific Route
 
 ```bash
-curl http://localhost:8082/api/v1/journeys/active
+curl -X POST http://localhost:8082/api/v1/journeys \
+  -H "Content-Type: application/json" \
+  -d '{
+    "journey_id": "my-journey-001",
+    "route_id": "route-1",
+    "speed_meters_per_second": 20.0
+  }'
 ```
 
-**Response:**
-```json
-true
-```
-
-### Get Journey State by ID
+### Get Journey State
 
 ```bash
-curl http://localhost:8082/api/v1/journeys/journey-a1b2c3d4
+curl http://localhost:8082/api/v1/journeys/my-journey-001
 ```
 
 **Response:**
 ```json
 {
-  "journey_id": "journey-a1b2c3d4",
+  "journey_id": "my-journey-001",
   "route": {
-    "id": "route-3",
-    "name": "Kornwestheim Route"
+    "id": "route-1",
+    "name": "Ludwigsburg Schloss to Dealership"
   },
   "status": "IN_PROGRESS",
   "current_position": {
-    "latitude": 48.8456,
-    "longitude": 9.1723
+    "latitude": 48.8756,
+    "longitude": 9.1845
   },
   "progress_percentage": 45.2,
-  "current_waypoint_index": 24,
-  "total_waypoints": 52
+  "current_waypoint_index": 20,
+  "total_waypoints": 45
 }
 ```
 
@@ -207,6 +205,11 @@ The service publishes coordinate updates to RabbitMQ/MQTT. Frontend should subsc
 curl http://localhost:8082/api/v1/routes
 ```
 
+### Stop a Journey
+
+```bash
+curl -X DELETE http://localhost:8082/api/v1/journeys/my-journey-001
+```
 
 ## ⚙️ Configuration
 
