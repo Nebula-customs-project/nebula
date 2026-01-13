@@ -2,13 +2,16 @@ package pse.nebula.merchandise.integration;
 
 import java.math.BigDecimal;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,6 +30,7 @@ import pse.nebula.merchandise.domain.repository.ProductRepository;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@SpringJUnitConfig
 class MerchandiseIntegrationTest {
 
     @Autowired
@@ -41,8 +45,36 @@ class MerchandiseIntegrationTest {
     @Autowired
     private CartRepository cartRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeAll
+    static void initializeSchema(@Autowired JdbcTemplate jdbcTemplate) {
+        jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS MERCHANDISE_SERVICE");
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS MERCHANDISE_SERVICE.CARTS (\n" +
+                "    user_id VARCHAR(255) NOT NULL PRIMARY KEY\n" +
+                ")");
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS MERCHANDISE_SERVICE.PRODUCTS (\n" +
+                "    id BIGSERIAL PRIMARY KEY,\n" +
+                "    name VARCHAR(255) NOT NULL,\n" +
+                "    description VARCHAR(1024),\n" +
+                "    price NUMERIC(15, 2) NOT NULL,\n" +
+                "    stock INT NOT NULL,\n" +
+                "    image_url VARCHAR(255)\n" +
+                ")");
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS MERCHANDISE_SERVICE.CART_ITEMS (\n" +
+                "    id BIGSERIAL PRIMARY KEY,\n" +
+                "    cart_user_id VARCHAR(255) NOT NULL,\n" +
+                "    product_id BIGINT NOT NULL,\n" +
+                "    quantity INT NOT NULL,\n" +
+                "    price NUMERIC(15, 2) NOT NULL,\n" +
+                "    FOREIGN KEY (cart_user_id) REFERENCES MERCHANDISE_SERVICE.CARTS(user_id)\n" +
+                ")");
+    }
+
     @BeforeEach
     void setup() {
+        // Clear repositories after schema creation
         cartRepository.deleteAll();
         productRepository.deleteAll();
     }

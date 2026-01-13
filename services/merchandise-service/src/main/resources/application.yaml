@@ -7,22 +7,36 @@ spring:
 
   # Activate shared database profile (see platform-core config-repo)
   profiles:
-    active: shared-database
+    include: shared-database,shared-rabbitmq
 
   # Service-specific JPA overrides only
+
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5434}/${POSTGRES_DB:nebula_db}?currentSchema=merchandise_service
+    username: ${POSTGRES_USER:nebula_user}
+    password: ${POSTGRES_PASSWORD:nebula@2025}
+
   jpa:
     properties:
       hibernate:
         default_schema: merchandise_service
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
 
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 logging:
   level:
     org.springframework: INFO
+
+management:
+  stackdriver:
+    metrics:
+      export:
+        enabled: false
 
 # Eureka client configuration
 eureka:
