@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pse.nebula.user.dto.UpdateRoleRequest;
+import pse.nebula.user.dto.UserResponse;
 import pse.nebula.user.model.Role;
 import pse.nebula.user.model.User;
 import pse.nebula.user.service.UserService;
@@ -23,8 +24,10 @@ public class AdminController {
      */
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        List<UserResponse> users = userService.getAllUsers().stream()
+                .map(UserResponse::fromUser)
+                .toList();
         return ResponseEntity.ok(users);
     }
 
@@ -33,8 +36,9 @@ public class AdminController {
      */
     @GetMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
+                .map(UserResponse::fromUser)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -57,7 +61,7 @@ public class AdminController {
      */
     @PutMapping("/users/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> updateUserRole(
+    public ResponseEntity<UserResponse> updateUserRole(
             @PathVariable Long id,
             @RequestBody UpdateRoleRequest request) {
         
@@ -67,6 +71,6 @@ public class AdminController {
         user.setRole(request.getRole());
         User updatedUser = userService.updateUser(user);
         
-        return ResponseEntity.ok(updatedUser);
+        return ResponseEntity.ok(UserResponse.fromUser(updatedUser));
     }
 }

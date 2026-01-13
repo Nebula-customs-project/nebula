@@ -27,6 +27,8 @@ public class UserResponse {
 
     /**
      * Create a UserResponse from a User entity, excluding the password field
+     * @param user the User entity to convert
+     * @return a UserResponse with all fields except the password, or null if the user is null
      */
     public static UserResponse fromUser(User user) {
         if (user == null) {
