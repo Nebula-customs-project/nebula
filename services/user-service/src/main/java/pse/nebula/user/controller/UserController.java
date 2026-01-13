@@ -34,8 +34,6 @@ public class UserController {
     public ResponseEntity<User> registerUser(@Valid @RequestBody User user) {
         try {
             User createdUser = userService.createUser(user);
-            // Don't return password in response
-            createdUser.setPassword(null);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
