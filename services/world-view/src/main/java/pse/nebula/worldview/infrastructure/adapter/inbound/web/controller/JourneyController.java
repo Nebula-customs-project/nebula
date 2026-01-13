@@ -33,6 +33,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/journeys")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @Tag(name = "Journeys", description = "Endpoints for viewing journey status (read-only)")
 public class JourneyController {
 
