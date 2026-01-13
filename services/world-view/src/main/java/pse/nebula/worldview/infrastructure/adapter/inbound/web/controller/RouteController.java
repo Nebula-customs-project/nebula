@@ -20,24 +20,20 @@ import java.util.List;
 
 /**
  * REST controller for route-related operations.
- * Provides read-only endpoints to query available routes.
- *
- * Routes are automatically selected by the system for journeys.
- * Users can view available routes but cannot manually select them.
+ * Provides endpoints to query available routes.
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/routes")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
-@Tag(name = "Available Routes", description = "View available driving routes (read-only)")
+@Tag(name = "Routes", description = "Endpoints for managing driving routes")
 public class RouteController {
 
     private final RouteUseCase routeUseCase;
     private final DtoMapper dtoMapper;
 
-    @Operation(summary = "Get all available routes",
-            description = "Returns all available driving routes. Routes are automatically selected by the system for journeys.")
+    @Operation(summary = "Get all routes", description = "Returns all available driving routes to the dealership")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved all routes",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = RouteDto.class)))
@@ -54,7 +50,7 @@ public class RouteController {
         return ResponseEntity.ok(routeDtos);
     }
 
-    @Operation(summary = "Get route by ID", description = "Returns details of a specific route")
+    @Operation(summary = "Get route by ID", description = "Returns a specific route by its unique identifier")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Route found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = RouteDto.class))),
@@ -67,6 +63,19 @@ public class RouteController {
         log.info("Fetching route with ID: {}", routeId);
 
         DrivingRoute route = routeUseCase.getRouteById(routeId);
+        return ResponseEntity.ok(dtoMapper.toDto(route));
+    }
+
+    @Operation(summary = "Get random route", description = "Returns a randomly selected route for a new journey")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Random route selected",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = RouteDto.class)))
+    })
+    @GetMapping("/random")
+    public ResponseEntity<RouteDto> getRandomRoute() {
+        log.info("Selecting a random route");
+
+        DrivingRoute route = routeUseCase.getRandomRoute();
         return ResponseEntity.ok(dtoMapper.toDto(route));
     }
 

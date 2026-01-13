@@ -26,10 +26,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for JourneyService.
- * Tests the simplified auto-managed journey service.
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("JourneyService Unit Tests")
 class JourneyServiceTest {
@@ -110,21 +106,27 @@ class JourneyServiceTest {
             verify(journeyStateRepository, never()).save(any());
             verify(coordinatePublisher, never()).publishJourneyStarted(any());
         }
+    }
+
+    @Nested
+    @DisplayName("startJourneyOnRoute Tests")
+    class StartJourneyOnRouteTests {
 
         @Test
-        @DisplayName("Should set initial position at route start")
-        void shouldSetInitialPositionAtRouteStart() {
+        @DisplayName("Should start journey on specified route")
+        void shouldStartJourneyOnSpecificRoute() {
             // Given
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
+            when(routeUseCase.getRouteById("route-1")).thenReturn(testRoute);
             when(journeyStateRepository.exists(JOURNEY_ID)).thenReturn(false);
 
             // When
-            JourneyState result = journeyService.startNewJourney(JOURNEY_ID, DEFAULT_SPEED);
+            JourneyState result = journeyService.startJourneyOnRoute(JOURNEY_ID, "route-1", DEFAULT_SPEED);
 
             // Then
-            assertEquals(testRoute.startPoint(), result.getCurrentPosition());
-            assertEquals(0, result.getCurrentWaypointIndex());
-            assertEquals(0.0, result.getProgressPercentage(), 0.01);
+            assertNotNull(result);
+            assertEquals(JOURNEY_ID, result.getJourneyId());
+            assertEquals("route-1", result.getRoute().id());
+            verify(routeUseCase).getRouteById("route-1");
         }
     }
 
@@ -202,20 +204,48 @@ class JourneyServiceTest {
             // Then
             verify(coordinatePublisher).publishJourneyCompleted(journeyState);
         }
+    }
+
+    @Nested
+    @DisplayName("pauseJourney Tests")
+    class PauseJourneyTests {
 
         @Test
-        @DisplayName("Should update progress percentage during advancement")
-        void shouldUpdateProgressDuringAdvancement() {
+        @DisplayName("Should pause an active journey")
+        void shouldPauseActiveJourney() {
             // Given
-            JourneyState journeyState = new JourneyState(JOURNEY_ID, testRoute, 1000.0); // Fast speed
+            JourneyState journeyState = new JourneyState(JOURNEY_ID, testRoute, DEFAULT_SPEED);
             journeyState.start();
             when(journeyStateRepository.findById(JOURNEY_ID)).thenReturn(Optional.of(journeyState));
 
             // When
-            journeyService.advanceJourney(JOURNEY_ID, 1.0);
+            journeyService.pauseJourney(JOURNEY_ID);
 
             // Then
-            assertTrue(journeyState.getProgressPercentage() > 0);
+            assertEquals(JourneyStatus.PAUSED, journeyState.getStatus());
+            verify(journeyStateRepository).save(journeyState);
+        }
+    }
+
+    @Nested
+    @DisplayName("resumeJourney Tests")
+    class ResumeJourneyTests {
+
+        @Test
+        @DisplayName("Should resume a paused journey")
+        void shouldResumePausedJourney() {
+            // Given
+            JourneyState journeyState = new JourneyState(JOURNEY_ID, testRoute, DEFAULT_SPEED);
+            journeyState.start();
+            journeyState.pause();
+            when(journeyStateRepository.findById(JOURNEY_ID)).thenReturn(Optional.of(journeyState));
+
+            // When
+            journeyService.resumeJourney(JOURNEY_ID);
+
+            // Then
+            assertEquals(JourneyStatus.IN_PROGRESS, journeyState.getStatus());
+            verify(journeyStateRepository).save(journeyState);
         }
     }
 
