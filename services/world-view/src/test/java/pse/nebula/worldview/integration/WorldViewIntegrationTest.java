@@ -10,6 +10,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
+import pse.nebula.worldview.infrastructure.adapter.inbound.web.dto.JourneyStateDto;
 import pse.nebula.worldview.infrastructure.adapter.inbound.web.dto.RouteDto;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Integration tests for the World View Service.
  * Tests the complete flow from REST API to database and back.
+ *
+ * Note: Journeys are now auto-managed, so manual journey control endpoints are removed.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -140,7 +143,6 @@ class WorldViewIntegrationTest {
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         }
 
-
         @Test
         @DisplayName("Should get route count")
         void shouldGetRouteCount() {
@@ -156,6 +158,52 @@ class WorldViewIntegrationTest {
         }
     }
 
+    @Nested
+    @DisplayName("Journey API Integration Tests (Auto-Managed)")
+    class JourneyApiTests {
+
+        @Test
+        @DisplayName("Should check if journey is active")
+        void shouldCheckIfJourneyIsActive() {
+            // When
+            ResponseEntity<Boolean> response = restTemplate.getForEntity(
+                    baseUrl + "/journeys/active",
+                    Boolean.class
+            );
+
+            // Then
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertNotNull(response.getBody());
+            // Initially might be true or false depending on scheduler timing
+        }
+
+        @Test
+        @DisplayName("Should get current journey if active")
+        void shouldGetCurrentJourneyIfActive() {
+            // When
+            ResponseEntity<JourneyStateDto> response = restTemplate.getForEntity(
+                    baseUrl + "/journeys/current",
+                    JourneyStateDto.class
+            );
+
+            // Then - Either 200 with journey or 204 no content
+            assertTrue(response.getStatusCode() == HttpStatus.OK ||
+                       response.getStatusCode() == HttpStatus.NO_CONTENT);
+        }
+
+        @Test
+        @DisplayName("Should return 404 for non-existent journey")
+        void shouldReturn404ForNonExistentJourney() {
+            // When
+            ResponseEntity<String> response = restTemplate.getForEntity(
+                    baseUrl + "/journeys/non-existent-journey",
+                    String.class
+            );
+
+            // Then
+            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        }
+    }
 
     @Nested
     @DisplayName("Route Data Validation Tests")
@@ -216,3 +264,4 @@ class WorldViewIntegrationTest {
         }
     }
 }
+

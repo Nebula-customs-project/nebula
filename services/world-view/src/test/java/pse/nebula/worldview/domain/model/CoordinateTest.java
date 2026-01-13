@@ -76,3 +76,4 @@ class CoordinateTest {
         assertEquals(end.longitude(), result.longitude(), 0.0001);
     }
 }
+

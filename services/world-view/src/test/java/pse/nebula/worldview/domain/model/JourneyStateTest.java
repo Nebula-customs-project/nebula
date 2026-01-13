@@ -141,3 +141,4 @@ class JourneyStateTest {
             journey.setSpeedMetersPerSecond(-5));
     }
 }
+
