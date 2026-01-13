@@ -163,3 +163,13 @@ docker-compose.production.yml
 # Test data with sensitive information
 **/test-data/sensitive/
 **/fixtures/sensitive/
+
+# Redis source files
+redis-stable/
+redis-stable.tar.gz
+
+# Test scripts and documentation
+test-*.sh
+build-*.txt
+REDIS_*.md
+TEST_*.md

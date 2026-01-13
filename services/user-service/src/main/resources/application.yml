@@ -1,0 +1,78 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: user-service
+  
+  # Import configurations from Config Server
+  config:
+    import: optional:configserver:http://localhost:8761
+  
+  # Activate shared-database profile to get DB config from config server
+  profiles:
+    active: shared-database
+  
+  # ============ SERVICE-SPECIFIC OVERRIDES ONLY ============
+  # User Service uses default 'public' schema - no override needed
+  # All database config comes from Platform-Core Config Server
+  jpa:
+    show-sql: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.name}:${server.port}
+
+# Admin User Configuration
+# Set ADMIN_DEFAULT_PASSWORD environment variable to create default admin user on first startup
+# Example: export ADMIN_DEFAULT_PASSWORD=your-secure-password
+admin:
+  default:
+    email: ${ADMIN_DEFAULT_EMAIL:admin@nebula.com}
+    password: ${ADMIN_DEFAULT_PASSWORD}
+
+# JWT Configuration
+# SECURITY: JWT keys must be provided via environment variables
+# DO NOT hardcode keys in this file as they will be committed to version control
+# Set JWT_PRIVATE_KEY and JWT_PUBLIC_KEY environment variables
+# For test/development only, fallback keys are provided below
+jwt:
+  test-private-key: ${JWT_PRIVATE_KEY:-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCUbWWF8JbeXXPy
+jmnow7AoW4XLzd2fdVOuV4u7a+1YJCjyCZW8icRxHhMgpyerLhrW9kdWkmGAocHK
+8ge4+FNT0p1FU4yC+Mf+Qf7lxwfbWCbTJyFqya7mpW9RC8gPhBe4lgBMi5fwzlHz
+NuC9oywpJH4sgjRJ+vjO+BO4XY7sqZYveBeGmRcg5i4Ne2c4J12AT3gIcQx7sukt
+bFnvcGxtwcYLzOSTkra+77d4nQXN3I+u+Ln3JFPOrBb2QUdD0qfzeGBOk2ip7owq
+Z6AKu8BPnNdLpM2a/L9yO7DLGCoXIl2dX7lW3O+jEfRaXjE1NF2npS1+sBrH/PSk
+2US4emWxAgMBAAECggEADKpNm3nHM8cPcTkWJPFvG+mKN4lIvEJmMDNZhBY0WGMP
+pW2q2CtEjWpV3L6YXJ4+M4nYfD9qWXQ7vD9XcY8f8KWJcHN0KnZz5lHlWJ5UvS2p
+v+0gDqV8pKPvVOgWZvWvmQ2RR5lZ9f2NMkX7KXXlY1J5p3N8mJqWX6K8xX5u5Yxd
+MZQx8cRVvHm1NvmMgJvY5FvyWb4FnPeqB0n0mNQ+D3nGkM7pB0tJ8KY5Wz2KBwOe
+cT3WX0X3BhX5KY2Y8JzGlJ5P0U5Q7V8S1N1MpVp8Y8zLfZfvN8Qz7RlT8S9U2N3
+O2X2YLLmPeYe8B5b8ZOvAQKBgQDG6Y4IlYZmXq7C8xH+J0U5LQ5dQfY5VpMKcJ4K
+sPvLmVpqB9S7vB2D5P2K3L7N1M9O3Q4R5S6T7U8V9W0X1Y2Z3a4B5c6D7e8F9gAh
+iJKmN1P2Q3R4S5T6U7V8W9X0Y1Z2a3B4c5D6e7F8g9H0I1J2k3QKBgQCze0T2KQs
+l6q2Ir5S4Y6L8P+V3H0I1J2K3l4M5n6O7p8Q9r0S1T2u3U4v5W6x6X7y8Y9z0A0B
+-----END PRIVATE KEY-----}
+  test-public-key: ${JWT_PUBLIC_KEY:-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlG1hhfCW3l1z8o5p6MOw
+KFuFy83dn3VTrleLu2vtWCQo8gmVvInEcR4TIKcnqy4a1vZHVpJhgKHByvIHuPhT
+U9KdRVOMgvjH/kH+5ccH21gm0ychasmu5qVvUQvID4QXuJYATIuX8M5R8zbovaMs
+KSR+LII0Sfr4zvgTuF2O7KmWL3gXRpkXIOYuDXtnOCddgE94CHEMe7LpHWxZ73Bs
+bcHGC8zkk5K2vu+3eJ0FzdyPrvi59yRTzqwW9kFHQ9Kn83hgTpNoqe6MKmegCrvA
+T5zXS6TNmvy/cjuwyxgqFyJdnV+5VtzvoxH0Wl4xNTRdp6UtfrAax/z0pNlEuHpl
+sQIDAQAB
+-----END PUBLIC KEY-----}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
