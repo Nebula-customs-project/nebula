@@ -44,6 +44,27 @@ public class UserService {
     }
 
     public User updateUser(User user) {
+        if (user == null || user.getId() == null) {
+            throw new IllegalArgumentException("User and user ID must not be null for update");
+        }
+        User existingUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User with id " + user.getId() + " not found"));
+        
+        // Handle password updates securely
+        String newPassword = user.getPassword();
+        if (newPassword != null && !newPassword.isBlank()) {
+            // Only re-encode if the provided password is different from the existing one
+            if (!passwordEncoder.matches(newPassword, existingUser.getPassword())) {
+                user.setPassword(passwordEncoder.encode(newPassword));
+            } else {
+                // Password is effectively unchanged; keep the existing hashed password
+                user.setPassword(existingUser.getPassword());
+            }
+        } else {
+            // No new password provided; retain existing hashed password
+            user.setPassword(existingUser.getPassword());
+        }
+        
         return userRepository.save(user);
     }
 
