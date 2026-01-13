@@ -11,9 +11,9 @@ spring:
   # RabbitMQ AMQP Configuration
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT}
-    username: ${RABBITMQ_USER}
-    password: ${RABBITMQ_PASSWORD}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:nebula}
+    password: ${RABBITMQ_PASSWORD:nebula@2025}
     virtual-host: ${RABBITMQ_VHOST:/}
 
     # Connection Settings
@@ -40,13 +40,13 @@ mqtt:
   enabled: ${MQTT_ENABLED:true}
   broker:
     host: ${MQTT_HOST:localhost}
-    port: ${MQTT_PORT}
+    port: ${MQTT_PORT:1883}
   client:
     id: ${spring.application.name}-mqtt-client
-  username: ${MQTT_USERNAME}
-  password: ${MQTT_PASSWORD}
+  username: ${MQTT_USERNAME:nebula}
+  password: ${MQTT_PASSWORD:nebula@2025}
   topic:
-    prefix: ${MQTT_TOPIC_PREFIX:nebula/journey}
+    prefix: ${MQTT_TOPIC_PREFIX:nebula}
 
   # Quality of Service
   qos: ${MQTT_QOS:1}
