@@ -32,6 +32,56 @@ build/
 ### VS Code ###
 .vscode/
 
+### Docs of world-view service ###
+services/world-view/docs/
+
+### Frontend/Neon ###
+frontend/neon/node_modules
+frontend/neon/.pnp
+frontend/neon/.pnp.*
+frontend/neon/.yarn/*
+!frontend/neon/.yarn/patches
+!frontend/neon/.yarn/plugins
+!frontend/neon/.yarn/releases
+!frontend/neon/.yarn/versions
+frontend/neon/coverage
+frontend/neon/.next/
+frontend/neon/out/
+frontend/neon/build
+frontend/neon/.DS_Store
+frontend/neon/*.pem
+frontend/neon/npm-debug.log*
+frontend/neon/yarn-debug.log*
+frontend/neon/yarn-error.log*
+frontend/neon/.pnpm-debug.log*
+frontend/neon/.env*
+frontend/neon/.vercel
+frontend/neon/*.tsbuildinfo
+frontend/neon/next-env.d.ts
+
+### Frontend/World-View-FE ###
+frontend/world-view-FE/node_modules
+frontend/world-view-FE/.pnp
+frontend/world-view-FE/.pnp.*
+frontend/world-view-FE/.yarn/*
+!frontend/world-view-FE/.yarn/patches
+!frontend/world-view-FE/.yarn/plugins
+!frontend/world-view-FE/.yarn/releases
+!frontend/world-view-FE/.yarn/versions
+frontend/world-view-FE/coverage
+frontend/world-view-FE/.next/
+frontend/world-view-FE/out/
+frontend/world-view-FE/build
+frontend/world-view-FE/.DS_Store
+frontend/world-view-FE/*.pem
+frontend/world-view-FE/npm-debug.log*
+frontend/world-view-FE/yarn-debug.log*
+frontend/world-view-FE/yarn-error.log*
+frontend/world-view-FE/.pnpm-debug.log*
+frontend/world-view-FE/.env*
+frontend/world-view-FE/.vercel
+frontend/world-view-FE/*.tsbuildinfo
+
 ### Environment Variables ###
 .env
 .env.local
