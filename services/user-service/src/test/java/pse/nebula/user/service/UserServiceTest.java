@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import pse.nebula.user.dto.AuthenticationResult;
 import pse.nebula.user.model.Role;
 import pse.nebula.user.model.User;
 import pse.nebula.user.repository.UserRepository;
@@ -216,7 +217,7 @@ class UserServiceTest {
     }
 
     @Test
-    void authenticateUser_WithValidCredentials_ShouldReturnToken() {
+    void authenticateUser_WithValidCredentials_ShouldReturnTokenAndUser() {
         // Arrange
         String encodedPassword = "hashedPassword123";
         testUser.setPassword(encodedPassword);
@@ -226,11 +227,15 @@ class UserServiceTest {
         when(jwtUtil.generateToken("1", "test@example.com", "USER")).thenReturn("mock-jwt-token");
 
         // Act
-        String token = userService.authenticateUser("test@example.com", "password123");
+        AuthenticationResult result = userService.authenticateUser("test@example.com", "password123");
 
         // Assert
-        assertNotNull(token);
-        assertEquals("mock-jwt-token", token);
+        assertNotNull(result);
+        assertNotNull(result.getToken());
+        assertNotNull(result.getUser());
+        assertEquals("mock-jwt-token", result.getToken());
+        assertEquals(testUser.getId(), result.getUser().getId());
+        assertEquals(testUser.getEmail(), result.getUser().getEmail());
         verify(userRepository, times(1)).findByEmail("test@example.com");
         verify(passwordEncoder, times(1)).matches("password123", encodedPassword);
         verify(jwtUtil, times(1)).generateToken("1", "test@example.com", "USER");
