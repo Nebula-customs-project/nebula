@@ -28,15 +28,18 @@ class UserServiceTest {
     @Mock
     private JwtUtil jwtUtil;
 
+    @Mock
+    private BCryptPasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UserService userService;
 
     private User testUser;
-    private BCryptPasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder realPasswordEncoder;
 
     @BeforeEach
     void setUp() {
-        passwordEncoder = new BCryptPasswordEncoder();
+        realPasswordEncoder = new BCryptPasswordEncoder();
         
         testUser = new User();
         testUser.setId(1L);
@@ -112,6 +115,7 @@ class UserServiceTest {
         newUser.setPassword("plainPassword");
         newUser.setRole(Role.USER);
 
+        when(passwordEncoder.encode("plainPassword")).thenReturn("hashedPassword");
         when(userRepository.save(any(User.class))).thenReturn(newUser);
 
         // Act
@@ -119,7 +123,7 @@ class UserServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertNotEquals("plainPassword", result.getPassword());
+        verify(passwordEncoder, times(1)).encode("plainPassword");
         verify(userRepository, times(1)).save(any(User.class));
     }
 
@@ -130,7 +134,7 @@ class UserServiceTest {
         existingUser.setId(1L);
         existingUser.setUsername("existing");
         existingUser.setEmail("existing@example.com");
-        existingUser.setPassword(passwordEncoder.encode("oldPassword"));
+        existingUser.setPassword("oldHashedPassword");
         existingUser.setRole(Role.USER);
 
         User updateUser = new User();
@@ -141,6 +145,7 @@ class UserServiceTest {
         updateUser.setRole(Role.USER);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(passwordEncoder.encode("newPassword")).thenReturn("newHashedPassword");
         when(userRepository.save(any(User.class))).thenReturn(updateUser);
 
         // Act
@@ -149,6 +154,7 @@ class UserServiceTest {
         // Assert
         assertNotNull(result);
         verify(userRepository, times(1)).findById(1L);
+        verify(passwordEncoder, times(1)).encode("newPassword");
         verify(userRepository, times(1)).save(any(User.class));
     }
 
@@ -176,7 +182,7 @@ class UserServiceTest {
     @Test
     void updateUser_WithNullPassword_ShouldKeepExistingPassword() {
         // Arrange
-        String encodedPassword = passwordEncoder.encode("existingPassword");
+        String encodedPassword = "existingHashedPassword";
         User existingUser = new User();
         existingUser.setId(1L);
         existingUser.setPassword(encodedPassword);
@@ -193,6 +199,7 @@ class UserServiceTest {
 
         // Assert
         assertEquals(encodedPassword, result.getPassword());
+        verify(passwordEncoder, never()).encode(any());
     }
 
     @Test
@@ -211,10 +218,11 @@ class UserServiceTest {
     @Test
     void authenticateUser_WithValidCredentials_ShouldReturnToken() {
         // Arrange
-        String encodedPassword = passwordEncoder.encode("password123");
+        String encodedPassword = "hashedPassword123";
         testUser.setPassword(encodedPassword);
         
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches("password123", encodedPassword)).thenReturn(true);
         when(jwtUtil.generateToken("1", "test@example.com", "USER")).thenReturn("mock-jwt-token");
 
         // Act
@@ -224,6 +232,7 @@ class UserServiceTest {
         assertNotNull(token);
         assertEquals("mock-jwt-token", token);
         verify(userRepository, times(1)).findByEmail("test@example.com");
+        verify(passwordEncoder, times(1)).matches("password123", encodedPassword);
         verify(jwtUtil, times(1)).generateToken("1", "test@example.com", "USER");
     }
 
@@ -242,15 +251,17 @@ class UserServiceTest {
     @Test
     void authenticateUser_WithInvalidPassword_ShouldThrowException() {
         // Arrange
-        String encodedPassword = passwordEncoder.encode("correctPassword");
+        String encodedPassword = "hashedCorrectPassword";
         testUser.setPassword(encodedPassword);
         
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches("wrongPassword", encodedPassword)).thenReturn(false);
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> userService.authenticateUser("test@example.com", "wrongPassword"));
         assertEquals("Invalid password", exception.getMessage());
         verify(userRepository, times(1)).findByEmail("test@example.com");
+        verify(passwordEncoder, times(1)).matches("wrongPassword", encodedPassword);
     }
 }
