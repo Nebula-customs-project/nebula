@@ -5,6 +5,7 @@ import pse.nebula.user.service.UserService;
 import pse.nebula.user.service.TokenBlacklistService;
 import pse.nebula.user.dto.LoginRequest;
 import pse.nebula.user.dto.LoginResponse;
+import pse.nebula.user.dto.UserResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,12 +32,10 @@ public class UserController {
      * POST /users/register
      */
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody User user) {
+    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody User user) {
         try {
             User createdUser = userService.createUser(user);
-            // Don't return password in response
-            createdUser.setPassword(null);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.fromUser(createdUser));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -95,31 +94,35 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserResponse> getAllUsers() {
+        return userService.getAllUsers().stream()
+                .map(UserResponse::fromUser)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
+                .map(UserResponse::fromUser)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/by-username/{username}")
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<UserResponse> getUserByUsername(@PathVariable String username) {
         return userService.getUserByUsername(username)
+                .map(UserResponse::fromUser)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
         if (!userService.getUserById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
         user.setId(id);
-        return ResponseEntity.ok(userService.updateUser(user));
+        return ResponseEntity.ok(UserResponse.fromUser(userService.updateUser(user)));
     }
 
     @DeleteMapping("/{id}")
