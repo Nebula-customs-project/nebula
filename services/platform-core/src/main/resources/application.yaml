@@ -2,12 +2,15 @@ spring:
   application:
     name: platform-core
   profiles:
-    active: native  # Explicitly activate native Config Server backend
+    active: native  # ← EXPLICITLY ACTIVATE NATIVE PROFILE
   cloud:
     config:
       server:
         native:
           search-locations: classpath:/config-repo/
+        git:
+          uri: https://github.com/spring-cloud-samples/config-repo  # Dummy URI (won't be used)
+          default-label: main
 
 server:
   port: 8761

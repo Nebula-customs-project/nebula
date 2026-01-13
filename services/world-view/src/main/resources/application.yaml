@@ -15,12 +15,16 @@ spring:
   config:
     import: optional:configserver:http://localhost:8761
 
-  # Activate shared-database profile to get DB config from config server
+  # Activate shared-database profile to get DB credentials from config server
   profiles:
     active: shared-database
 
   # ============ SERVICE-SPECIFIC OVERRIDES ONLY ============
-  # Only override JPA schema - all other DB config comes from config server
+  # Override datasource URL to add this service's schema
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/${DB_NAME:nebula_db}?currentSchema=world_view
+
+  # Override JPA for this service's schema
   jpa:
     properties:
       hibernate:
