@@ -41,19 +41,25 @@ public class JwtUtil {
             return privateKey;
         }
 
-        try {
-            String privateKeyPEM = testPrivateKeyPem
-                    .replace("-----BEGIN PRIVATE KEY-----", "")
-                    .replace("-----END PRIVATE KEY-----", "")
-                    .replaceAll("\\s", "");
+        synchronized (this) {
+            if (privateKey != null) {
+                return privateKey;
+            }
 
-            byte[] encoded = Base64.getDecoder().decode(privateKeyPEM);
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
-            privateKey = keyFactory.generatePrivate(keySpec);
-            return privateKey;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load private key", e);
+            try {
+                String privateKeyPEM = testPrivateKeyPem
+                        .replace("-----BEGIN PRIVATE KEY-----", "")
+                        .replace("-----END PRIVATE KEY-----", "")
+                        .replaceAll("\\s", "");
+
+                byte[] encoded = Base64.getDecoder().decode(privateKeyPEM);
+                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
+                privateKey = keyFactory.generatePrivate(keySpec);
+                return privateKey;
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to load private key", e);
+            }
         }
     }
 }
