@@ -123,12 +123,6 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- Jackson Kotlin Module -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-kotlin</artifactId>
-        </dependency>
-
         <!-- Spring WebFlux -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
