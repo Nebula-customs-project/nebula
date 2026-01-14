@@ -13,20 +13,26 @@ spring:
         locator:
           enabled: false
       routes:
+        # User Service Routes - ADD THIS
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+
         # World-View Service Routes
         - id: world-view-routes
-          uri: lb://WORLD-VIEW
+          uri: lb://world-view
           predicates:
             - Path=/api/v1/routes/**
 
         - id: world-view-journeys
-          uri: lb://WORLD-VIEW
+          uri: lb://world-view
           predicates:
             - Path=/api/v1/journeys/**
 
         # Vehicle Service Routes
         - id: vehicle-service-vehicles
-          uri: lb://VEHICLE-SERVICE
+          uri: lb://vehicle-service
           predicates:
             - Path=/api/v1/vehicles/**
 
@@ -58,21 +64,12 @@ eureka:
     instance-id: ${spring.application.name}:${server.port}
 
 # JWT Configuration
+# SECURITY: JWT secret must be provided via environment variable in production
+# Set JWT_SECRET environment variable with at least 32 characters
+# For test/development only, a default secret is provided below
 jwt:
-  # For testing WITHOUT user service
-  use-hardcoded-key: true
+  secret: ${JWT_SECRET:nebula-jwt-secret-key-change-in-production-minimum-32-characters-required}
 
-  # We'll generate this in Step 5
-  test-public-key: |
-    -----BEGIN PUBLIC KEY-----
-    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlG1hhfCW3l1z8o5p6MOw
-    KFuFy83dn3VTrleLu2vtWCQo8gmVvInEcR4TIKcnqy4a1vZHVpJhgKHByvIHuPhT
-    U9KdRVOMgvjH/kH+5ccH21gm0ychasmu5qVvUQvID4QXuJYATIuX8M5R8zbovaMs
-    KSR+LII0Sfr4zvgTuF2O7KmWL3gXRpkXIOYuDXtnOCddgE94CHEMe7LpHWxZ73Bs
-    bcHGC8zkk5K2vu+3eJ0FzdyPrvi59yRTzqwW9kFHQ9Kn83hgTpNoqe6MKmegCrvA
-    T5zXS6TNmvy/cjuwyxgqFyJdnV+5VtzvoxH0Wl4xNTRdp6UtfrAax/z0pNlEuHpl
-    sQIDAQAB
-    -----END PUBLIC KEY-----
 
 # Security Configuration
 security:
