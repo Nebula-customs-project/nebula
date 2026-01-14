@@ -24,11 +24,16 @@ spring:
           predicates:
             - Path=/api/v1/journeys/**
 
+        # Vehicle Service Routes
+        - id: vehicle-service-vehicles
+          uri: lb://VEHICLE-SERVICE
+          predicates:
+            - Path=/api/v1/vehicles/**
+
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOriginPatterns:
-              - "http://localhost:3000"
+            allowedOrigins: "*"
             allowedMethods:
               - GET
               - POST
@@ -85,6 +90,9 @@ security:
     - /api/v1/routes/**
     - /api/v1/journeys/**
 
+    # Vehicle-service routes - PUBLIC for testing (remove in production)
+    - /api/v1/vehicles/**
+
 management:
   endpoints:
     web:
@@ -102,4 +110,3 @@ logging:
     pse.nebula.gateway: DEBUG
     org.springframework.cloud.gateway: DEBUG
     org.springframework.cloud.loadbalancer: DEBUG
-

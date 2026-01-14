@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: merchandise-service
+  # Pull shared DB/Eureka defaults from config server
+  config:
+    import: optional:configserver:http://localhost:8761
+
+  # Activate shared database profile (see platform-core config-repo)
+  profiles:
+    active: shared-database
+
+  # Service-specific JPA overrides only
+  jpa:
+    properties:
+      hibernate:
+        default_schema: merchandise_service
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework: INFO
+
+# Eureka client configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true

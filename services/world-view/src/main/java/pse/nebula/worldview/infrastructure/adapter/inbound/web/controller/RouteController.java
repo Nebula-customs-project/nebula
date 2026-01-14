@@ -29,6 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/routes")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @Tag(name = "Available Routes", description = "View available driving routes (read-only)")
 public class RouteController {
 
