@@ -11,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -30,7 +29,6 @@ import pse.nebula.merchandise.domain.repository.ProductRepository;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@SpringJUnitConfig
 class MerchandiseIntegrationTest {
 
     @Autowired
