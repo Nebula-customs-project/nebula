@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -41,8 +42,14 @@ class MerchandiseIntegrationTest {
     @Autowired
     private CartRepository cartRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    // Schema creation is handled by test profile (spring.jpa.hibernate.ddl-auto=create-drop)
+
     @BeforeEach
     void setup() {
+        // Clear repositories after schema creation
         cartRepository.deleteAll();
         productRepository.deleteAll();
     }

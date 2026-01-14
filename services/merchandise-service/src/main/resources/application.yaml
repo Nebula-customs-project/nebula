@@ -7,22 +7,31 @@ spring:
 
   # Activate shared database profile (see platform-core config-repo)
   profiles:
-    active: shared-database
+    include: shared-database,shared-rabbitmq
 
   # Service-specific JPA overrides only
+
   jpa:
     properties:
       hibernate:
         default_schema: merchandise_service
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
 
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 logging:
   level:
     org.springframework: INFO
+
+management:
+  stackdriver:
+    metrics:
+      export:
+        enabled: false
 
 # Eureka client configuration
 eureka:
@@ -33,3 +42,11 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
+
+# Service-level RabbitMQ configuration (document required env vars and provide defaults)
+rabbitmq:
+  host: ${RABBITMQ_HOST:localhost}
+  port: ${RABBITMQ_PORT:5672}
+  username: ${RABBITMQ_USER:guest}
+  password: ${RABBITMQ_PASSWORD:guest}
+  virtual-host: ${RABBITMQ_VHOST:/}
