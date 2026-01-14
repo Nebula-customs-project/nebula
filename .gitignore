@@ -39,7 +39,6 @@ build/
 ### Docs of world-view service ###
 services/world-view/docs/
 
-
 ### Frontend (Node/Next.js) ###
 node_modules/
 .pnp
