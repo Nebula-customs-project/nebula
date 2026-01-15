@@ -127,8 +127,8 @@ export default function CarConfiguratorPage() {
         {/* Left: 3D Viewer with Premium Border */}
         <div className="flex-1 overflow-hidden p-4">
           <div className="w-full h-full relative rounded-xl overflow-hidden border border-gray-700/50 shadow-xl">
-            {/* Animated border glow effect */}
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/20 via-transparent to-red-500/20 opacity-50 animate-pulse pointer-events-none"></div>
+            {/* Static border glow effect - Removed animate-pulse for better performance */}
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/20 via-transparent to-red-500/20 opacity-50 pointer-events-none"></div>
             
             {/* Inner border for depth */}
             <div className="absolute inset-[1px] rounded-xl border border-red-500/30 pointer-events-none"></div>

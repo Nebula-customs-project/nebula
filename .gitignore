@@ -107,15 +107,6 @@ application-credentials.yaml
 **/config/secrets/
 **/config/credentials/
 
-# Database dumps & backups
-*.sql
-*.dump
-*.backup
-*.bak
-*.db
-*.sqlite
-*.sqlite3
-
 # Logs with potentially sensitive data
 *.log
 logs/

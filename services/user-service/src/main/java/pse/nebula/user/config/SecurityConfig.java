@@ -24,6 +24,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Allow public endpoints
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll()
+                        .requestMatchers("/api/users/.well-known/jwks.json").permitAll() // Allow gateway to fetch public key
+                        .requestMatchers("/api/users/blacklist/check").permitAll() // Allow gateway to check blacklist
                         .requestMatchers("/actuator/**").permitAll()
                         
                         // Admin endpoints require ADMIN role
