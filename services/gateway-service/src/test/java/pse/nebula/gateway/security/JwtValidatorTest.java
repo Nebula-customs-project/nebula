@@ -4,37 +4,25 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtParser;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
-import java.util.Base64;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class JwtValidatorTest {
 
     private JwtValidator jwtValidator;
-    private WebClient webClientMock;
+    private JwtParser jwtParserMock;
 
     @BeforeEach
     void setUp() {
-        webClientMock = Mockito.mock(WebClient.class);
-        jwtValidator = new JwtValidator();
-        jwtValidator.webClient = webClientMock;
-    }
-
-    @Test
-    @Disabled("WebClient mocking has generic type issues - needs refactoring")
-    void testFetchPublicKey() {
-        // TODO: Refactor this test to properly mock WebClient with correct generics
+        jwtParserMock = mock(JwtParser.class);
+        // Use the new constructor to inject mock
+        jwtValidator = new JwtValidator(jwtParserMock);
     }
 
     @SuppressWarnings("unchecked")
@@ -43,9 +31,10 @@ class JwtValidatorTest {
         Claims claimsMock = mock(Claims.class);
         Jws<Claims> jwsMock = (Jws<Claims>) mock(Jws.class);
 
-        JwtParser jwtParserMock = mock(JwtParser.class);
-        when(jwtParserMock.parseClaimsJws(anyString())).thenReturn(jwsMock);
+        // Token should be considered valid -> expiration in the future
+        when(claimsMock.getExpiration()).thenReturn(new Date(System.currentTimeMillis() + 60_000));
         when(jwsMock.getBody()).thenReturn(claimsMock);
+        when(jwtParserMock.parseClaimsJws(anyString())).thenReturn(jwsMock);
 
         Claims claims = jwtValidator.validateToken("testToken");
 
@@ -54,9 +43,15 @@ class JwtValidatorTest {
 
     @Test
     void testValidateTokenExpired() {
-        String token = "expired.jwt.token";
+        Claims claimsMock = mock(Claims.class);
+        Jws<Claims> jwsMock = (Jws<Claims>) mock(Jws.class);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> jwtValidator.validateToken(token));
+        // Token expired -> expiration in the past
+        when(claimsMock.getExpiration()).thenReturn(new Date(System.currentTimeMillis() - 60_000));
+        when(jwsMock.getBody()).thenReturn(claimsMock);
+        when(jwtParserMock.parseClaimsJws(anyString())).thenReturn(jwsMock);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> jwtValidator.validateToken("expiredToken"));
 
         assertEquals("Token expired", exception.getMessage());
     }

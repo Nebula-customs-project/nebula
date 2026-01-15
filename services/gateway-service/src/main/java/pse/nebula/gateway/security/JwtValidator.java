@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import jakarta.annotation.PostConstruct;
 import javax.crypto.SecretKey;
@@ -29,6 +30,14 @@ public class JwtValidator {
     private String jwtSecret;
 
     private JwtParser jwtParser;
+    private WebClient webClient;
+
+    public JwtValidator(JwtParser jwtParser) {
+        this.jwtParser = jwtParser;
+    }
+
+    public JwtValidator() {
+    }
 
     /**
      * Initialize JWT parser with HMAC SHA256 signing key
@@ -38,6 +47,7 @@ public class JwtValidator {
         try {
             SecretKey signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
             jwtParser = Jwts.parserBuilder().setSigningKey(signingKey).build();
+            webClient = WebClient.builder().build(); // Initialize WebClient
             log.info("JWT validator initialized successfully with HMAC SHA256");
         } catch (Exception e) {
             log.error("Failed to initialize JWT validator", e);
@@ -90,5 +100,13 @@ public class JwtValidator {
     public String getRoles(Claims claims) {
         Object roles = claims.get("roles");
         return roles != null ? roles.toString() : "";
+    }
+
+    public void setWebClient(WebClient webClient) {
+        this.webClient = webClient;
+    }
+
+    void setJwtParser(JwtParser jwtParser) {
+        this.jwtParser = jwtParser;
     }
 }

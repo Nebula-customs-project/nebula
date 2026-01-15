@@ -111,4 +111,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     public int getOrder() {
         return -100; // Run before other filters
     }
+
+    // Package-visible setter used by tests to inject mock TokenBlacklistClient reliably
+    void setTokenBlacklistClient(TokenBlacklistClient tokenBlacklistClient) {
+        this.tokenBlacklistClient = tokenBlacklistClient;
+    }
 }
