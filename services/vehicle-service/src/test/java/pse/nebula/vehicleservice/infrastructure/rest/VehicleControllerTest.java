@@ -49,7 +49,7 @@ class VehicleControllerTest {
         @DisplayName("should return 200 with list of vehicles")
         void shouldReturnVehiclesList() throws Exception {
             // Given
-            Vehicle vehicle = new Vehicle("911 Carrera", CarType.SPORTS, 379, new BigDecimal("106100.00"), "911-carrera-hero");
+            Vehicle vehicle = new Vehicle("Furari", CarType.SPORTS, 670, new BigDecimal("245000.00"), "furarri-hero", "/models/furarri.glb");
             Page<Vehicle> vehiclePage = new PageImpl<>(List.of(vehicle));
             when(vehicleService.getAllVehicles(any(Pageable.class))).thenReturn(vehiclePage);
 
@@ -58,11 +58,12 @@ class VehicleControllerTest {
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.vehicles", hasSize(1)))
-                    .andExpect(jsonPath("$.vehicles[0].carName", is("911 Carrera")))
+                    .andExpect(jsonPath("$.vehicles[0].carName", is("Furari")))
                     .andExpect(jsonPath("$.vehicles[0].carType", is("SPORTS")))
-                    .andExpect(jsonPath("$.vehicles[0].horsePower", is(379)))
-                    .andExpect(jsonPath("$.vehicles[0].basePrice", is(106100.00)))
-                    .andExpect(jsonPath("$.vehicles[0].image", is("911-carrera-hero")));
+                    .andExpect(jsonPath("$.vehicles[0].horsePower", is(670)))
+                    .andExpect(jsonPath("$.vehicles[0].basePrice", is(245000.00)))
+                    .andExpect(jsonPath("$.vehicles[0].image", is("furarri-hero")))
+                    .andExpect(jsonPath("$.vehicles[0].modelPath", is("/models/furarri.glb")));
         }
 
         @Test
@@ -88,16 +89,17 @@ class VehicleControllerTest {
         @DisplayName("should return 200 with vehicle details")
         void shouldReturnVehicle() throws Exception {
             // Given
-            Vehicle vehicle = new Vehicle("Panamera", CarType.SEDAN, 325, new BigDecimal("92400.00"), "panamera-hero");
+            Vehicle vehicle = new Vehicle("Dacia", CarType.SEDAN, 150, new BigDecimal("22000.00"), "dacia-hero", "/models/Dacia.glb");
             when(vehicleService.getVehicleById(1)).thenReturn(vehicle);
 
             // When/Then
             mockMvc.perform(get("/api/v1/vehicles/1")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.carName", is("Panamera")))
+                    .andExpect(jsonPath("$.carName", is("Dacia")))
                     .andExpect(jsonPath("$.carType", is("SEDAN")))
-                    .andExpect(jsonPath("$.horsePower", is(325)));
+                    .andExpect(jsonPath("$.horsePower", is(150)))
+                    .andExpect(jsonPath("$.modelPath", is("/models/Dacia.glb")));
         }
 
         @Test
@@ -124,34 +126,40 @@ class VehicleControllerTest {
         @DisplayName("should return 200 with configuration options")
         void shouldReturnConfiguration() throws Exception {
             // Given
-            Vehicle vehicle = new Vehicle("911 Carrera", CarType.SPORTS, 379, new BigDecimal("106100.00"), "911-carrera-hero");
+            Vehicle vehicle = new Vehicle("Furari", CarType.SPORTS, 670, new BigDecimal("245000.00"), "furarri-hero", "/models/furarri.glb");
 
-            Paint paint = new Paint("Black", "Timeless deep black metallic finish");
+            Paint paint = new Paint("Black", "Timeless deep black metallic finish", "black", "#000000");
             paint.addPrice(new PaintPrice(CarType.SPORTS, new BigDecimal("500.00")));
 
-            Rim rim = new Rim("19\" Base Alloy", "Standard wheels", "rim-19-base");
+            Rim rim = new Rim("Sport 19\"", "Standard wheels", "rim-19-base", "sport");
             rim.addPrice(new RimPrice(CarType.SPORTS, BigDecimal.ZERO));
 
-            Interior interior = new Interior("Black Leather", "Classic black leather", "interior-black");
+            Interior interior = new Interior("Black Leather", "Classic black leather", "interior-black", "black");
             interior.addPrice(new InteriorPrice(CarType.SPORTS, BigDecimal.ZERO));
 
             VehicleConfiguration config = new VehicleConfiguration(vehicle, List.of(paint), List.of(rim), List.of(interior), CarType.SPORTS);
             when(configurationService.getConfigurationForVehicle(1)).thenReturn(config);
 
-            // When/Then
+            // When/Then - verify category-based structure
             mockMvc.perform(get("/api/v1/vehicles/1/configuration")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.carType", is("SPORTS")))
-                    .andExpect(jsonPath("$.basePrice", is(106100.00)))
-                    .andExpect(jsonPath("$.paints", hasSize(1)))
-                    .andExpect(jsonPath("$.paints[0].name", is("Black")))
-                    .andExpect(jsonPath("$.paints[0].price", is(500.00)))
-                    .andExpect(jsonPath("$.rims", hasSize(1)))
-                    .andExpect(jsonPath("$.rims[0].name", is("19\" Base Alloy")))
-                    .andExpect(jsonPath("$.rims[0].price", is(0)))
-                    .andExpect(jsonPath("$.interiors", hasSize(1)))
-                    .andExpect(jsonPath("$.interiors[0].name", is("Black Leather")));
+                    .andExpect(jsonPath("$.name", is("Furari")))
+                    .andExpect(jsonPath("$.modelPath", is("/models/furarri.glb")))
+                    .andExpect(jsonPath("$.basePrice", is(245000)))
+                    .andExpect(jsonPath("$.categories", hasSize(3)))
+                    .andExpect(jsonPath("$.categories[0].id", is("paint")))
+                    .andExpect(jsonPath("$.categories[0].name", is("Exterior Color")))
+                    .andExpect(jsonPath("$.categories[0].parts", hasSize(1)))
+                    .andExpect(jsonPath("$.categories[0].parts[0].name", is("Black")))
+                    .andExpect(jsonPath("$.categories[0].parts[0].cost", is(500)))
+                    .andExpect(jsonPath("$.categories[0].parts[0].visualKey", is("black")))
+                    .andExpect(jsonPath("$.categories[0].parts[0].hex", is("#000000")))
+                    .andExpect(jsonPath("$.categories[1].id", is("rims")))
+                    .andExpect(jsonPath("$.categories[1].parts[0].name", is("Sport 19\"")))
+                    .andExpect(jsonPath("$.categories[1].parts[0].cost", is(0)))
+                    .andExpect(jsonPath("$.categories[2].id", is("interior")))
+                    .andExpect(jsonPath("$.categories[2].parts[0].name", is("Black Leather")));
         }
 
         @Test

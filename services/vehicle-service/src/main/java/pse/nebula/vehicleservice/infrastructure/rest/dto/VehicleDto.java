@@ -14,7 +14,8 @@ public record VehicleDto(
         CarType carType,
         Integer horsePower,
         BigDecimal basePrice,
-        String image
+        String image,
+        String modelPath
 ) {
     /**
      * Creates a VehicleDto from a Vehicle entity.
@@ -26,7 +27,8 @@ public record VehicleDto(
                 vehicle.getCarType(),
                 vehicle.getHorsePower(),
                 vehicle.getBasePrice(),
-                vehicle.getImage()
+                vehicle.getImage(),
+                vehicle.getModelPath()
         );
     }
 }

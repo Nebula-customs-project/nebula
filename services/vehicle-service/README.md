@@ -42,8 +42,74 @@ All tables are created in the `vehicle_service` schema. See `docker/init-scripts
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/vehicles` | Get all vehicles for overview |
+| GET | `/api/v1/vehicles` | Get all vehicles for overview (paginated) |
+| GET | `/api/v1/vehicles/{id}` | Get a specific vehicle by ID |
 | GET | `/api/v1/vehicles/{id}/configuration` | Get configuration options for a vehicle |
+
+### Response Examples
+
+#### GET /api/v1/vehicles
+```json
+{
+  "vehicles": [
+    {
+      "vehicleId": 1,
+      "carName": "Furari",
+      "carType": "SPORTS",
+      "horsePower": 670,
+      "basePrice": 245000.00,
+      "image": "furarri-hero",
+      "modelPath": "/models/furarri.glb"
+    }
+  ],
+  "currentPage": 0,
+  "totalPages": 1,
+  "totalElements": 12,
+  "pageSize": 20,
+  "hasNext": false,
+  "hasPrevious": false
+}
+```
+
+#### GET /api/v1/vehicles/{id}/configuration
+```json
+{
+  "id": 1,
+  "name": "Furari",
+  "modelPath": "/models/furarri.glb",
+  "basePrice": 245000,
+  "categories": [
+    {
+      "id": "paint",
+      "name": "Exterior Color",
+      "icon": "🎨",
+      "parts": [
+        {
+          "id": "paint-1",
+          "name": "Black",
+          "cost": 500,
+          "visualKey": "black",
+          "description": "Timeless deep black metallic finish",
+          "hex": "#000000",
+          "image": null
+        }
+      ]
+    },
+    {
+      "id": "rims",
+      "name": "Rims",
+      "icon": "⭕",
+      "parts": [...]
+    },
+    {
+      "id": "interior",
+      "name": "Interior",
+      "icon": "🪑",
+      "parts": [...]
+    }
+  ]
+}
+```
 
 ## Running Locally
 

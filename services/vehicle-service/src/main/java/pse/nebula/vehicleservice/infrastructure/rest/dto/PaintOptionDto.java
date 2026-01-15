@@ -13,42 +13,29 @@ public record PaintOptionDto(
         Integer id,
         String name,
         String description,
-        BigDecimal price
+        String visualKey,
+        String hex,
+        Integer cost
 ) {
     /**
      * Creates a PaintOptionDto from a Paint entity.
      * Filters prices by the specified car type.
      */
     public static PaintOptionDto fromEntity(Paint paint, CarType carType) {
-        BigDecimal resolvedPrice = paint.getPrices().stream()
+        Integer resolvedCost = paint.getPrices().stream()
                 .filter(p -> p.getCarType() == carType)
                 .findFirst()
                 .map(PaintPrice::getPrice)
-                .orElse(BigDecimal.ZERO);
+                .map(BigDecimal::intValue)
+                .orElse(0);
 
         return new PaintOptionDto(
                 paint.getId(),
                 paint.getName(),
                 paint.getDescription(),
-                resolvedPrice
-        );
-    }
-
-    /**
-     * Creates a PaintOptionDto from a Paint entity (uses first price found).
-     * @deprecated Use fromEntity(Paint, CarType) instead
-     */
-    public static PaintOptionDto fromEntity(Paint paint) {
-        BigDecimal resolvedPrice = paint.getPrices().stream()
-                .findFirst()
-                .map(PaintPrice::getPrice)
-                .orElse(BigDecimal.ZERO);
-
-        return new PaintOptionDto(
-                paint.getId(),
-                paint.getName(),
-                paint.getDescription(),
-                resolvedPrice
+                paint.getVisualKey(),
+                paint.getHex(),
+                resolvedCost
         );
     }
 }

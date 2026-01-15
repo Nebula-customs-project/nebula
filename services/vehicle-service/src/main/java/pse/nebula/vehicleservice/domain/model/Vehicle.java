@@ -33,16 +33,20 @@ public class Vehicle {
     @Column(name = "image", nullable = false)
     private String image;
 
+    @Column(name = "model_path", nullable = false)
+    private String modelPath;
+
     // Default constructor for JPA
     protected Vehicle() {
     }
 
-    public Vehicle(String carName, CarType carType, Integer horsePower, BigDecimal basePrice, String image) {
+    public Vehicle(String carName, CarType carType, Integer horsePower, BigDecimal basePrice, String image, String modelPath) {
         this.carName = carName;
         this.carType = carType;
         this.horsePower = horsePower;
         this.basePrice = basePrice;
         this.image = image;
+        this.modelPath = modelPath;
     }
 }
 
