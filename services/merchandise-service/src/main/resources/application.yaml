@@ -42,3 +42,15 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
+
+# Service-level RabbitMQ configuration
+# NOTE: do NOT hardcode credentials or secrets in the repo. Require them
+# to be provided via environment variables, a secrets/credentials store,
+# or Spring Cloud Config. Only non-sensitive defaults are allowed.
+rabbitmq:
+  host: ${RABBITMQ_HOST:localhost}
+  port: ${RABBITMQ_PORT:5672}
+  # Intentionally no default for username/password — must be supplied by environment or config
+  username: ${RABBITMQ_USER}
+  password: ${RABBITMQ_PASSWORD}
+  virtual-host: ${RABBITMQ_VHOST:/}
