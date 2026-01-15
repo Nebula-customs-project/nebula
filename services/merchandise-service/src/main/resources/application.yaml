@@ -49,7 +49,7 @@ eureka:
 # or Spring Cloud Config. Only non-sensitive defaults are allowed.
 rabbitmq:
   host: ${RABBITMQ_HOST:localhost}
-  port: ${RABBITMQ_PORT:5672}
+  port: ${RABBITMQ_PORT}
   # Intentionally no default for username/password — must be supplied by environment or config
   username: ${RABBITMQ_USER}
   password: ${RABBITMQ_PASSWORD}
