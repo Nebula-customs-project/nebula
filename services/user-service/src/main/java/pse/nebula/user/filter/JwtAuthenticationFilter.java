@@ -22,11 +22,30 @@ import java.util.List;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    // Define public endpoints that don't require authentication
+    private static final List<String> PUBLIC_ENDPOINTS = List.of(
+            "/api/users/register",
+            "/api/users/login",
+            "/api/users/.well-known/jwks.json",
+            "/api/users/blacklist/check",
+            "/actuator"
+    );
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
+
+        String path = request.getRequestURI();
+        log.debug("Processing request for path: {}", path);
+
+        // Skip authentication for public endpoints
+        if (isPublicEndpoint(path)) {
+            log.debug("Public endpoint detected, skipping JWT authentication: {}", path);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // Extract headers from Gateway
         String userId = request.getHeader("X-User-Id");
@@ -54,5 +73,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Check if the request path is a public endpoint
+     * @param path The request URI path
+     * @return true if the path is public, false otherwise
+     */
+    private boolean isPublicEndpoint(String path) {
+        return PUBLIC_ENDPOINTS.stream().anyMatch(path::startsWith);
     }
 }

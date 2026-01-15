@@ -6,6 +6,7 @@ import pse.nebula.user.service.UserService;
 import pse.nebula.user.service.TokenBlacklistService;
 import pse.nebula.user.dto.LoginRequest;
 import pse.nebula.user.dto.LoginResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -91,6 +93,23 @@ public class UserController {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Logout failed: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    /**
+     * Check if a token is blacklisted
+     * GET /users/blacklist/check
+     * Header: X-Token-Check (contains the token to check)
+     */
+    @GetMapping("/blacklist/check")
+    public ResponseEntity<Boolean> checkTokenBlacklist(@RequestHeader("X-Token-Check") String token) {
+        try {
+            boolean isBlacklisted = tokenBlacklistService.isBlacklisted(token);
+            return ResponseEntity.ok(isBlacklisted);
+        } catch (Exception e) {
+            log.error("Error checking token blacklist", e);
+            // Return false on error to avoid blocking legitimate requests
+            return ResponseEntity.ok(false);
         }
     }
 
