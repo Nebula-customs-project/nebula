@@ -14,44 +14,28 @@ public record RimOptionDto(
         String name,
         String description,
         String image,
-        BigDecimal price
+        String visualKey,
+        Integer cost
 ) {
     /**
      * Creates a RimOptionDto from a Rim entity.
      * Filters prices by the specified car type.
      */
     public static RimOptionDto fromEntity(Rim rim, CarType carType) {
-        BigDecimal resolvedPrice = rim.getPrices().stream()
+        Integer resolvedCost = rim.getPrices().stream()
                 .filter(p -> p.getCarType() == carType)
                 .findFirst()
                 .map(RimPrice::getPrice)
-                .orElse(BigDecimal.ZERO);
+                .map(BigDecimal::intValue)
+                .orElse(0);
 
         return new RimOptionDto(
                 rim.getId(),
                 rim.getName(),
                 rim.getDescription(),
                 rim.getImage(),
-                resolvedPrice
-        );
-    }
-
-    /**
-     * Creates a RimOptionDto from a Rim entity (uses first price found).
-     * @deprecated Use fromEntity(Rim, CarType) instead
-     */
-    public static RimOptionDto fromEntity(Rim rim) {
-        BigDecimal resolvedPrice = rim.getPrices().stream()
-                .findFirst()
-                .map(RimPrice::getPrice)
-                .orElse(BigDecimal.ZERO);
-
-        return new RimOptionDto(
-                rim.getId(),
-                rim.getName(),
-                rim.getDescription(),
-                rim.getImage(),
-                resolvedPrice
+                rim.getVisualKey(),
+                resolvedCost
         );
     }
 }

@@ -37,8 +37,8 @@ class VehicleServiceTest {
 
     @BeforeEach
     void setUp() {
-        sportsVehicle = new Vehicle("911 Carrera", CarType.SPORTS, 379, new BigDecimal("106100.00"), "911-carrera-hero");
-        sedanVehicle = new Vehicle("Panamera", CarType.SEDAN, 325, new BigDecimal("92400.00"), "panamera-hero");
+        sportsVehicle = new Vehicle("Furari", CarType.SPORTS, 670, new BigDecimal("245000.00"), "furarri-hero", "/models/furarri.glb");
+        sedanVehicle = new Vehicle("Dacia", CarType.SEDAN, 150, new BigDecimal("22000.00"), "dacia-hero", "/models/Dacia.glb");
     }
 
     @Nested
@@ -89,7 +89,7 @@ class VehicleServiceTest {
 
             // Then
             assertThat(result).isEqualTo(sportsVehicle);
-            assertThat(result.getCarName()).isEqualTo("911 Carrera");
+            assertThat(result.getCarName()).isEqualTo("Furari");
             assertThat(result.getCarType()).isEqualTo(CarType.SPORTS);
         }
 

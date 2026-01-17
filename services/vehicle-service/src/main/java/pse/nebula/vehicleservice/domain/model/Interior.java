@@ -28,6 +28,9 @@ public class Interior {
     @Column(name = "image", nullable = false)
     private String image;
 
+    @Column(name = "visual_key", nullable = false)
+    private String visualKey;
+
     @OneToMany(mappedBy = "interior", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<InteriorPrice> prices = new ArrayList<>();
 
@@ -35,10 +38,11 @@ public class Interior {
     protected Interior() {
     }
 
-    public Interior(String name, String description, String image) {
+    public Interior(String name, String description, String image, String visualKey) {
         this.name = name;
         this.description = description;
         this.image = image;
+        this.visualKey = visualKey;
     }
 
     // Helper method to add price

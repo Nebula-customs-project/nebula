@@ -14,44 +14,28 @@ public record InteriorOptionDto(
         String name,
         String description,
         String image,
-        BigDecimal price
+        String visualKey,
+        Integer cost
 ) {
     /**
      * Creates an InteriorOptionDto from an Interior entity.
      * Filters prices by the specified car type.
      */
     public static InteriorOptionDto fromEntity(Interior interior, CarType carType) {
-        BigDecimal resolvedPrice = interior.getPrices().stream()
+        Integer resolvedCost = interior.getPrices().stream()
                 .filter(p -> p.getCarType() == carType)
                 .findFirst()
                 .map(InteriorPrice::getPrice)
-                .orElse(BigDecimal.ZERO);
+                .map(BigDecimal::intValue)
+                .orElse(0);
 
         return new InteriorOptionDto(
                 interior.getId(),
                 interior.getName(),
                 interior.getDescription(),
                 interior.getImage(),
-                resolvedPrice
-        );
-    }
-
-    /**
-     * Creates an InteriorOptionDto from an Interior entity (uses first price found).
-     * @deprecated Use fromEntity(Interior, CarType) instead
-     */
-    public static InteriorOptionDto fromEntity(Interior interior) {
-        BigDecimal resolvedPrice = interior.getPrices().stream()
-                .findFirst()
-                .map(InteriorPrice::getPrice)
-                .orElse(BigDecimal.ZERO);
-
-        return new InteriorOptionDto(
-                interior.getId(),
-                interior.getName(),
-                interior.getDescription(),
-                interior.getImage(),
-                resolvedPrice
+                interior.getVisualKey(),
+                resolvedCost
         );
     }
 }

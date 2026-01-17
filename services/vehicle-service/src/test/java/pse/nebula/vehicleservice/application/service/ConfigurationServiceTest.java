@@ -47,15 +47,15 @@ class ConfigurationServiceTest {
 
     @BeforeEach
     void setUp() {
-        sportsVehicle = new Vehicle("911 Carrera", CarType.SPORTS, 379, new BigDecimal("106100.00"), "911-carrera-hero");
+        sportsVehicle = new Vehicle("Furari", CarType.SPORTS, 670, new BigDecimal("245000.00"), "furarri-hero", "/models/furarri.glb");
 
-        blackPaint = new Paint("Black", "Timeless deep black metallic finish");
+        blackPaint = new Paint("Black", "Timeless deep black metallic finish", "black", "#000000");
         blackPaint.addPrice(new PaintPrice(CarType.SPORTS, new BigDecimal("500.00")));
 
-        baseRim = new Rim("19\" Base Alloy", "Standard 19-inch alloy wheels", "rim-19-base");
+        baseRim = new Rim("Sport 19\"", "Standard 19-inch sport alloy wheels", "rim-19-base", "sport");
         baseRim.addPrice(new RimPrice(CarType.SPORTS, BigDecimal.ZERO));
 
-        blackInterior = new Interior("Black Leather", "Classic black leather upholstery", "interior-black-leather");
+        blackInterior = new Interior("Black Leather", "Classic black leather upholstery", "interior-black-leather", "black");
         blackInterior.addPrice(new InteriorPrice(CarType.SPORTS, BigDecimal.ZERO));
     }
 
@@ -142,7 +142,7 @@ class ConfigurationServiceTest {
         @DisplayName("should return zero when paint has no prices")
         void shouldReturnZeroWhenPaintHasNoPrices() {
             // Given
-            Paint emptyPaint = new Paint("Empty", "No prices");
+            Paint emptyPaint = new Paint("Empty", "No prices", "empty", "#FFFFFF");
             VehicleConfiguration config = new VehicleConfiguration(
                     sportsVehicle, List.of(emptyPaint), List.of(), List.of(), CarType.SPORTS);
 

@@ -28,6 +28,9 @@ public class Rim {
     @Column(name = "image", nullable = false)
     private String image;
 
+    @Column(name = "visual_key", nullable = false)
+    private String visualKey;
+
     @OneToMany(mappedBy = "rim", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<RimPrice> prices = new ArrayList<>();
 
@@ -35,10 +38,11 @@ public class Rim {
     protected Rim() {
     }
 
-    public Rim(String name, String description, String image) {
+    public Rim(String name, String description, String image, String visualKey) {
         this.name = name;
         this.description = description;
         this.image = image;
+        this.visualKey = visualKey;
     }
 
     // Helper method to add price

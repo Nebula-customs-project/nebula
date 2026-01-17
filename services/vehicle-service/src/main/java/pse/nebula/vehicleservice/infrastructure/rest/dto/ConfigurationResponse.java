@@ -3,20 +3,19 @@ package pse.nebula.vehicleservice.infrastructure.rest.dto;
 import pse.nebula.vehicleservice.application.service.ConfigurationService.VehicleConfiguration;
 import pse.nebula.vehicleservice.domain.model.CarType;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
  * DTO for configuration options response.
- * Contains all configuration options with prices resolved for the vehicle's car type.
+ * Contains vehicle info and configuration categories with prices resolved for the vehicle's car type.
+ * Matches the frontend expected structure.
  */
 public record ConfigurationResponse(
-        Integer vehicleId,
-        CarType carType,
-        BigDecimal basePrice,
-        List<PaintOptionDto> paints,
-        List<RimOptionDto> rims,
-        List<InteriorOptionDto> interiors
+        Integer id,
+        String name,
+        String modelPath,
+        Integer basePrice,
+        List<CategoryDto> categories
 ) {
     /**
      * Creates a ConfigurationResponse from a VehicleConfiguration.
@@ -36,13 +35,18 @@ public record ConfigurationResponse(
                 .map(interior -> InteriorOptionDto.fromEntity(interior, carType))
                 .toList();
 
+        List<CategoryDto> categories = List.of(
+                CategoryDto.createPaintCategory(paintDtos),
+                CategoryDto.createRimsCategory(rimDtos),
+                CategoryDto.createInteriorCategory(interiorDtos)
+        );
+
         return new ConfigurationResponse(
                 config.vehicle().getId(),
-                carType,
-                config.vehicle().getBasePrice(),
-                paintDtos,
-                rimDtos,
-                interiorDtos
+                config.vehicle().getCarName(),
+                config.vehicle().getModelPath(),
+                config.vehicle().getBasePrice().intValue(),
+                categories
         );
     }
 }
