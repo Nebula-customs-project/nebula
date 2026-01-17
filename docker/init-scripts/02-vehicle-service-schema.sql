@@ -1,11 +1,10 @@
+-- =============================================================================
 -- Vehicle Service Schema
 -- Creates all tables for the Vehicle Service
-
--- Create schema
-CREATE SCHEMA IF NOT EXISTS vehicle_service;
+-- =============================================================================
 
 -- Vehicle table
-CREATE TABLE vehicle_service.vehicle (
+CREATE TABLE IF NOT EXISTS vehicle_service.vehicle (
     id SERIAL PRIMARY KEY,
     car_name VARCHAR(255) NOT NULL,
     car_type VARCHAR(50) NOT NULL,
@@ -16,7 +15,7 @@ CREATE TABLE vehicle_service.vehicle (
 );
 
 -- Paint table
-CREATE TABLE vehicle_service.paint (
+CREATE TABLE IF NOT EXISTS vehicle_service.paint (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(500) NOT NULL,
@@ -25,7 +24,7 @@ CREATE TABLE vehicle_service.paint (
 );
 
 -- Paint Price table (prices vary by car type)
-CREATE TABLE vehicle_service.paint_price (
+CREATE TABLE IF NOT EXISTS vehicle_service.paint_price (
     paint_id INTEGER NOT NULL REFERENCES vehicle_service.paint(id) ON DELETE CASCADE,
     car_type VARCHAR(50) NOT NULL,
     price DECIMAL(12, 2) NOT NULL,
@@ -33,7 +32,7 @@ CREATE TABLE vehicle_service.paint_price (
 );
 
 -- Rim table
-CREATE TABLE vehicle_service.rim (
+CREATE TABLE IF NOT EXISTS vehicle_service.rim (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(500) NOT NULL,
@@ -42,7 +41,7 @@ CREATE TABLE vehicle_service.rim (
 );
 
 -- Rim Price table (prices vary by car type)
-CREATE TABLE vehicle_service.rim_price (
+CREATE TABLE IF NOT EXISTS vehicle_service.rim_price (
     rim_id INTEGER NOT NULL REFERENCES vehicle_service.rim(id) ON DELETE CASCADE,
     car_type VARCHAR(50) NOT NULL,
     price DECIMAL(12, 2) NOT NULL,
@@ -50,7 +49,7 @@ CREATE TABLE vehicle_service.rim_price (
 );
 
 -- Interior table
-CREATE TABLE vehicle_service.interior (
+CREATE TABLE IF NOT EXISTS vehicle_service.interior (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(500) NOT NULL,
@@ -59,7 +58,7 @@ CREATE TABLE vehicle_service.interior (
 );
 
 -- Interior Price table (prices vary by car type)
-CREATE TABLE vehicle_service.interior_price (
+CREATE TABLE IF NOT EXISTS vehicle_service.interior_price (
     interior_id INTEGER NOT NULL REFERENCES vehicle_service.interior(id) ON DELETE CASCADE,
     car_type VARCHAR(50) NOT NULL,
     price DECIMAL(12, 2) NOT NULL,
@@ -67,8 +66,7 @@ CREATE TABLE vehicle_service.interior_price (
 );
 
 -- Indexes for faster lookups
-CREATE INDEX idx_vehicle_car_type ON vehicle_service.vehicle(car_type);
-CREATE INDEX idx_paint_price_car_type ON vehicle_service.paint_price(car_type);
-CREATE INDEX idx_rim_price_car_type ON vehicle_service.rim_price(car_type);
-CREATE INDEX idx_interior_price_car_type ON vehicle_service.interior_price(car_type);
-
+CREATE INDEX IF NOT EXISTS idx_vehicle_car_type ON vehicle_service.vehicle(car_type);
+CREATE INDEX IF NOT EXISTS idx_paint_price_car_type ON vehicle_service.paint_price(car_type);
+CREATE INDEX IF NOT EXISTS idx_rim_price_car_type ON vehicle_service.rim_price(car_type);
+CREATE INDEX IF NOT EXISTS idx_interior_price_car_type ON vehicle_service.interior_price(car_type);
