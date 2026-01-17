@@ -15,7 +15,7 @@ spring:
         locator:
           enabled: false
       routes:
-        # User Service Routes - ADD THIS
+        # User Service Routes
         - id: user-service
           uri: lb://user-service
           predicates:
@@ -37,6 +37,17 @@ spring:
           uri: lb://vehicle-service
           predicates:
             - Path=/api/v1/vehicles/**
+
+        # Merchandise Service Routes
+        - id: merchandise-service-products
+          uri: lb://merchandise-service
+          predicates:
+            - Path=/api/v1/merchandise/**
+
+        - id: merchandise-service-cart
+          uri: lb://merchandise-service
+          predicates:
+            - Path=/api/v1/cart/**
 
       globalcors:
         corsConfigurations:
@@ -60,7 +71,6 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
-    # Make Eureka optional - don't fail if Eureka is unavailable
     enabled: true
     healthcheck:
       enabled: true
@@ -68,6 +78,8 @@ eureka:
     initial-instance-info-replication-interval-seconds: 5
     instance-info-replication-interval-seconds: 30
     eureka-service-url-poll-interval-seconds: 10
+    # Retry configuration
+    registry-fetch-interval-seconds: 5
   instance:
     hostname: localhost
     prefer-ip-address: false
@@ -103,6 +115,10 @@ security:
     # Vehicle-service routes - PUBLIC for testing (remove in production)
     - /api/v1/vehicles/**
 
+    # Merchandise-service routes - PUBLIC for testing (remove in production)
+    - /api/v1/merchandise/**
+    - /api/v1/cart/**
+
 management:
   endpoints:
     web:
@@ -124,3 +140,5 @@ logging:
     com.netflix.discovery: WARN
     com.netflix.eureka: WARN
     c.n.discovery.InstanceInfoReplicator: WARN
+    # Suppress Eureka shutdown de-registration errors (non-critical)
+    c.n.d.s.t.d.RetryableEurekaHttpClient: ERROR

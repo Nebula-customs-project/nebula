@@ -31,7 +31,6 @@ import pse.nebula.vehicleservice.infrastructure.rest.dto.*;
  */
 @RestController
 @RequestMapping("/api/v1/vehicles")
-@CrossOrigin(origins = "*") // Allow CORS for frontend
 @Validated
 @Tag(name = "Vehicles", description = "Vehicle and configuration operations")
 public class VehicleController {

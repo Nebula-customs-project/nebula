@@ -1,6 +1,8 @@
 'use client'
 
-const VEHICLE_SERVICE_URL = process.env.NEXT_PUBLIC_VEHICLE_SERVICE_URL || 'http://localhost:8081'
+// Use gateway for all API requests (port 8080)
+// Gateway routes: /api/v1/vehicles/** → vehicle-service
+const VEHICLE_SERVICE_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080'
 
 class VehicleServiceApi {
   constructor(baseUrl = VEHICLE_SERVICE_URL) {
@@ -33,7 +35,7 @@ class VehicleServiceApi {
       if (error.name === 'AbortError') {
         throw new Error('Request timeout: Vehicle service is not responding')
       } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        throw new Error('Network error: Cannot connect to vehicle service. Please check if the service is running on port 8081.')
+        throw new Error('Network error: Cannot connect to vehicle service through gateway. Please check if gateway and vehicle service are running.')
       }
       
       throw error
@@ -68,7 +70,7 @@ class VehicleServiceApi {
       if (error.name === 'AbortError') {
         throw new Error('Request timeout: Vehicle service is not responding')
       } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        throw new Error('Network error: Cannot connect to vehicle service')
+        throw new Error('Network error: Cannot connect to vehicle service through gateway')
       }
       
       throw error

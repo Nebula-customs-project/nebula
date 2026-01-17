@@ -91,7 +91,7 @@ export default function CarConfiguratorPage() {
         // Provide more specific error messages
         let errorMessage = 'Vehicle service is not started or crashed. Please check the service status.'
         if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
-          errorMessage = 'Cannot connect to vehicle service. Please ensure the service is running on port 8081.'
+          errorMessage = 'Cannot connect to vehicle service through gateway. Please ensure gateway (port 8080) and vehicle service are running.'
         } else if (error.message?.includes('404')) {
           errorMessage = 'Vehicle service endpoint not found. Please check the service configuration.'
         } else if (error.message?.includes('No vehicles found')) {

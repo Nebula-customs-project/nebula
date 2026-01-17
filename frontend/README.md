@@ -10,11 +10,12 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
    ```
 
 2. Edit `.env.local` and configure the required environment variables:
-   - `NEXT_PUBLIC_API_URL`: World-view service URL (default: http://localhost:8082)
+   - `NEXT_PUBLIC_GATEWAY_URL`: API Gateway URL (default: http://localhost:8080)
+     - **All REST API requests go through the gateway** - this is the single entry point
    - `NEXT_PUBLIC_MQTT_URL`: MQTT WebSocket URL (default: ws://localhost:15675/ws)
+     - **MQTT bypasses the gateway** and connects directly to RabbitMQ for real-time updates
    - `NEXT_PUBLIC_MQTT_USERNAME`: MQTT username (required)
    - `NEXT_PUBLIC_MQTT_PASSWORD`: MQTT password (required)
-   - `NEXT_PUBLIC_VEHICLE_SERVICE_URL`: Vehicle service URL (optional, default: http://localhost:8081)
 
 **Note:** `.env.local` is gitignored and will not be committed. Never commit credentials to the repository.
 
