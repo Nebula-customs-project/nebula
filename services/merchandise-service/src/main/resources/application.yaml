@@ -10,11 +10,14 @@ spring:
     active: dev
 
   # Service-specific JPA overrides only
+
   jpa:
     properties:
       hibernate:
         default_schema: merchandise_service
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
 
 
 server:
@@ -23,6 +26,12 @@ server:
 logging:
   level:
     org.springframework: INFO
+
+management:
+  stackdriver:
+    metrics:
+      export:
+        enabled: false
 
 # Eureka client configuration
 eureka:
@@ -33,3 +42,15 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
+
+# Service-level RabbitMQ configuration
+# NOTE: do NOT hardcode credentials or secrets in the repo. Require them
+# to be provided via environment variables, a secrets/credentials store,
+# or Spring Cloud Config. Only non-sensitive defaults are allowed.
+rabbitmq:
+  host: ${RABBITMQ_HOST:localhost}
+  port: ${RABBITMQ_PORT}
+  # Intentionally no default for username/password — must be supplied by environment or config
+  username: ${RABBITMQ_USER}
+  password: ${RABBITMQ_PASSWORD}
+  virtual-host: ${RABBITMQ_VHOST:/}
