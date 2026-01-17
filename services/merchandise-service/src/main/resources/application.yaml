@@ -7,7 +7,7 @@ spring:
 
   # Activate shared database profile (see platform-core config-repo)
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev,shared-database}
+    active: dev
 
   # Service-specific JPA overrides only
   jpa:
@@ -18,7 +18,7 @@ spring:
 
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8084}
 
 logging:
   level:

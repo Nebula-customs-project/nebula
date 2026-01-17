@@ -11,7 +11,7 @@ spring:
   
   # Activate shared-database profile to get DB config from config server
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev,shared-database}
+    active: dev
   
   # ============ SERVICE-SPECIFIC OVERRIDES ONLY ============
   # All database config comes from Platform-Core Config Server

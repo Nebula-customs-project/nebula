@@ -32,7 +32,7 @@ The service uses the shared PostgreSQL database with its own schema: `vehicle_se
 
 ### Default Port
 
-- **8083** (configurable via `SERVER_PORT` environment variable)
+- **8081** (configurable via `SERVER_PORT` environment variable)
 
 ### Database Schema
 

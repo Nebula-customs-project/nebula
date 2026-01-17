@@ -138,8 +138,12 @@ export default function WorldDrivePage() {
       setError(null)
     } catch (err) {
       console.error('Failed to poll journey:', err)
-      setError('Failed to connect to backend. Is the server running?')
+      const errorMessage = err.message || 'Failed to connect to backend. Please ensure the gateway-service and world-view service are running.'
+      setError(errorMessage)
       setIsConnecting(false)
+      
+      // Don't keep polling aggressively if there's a persistent error
+      // Will retry on next interval
     }
   }, [journeyState?.status, subscribeToJourney, cleanupConnection])
 

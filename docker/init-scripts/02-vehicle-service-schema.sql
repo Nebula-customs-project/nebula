@@ -11,14 +11,17 @@ CREATE TABLE vehicle_service.vehicle (
     car_type VARCHAR(50) NOT NULL,
     horse_power INTEGER NOT NULL,
     base_price DECIMAL(12, 2) NOT NULL,
-    image VARCHAR(500) NOT NULL
+    image VARCHAR(500) NOT NULL,
+    model_path VARCHAR(500) NOT NULL
 );
 
 -- Paint table
 CREATE TABLE vehicle_service.paint (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
-    description VARCHAR(500) NOT NULL
+    description VARCHAR(500) NOT NULL,
+    visual_key VARCHAR(100) NOT NULL,
+    hex VARCHAR(7) NOT NULL
 );
 
 -- Paint Price table (prices vary by car type)
@@ -34,7 +37,8 @@ CREATE TABLE vehicle_service.rim (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(500) NOT NULL,
-    image VARCHAR(500) NOT NULL
+    image VARCHAR(500) NOT NULL,
+    visual_key VARCHAR(100) NOT NULL
 );
 
 -- Rim Price table (prices vary by car type)
@@ -50,7 +54,8 @@ CREATE TABLE vehicle_service.interior (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(500) NOT NULL,
-    image VARCHAR(500) NOT NULL
+    image VARCHAR(500) NOT NULL,
+    visual_key VARCHAR(100) NOT NULL
 );
 
 -- Interior Price table (prices vary by car type)
@@ -60,12 +65,6 @@ CREATE TABLE vehicle_service.interior_price (
     price DECIMAL(12, 2) NOT NULL,
     PRIMARY KEY (interior_id, car_type)
 );
-
--- Indexes for faster lookups
-CREATE INDEX idx_vehicle_car_type ON vehicle_service.vehicle(car_type);
-CREATE INDEX idx_paint_price_car_type ON vehicle_service.paint_price(car_type);
-CREATE INDEX idx_rim_price_car_type ON vehicle_service.rim_price(car_type);
-CREATE INDEX idx_interior_price_car_type ON vehicle_service.interior_price(car_type);
 
 -- Indexes for faster lookups
 CREATE INDEX idx_vehicle_car_type ON vehicle_service.vehicle(car_type);

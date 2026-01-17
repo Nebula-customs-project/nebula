@@ -26,15 +26,33 @@ class WorldDriveApi {
 
   async getCurrentJourney() {
     try {
-      const res = await fetch(`${this.baseUrl}/api/v1/journeys/current`)
+      const res = await fetch(`${this.baseUrl}/api/v1/journeys/current`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(5000), // 5 second timeout
+      })
+      
       if (res.status === 204) {
         return null // No active journey
       }
+      
       if (!res.ok) {
+        // Don't throw for 404/204 - these are valid responses
+        if (res.status === 404 || res.status === 204) {
+          return null
+        }
         throw new Error(`Failed to fetch current journey: ${res.status} ${res.statusText}`)
       }
-      return res.json()
+      
+      return await res.json()
     } catch (error) {
+      // Handle network errors gracefully
+      if (error.name === 'AbortError' || error.name === 'TypeError') {
+        console.error('Network error fetching current journey:', error.message)
+        throw new Error('Unable to connect to world-view service. Please check if the service is running.')
+      }
       console.error('Error fetching current journey:', error)
       throw error
     }

@@ -11,6 +11,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,9 +31,12 @@ import pse.nebula.vehicleservice.infrastructure.rest.dto.*;
  */
 @RestController
 @RequestMapping("/api/v1/vehicles")
+@CrossOrigin(origins = "*") // Allow CORS for frontend
 @Validated
 @Tag(name = "Vehicles", description = "Vehicle and configuration operations")
 public class VehicleController {
+
+    private static final Logger logger = LoggerFactory.getLogger(VehicleController.class);
 
     private final VehicleService vehicleService;
     private final ConfigurationService configurationService;
@@ -62,10 +67,15 @@ public class VehicleController {
             @Parameter(description = "Page size (1-100)")
             @RequestParam(defaultValue = "20") @Min(value = 1, message = "Size must be >= 1") @Max(value = 100, message = "Size must be <= 100") int size) {
 
+        logger.info("Received request to get all vehicles - page: {}, size: {}", page, size);
+        
         Pageable pageable = PageRequest.of(page, size);
         Page<Vehicle> vehiclePage = vehicleService.getAllVehicles(pageable);
-
-        return ResponseEntity.ok(VehiclesOverviewResponse.fromPage(vehiclePage));
+        
+        VehiclesOverviewResponse response = VehiclesOverviewResponse.fromPage(vehiclePage);
+        logger.info("Returning {} vehicles", response.vehicles().size());
+        
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -112,8 +122,11 @@ public class VehicleController {
     public ResponseEntity<ConfigurationResponse> getVehicleConfiguration(
             @Parameter(description = "Vehicle ID", required = true)
             @PathVariable @NotNull @Positive(message = "Vehicle ID must be a positive number") Integer id) {
+        logger.info("Received request to get configuration for vehicle ID: {}", id);
         VehicleConfiguration configuration = configurationService.getConfigurationForVehicle(id);
-        return ResponseEntity.ok(ConfigurationResponse.fromVehicleConfiguration(configuration));
+        ConfigurationResponse response = ConfigurationResponse.fromVehicleConfiguration(configuration);
+        logger.info("Returning configuration for vehicle: {} with {} categories", response.name(), response.categories().size());
+        return ResponseEntity.ok(response);
     }
 }
 
