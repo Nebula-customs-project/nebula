@@ -22,10 +22,11 @@ spring:
   # ============ SERVICE-SPECIFIC OVERRIDES ONLY ============
   # Only override JPA schema - all other DB config comes from config server
   jpa:
+    open-in-view: false # Disable to prevent lazy loading issues during view rendering
     properties:
       hibernate:
         default_schema: world_view
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # Note: dialect is auto-detected by Hibernate from JDBC URL, no need to specify
 
 
 # Server Configuration
@@ -43,9 +44,12 @@ logging:
   level:
     root: INFO
     pse.nebula.worldview: INFO
+    # Detailed journey progress only in DEBUG mode
+    pse.nebula.worldview.application.service.JourneyService: INFO
     # Suppress noisy framework logs
     org.hibernate: WARN
     org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
     com.zaxxer.hikari: WARN
     org.springframework: WARN
     org.apache: WARN
