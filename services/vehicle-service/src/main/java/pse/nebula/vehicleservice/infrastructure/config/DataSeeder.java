@@ -90,29 +90,26 @@ public class DataSeeder {
     }
 
     private void seedPaints(PaintRepository repository) {
-        // Fixed paint list as specified with visualKey and hex for frontend 3D rendering
+        // Exact paint list matching frontend mock data
         List<PaintData> paintsData = List.of(
-                new PaintData("Black", "Timeless deep black metallic finish", "black", "#000000"),
-                new PaintData("Alpine White", "Pure brilliant white solid finish", "alpine-white", "#FFFFFF"),
-                new PaintData("Jamaica Blue", "Vibrant tropical blue metallic", "jamaica-blue", "#1E40AF"),
-                new PaintData("Rallye Red", "Bold racing-inspired red", "rallye-red", "#DC2626"),
-                new PaintData("Midnight Blue", "Deep elegant dark blue metallic", "midnight-blue", "#1E3A8A"),
-                new PaintData("Lime Met Green", "Eye-catching lime green metallic", "lime-met-green", "#84CC16"),
-                new PaintData("Scorch Red", "Intense fiery red metallic", "scorch-red", "#B91C1C"),
-                new PaintData("Panther Pink", "Distinctive bold pink finish", "panther-pink", "#EC4899"),
-                new PaintData("Orange", "Vibrant pure orange solid", "orange", "#F97316"),
-                new PaintData("Green Go / Sassy Green", "Classic heritage green", "green-go", "#16A34A")
+                new PaintData("Racing Red", "Classic racing red", "racing-red", "#DC2626", new BigDecimal("0.00")),
+                new PaintData("Midnight Black", "Deep midnight black", "midnight-black", "#000000", new BigDecimal("0.00")),
+                new PaintData("Pearl White", "Premium pearl white finish", "pearl-white", "#FFFFFF", new BigDecimal("1200.00")),
+                new PaintData("Ocean Blue", "Vibrant ocean blue metallic", "ocean-blue", "#2563EB", new BigDecimal("1500.00")),
+                new PaintData("Silver Metallic", "Elegant silver metallic", "silver-metallic", "#94A3B8", new BigDecimal("800.00")),
+                new PaintData("Sunset Orange", "Bold sunset orange", "sunset-orange", "#F97316", new BigDecimal("1800.00")),
+                new PaintData("Electric Green", "Vibrant electric green", "electric-green", "#10B981", new BigDecimal("2000.00"))
         );
 
         for (PaintData data : paintsData) {
             Paint paint = new Paint(data.name(), data.description(), data.visualKey(), data.hex());
 
-            // Add prices for each car type
-            paint.addPrice(new PaintPrice(CarType.SPORTS, data.priceForType(CarType.SPORTS)));
-            paint.addPrice(new PaintPrice(CarType.SEDAN, data.priceForType(CarType.SEDAN)));
-            paint.addPrice(new PaintPrice(CarType.SUV, data.priceForType(CarType.SUV)));
-            paint.addPrice(new PaintPrice(CarType.LUXURY_COUPE, data.priceForType(CarType.LUXURY_COUPE)));
-            paint.addPrice(new PaintPrice(CarType.SUPERCAR, data.priceForType(CarType.SUPERCAR)));
+            // Add same price for all car types (as per frontend mock data)
+            paint.addPrice(new PaintPrice(CarType.SPORTS, data.price()));
+            paint.addPrice(new PaintPrice(CarType.SEDAN, data.price()));
+            paint.addPrice(new PaintPrice(CarType.SUV, data.price()));
+            paint.addPrice(new PaintPrice(CarType.LUXURY_COUPE, data.price()));
+            paint.addPrice(new PaintPrice(CarType.SUPERCAR, data.price()));
 
             repository.save(paint);
         }
@@ -121,24 +118,23 @@ public class DataSeeder {
     }
 
     private void seedRims(RimRepository repository) {
-        // Rim options with visualKey for frontend 3D rendering
+        // Exact rim list matching frontend mock data
         List<RimData> rimsData = List.of(
-                new RimData("Sport 19\"", "Standard 19-inch sport alloy wheels", "rim-19-base", "sport"),
-                new RimData("Performance 20\"", "High-performance 20-inch lightweight alloy", "rim-20-sport", "performance"),
-                new RimData("Premium 21\"", "Premium 21-inch turbo-style wheels", "rim-21-turbo", "premium"),
-                new RimData("Racing Pro", "Racing-inspired RS Spyder design", "rim-20-rs-spyder", "racing-pro"),
-                new RimData("Exclusive 21\"", "Exclusive luxury finish wheels", "rim-21-exclusive", "exclusive")
+                new RimData("Sport 19\"", "Standard sport rims", "rim-sport", "sport", new BigDecimal("0.00")),
+                new RimData("Performance 20\"", "High-performance lightweight rims", "rim-performance", "performance", new BigDecimal("2500.00")),
+                new RimData("Premium 21\"", "Premium carbon fiber rims", "rim-premium", "premium", new BigDecimal("4800.00")),
+                new RimData("Racing Pro", "Track-focused racing rims", "rim-racing-pro", "racing-pro", new BigDecimal("6500.00"))
         );
 
         for (RimData data : rimsData) {
             Rim rim = new Rim(data.name(), data.description(), data.image(), data.visualKey());
 
-            // Add prices for each car type
-            rim.addPrice(new RimPrice(CarType.SPORTS, data.priceForType(CarType.SPORTS)));
-            rim.addPrice(new RimPrice(CarType.SEDAN, data.priceForType(CarType.SEDAN)));
-            rim.addPrice(new RimPrice(CarType.SUV, data.priceForType(CarType.SUV)));
-            rim.addPrice(new RimPrice(CarType.LUXURY_COUPE, data.priceForType(CarType.LUXURY_COUPE)));
-            rim.addPrice(new RimPrice(CarType.SUPERCAR, data.priceForType(CarType.SUPERCAR)));
+            // Add same price for all car types (as per frontend mock data)
+            rim.addPrice(new RimPrice(CarType.SPORTS, data.price()));
+            rim.addPrice(new RimPrice(CarType.SEDAN, data.price()));
+            rim.addPrice(new RimPrice(CarType.SUV, data.price()));
+            rim.addPrice(new RimPrice(CarType.LUXURY_COUPE, data.price()));
+            rim.addPrice(new RimPrice(CarType.SUPERCAR, data.price()));
 
             repository.save(rim);
         }
@@ -147,24 +143,23 @@ public class DataSeeder {
     }
 
     private void seedInteriors(InteriorRepository repository) {
-        // Interior options with visualKey for frontend 3D rendering
+        // Exact interior list matching frontend mock data
         List<InteriorData> interiorsData = List.of(
-                new InteriorData("Black Leather", "Classic black leather upholstery", "interior-black-leather", "black"),
-                new InteriorData("Beige Leather", "Luxury beige leather upholstery", "interior-beige", "beige"),
-                new InteriorData("Red Sport", "Sporty red leather with carbon accents", "interior-red-sport", "red"),
-                new InteriorData("Carbon Fiber", "Carbon fiber racing seats", "interior-carbon", "carbon"),
-                new InteriorData("Two-Tone Black/Red", "Sporty two-tone combination", "interior-two-tone", "two-tone")
+                new InteriorData("Black Leather", "Premium black leather", "interior-black", "black", new BigDecimal("0.00")),
+                new InteriorData("Beige Leather", "Luxury beige leather", "interior-beige", "beige", new BigDecimal("2000.00")),
+                new InteriorData("Red Sport", "Sporty red leather with carbon accents", "interior-red", "red", new BigDecimal("2500.00")),
+                new InteriorData("Carbon Fiber", "Carbon fiber racing seats", "interior-carbon", "carbon", new BigDecimal("4000.00"))
         );
 
         for (InteriorData data : interiorsData) {
             Interior interior = new Interior(data.name(), data.description(), data.image(), data.visualKey());
 
-            // Add prices for each car type
-            interior.addPrice(new InteriorPrice(CarType.SPORTS, data.priceForType(CarType.SPORTS)));
-            interior.addPrice(new InteriorPrice(CarType.SEDAN, data.priceForType(CarType.SEDAN)));
-            interior.addPrice(new InteriorPrice(CarType.SUV, data.priceForType(CarType.SUV)));
-            interior.addPrice(new InteriorPrice(CarType.LUXURY_COUPE, data.priceForType(CarType.LUXURY_COUPE)));
-            interior.addPrice(new InteriorPrice(CarType.SUPERCAR, data.priceForType(CarType.SUPERCAR)));
+            // Add same price for all car types (as per frontend mock data)
+            interior.addPrice(new InteriorPrice(CarType.SPORTS, data.price()));
+            interior.addPrice(new InteriorPrice(CarType.SEDAN, data.price()));
+            interior.addPrice(new InteriorPrice(CarType.SUV, data.price()));
+            interior.addPrice(new InteriorPrice(CarType.LUXURY_COUPE, data.price()));
+            interior.addPrice(new InteriorPrice(CarType.SUPERCAR, data.price()));
 
             repository.save(interior);
         }
@@ -172,102 +167,14 @@ public class DataSeeder {
         logger.info("Seeded {} interiors with prices for all car types", interiorsData.size());
     }
 
-    // Helper records for seed data
-    private record PaintData(String name, String description, String visualKey, String hex) {
-        BigDecimal priceForType(CarType carType) {
-            // First paint (Black) is base/included for SEDAN, others have varied pricing
-            if (name.equals("Black")) {
-                return switch (carType) {
-                    case SEDAN -> new BigDecimal("0.00");
-                    case SUV -> new BigDecimal("250.00");
-                    case SPORTS -> new BigDecimal("500.00");
-                    case LUXURY_COUPE -> new BigDecimal("750.00");
-                    case SUPERCAR -> new BigDecimal("1500.00");
-                };
-            }
-            // Alpine White - low cost option
-            if (name.equals("Alpine White")) {
-                return switch (carType) {
-                    case SEDAN -> new BigDecimal("0.00");
-                    case SUV -> new BigDecimal("0.00");
-                    case SPORTS -> new BigDecimal("750.00");
-                    case LUXURY_COUPE -> new BigDecimal("1000.00");
-                    case SUPERCAR -> new BigDecimal("2000.00");
-                };
-            }
-            // Premium colors have higher prices
-            return switch (carType) {
-                case SEDAN -> new BigDecimal("1200.00");
-                case SUV -> new BigDecimal("1500.00");
-                case SPORTS -> new BigDecimal("2200.00");
-                case LUXURY_COUPE -> new BigDecimal("2800.00");
-                case SUPERCAR -> new BigDecimal("4500.00");
-            };
-        }
+    // Helper records for seed data - matching exact frontend mock data
+    private record PaintData(String name, String description, String visualKey, String hex, BigDecimal price) {
     }
 
-    private record RimData(String name, String description, String image, String visualKey) {
-        BigDecimal priceForType(CarType carType) {
-            // Sport 19" rims are included (base option)
-            if (visualKey.equals("sport")) {
-                return BigDecimal.ZERO;
-            }
-            // Performance 20" rims - mid tier
-            if (visualKey.equals("performance")) {
-                return switch (carType) {
-                    case SEDAN -> new BigDecimal("1800.00");
-                    case SUV -> new BigDecimal("2100.00");
-                    case SPORTS -> new BigDecimal("2500.00");
-                    case LUXURY_COUPE -> new BigDecimal("3000.00");
-                    case SUPERCAR -> new BigDecimal("4500.00");
-                };
-            }
-            // Premium/Racing/Exclusive rims - high tier
-            return switch (carType) {
-                case SEDAN -> new BigDecimal("3200.00");
-                case SUV -> new BigDecimal("3800.00");
-                case SPORTS -> new BigDecimal("4500.00");
-                case LUXURY_COUPE -> new BigDecimal("5500.00");
-                case SUPERCAR -> new BigDecimal("8000.00");
-            };
-        }
+    private record RimData(String name, String description, String image, String visualKey, BigDecimal price) {
     }
 
-    private record InteriorData(String name, String description, String image, String visualKey) {
-        BigDecimal priceForType(CarType carType) {
-            // Black leather is base/included
-            if (visualKey.equals("black")) {
-                return BigDecimal.ZERO;
-            }
-            // Beige leather - standard upgrade
-            if (visualKey.equals("beige")) {
-                return switch (carType) {
-                    case SEDAN -> new BigDecimal("2000.00");
-                    case SUV -> new BigDecimal("2300.00");
-                    case SPORTS -> new BigDecimal("2500.00");
-                    case LUXURY_COUPE -> new BigDecimal("3000.00");
-                    case SUPERCAR -> new BigDecimal("4500.00");
-                };
-            }
-            // Red Sport - sport upgrade
-            if (visualKey.equals("red")) {
-                return switch (carType) {
-                    case SEDAN -> new BigDecimal("2500.00");
-                    case SUV -> new BigDecimal("2800.00");
-                    case SPORTS -> new BigDecimal("3200.00");
-                    case LUXURY_COUPE -> new BigDecimal("3800.00");
-                    case SUPERCAR -> new BigDecimal("5500.00");
-                };
-            }
-            // Carbon Fiber / Two-Tone - premium options
-            return switch (carType) {
-                case SEDAN -> new BigDecimal("4000.00");
-                case SUV -> new BigDecimal("4500.00");
-                case SPORTS -> new BigDecimal("5000.00");
-                case LUXURY_COUPE -> new BigDecimal("6000.00");
-                case SUPERCAR -> new BigDecimal("9000.00");
-            };
-        }
+    private record InteriorData(String name, String description, String image, String visualKey, BigDecimal price) {
     }
 }
 
