@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { carSelectorPropTypes } from "./CarSelector.propTypes";
+import { carSelectorPropTypes } from "./propTypes/CarSelector.propTypes";
 
 /**
  * CarSelector Component

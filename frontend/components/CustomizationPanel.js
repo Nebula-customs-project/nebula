@@ -8,7 +8,7 @@
  */
 
 import React from "react";
-import { customizationPanelPropTypes } from "./CustomizationPanel.propTypes";
+import { customizationPanelPropTypes } from "./propTypes/CustomizationPanel.propTypes";
 
 // Helper function to determine price color class - extracted to fix nested ternary
 const getPriceColorClass = (cost, isSelected) => {
