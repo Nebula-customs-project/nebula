@@ -2,6 +2,8 @@ package pse.nebula.merchandise.application.dto;
 
 import java.math.BigDecimal;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,6 +20,13 @@ public class ProductRequest {
     @Min(0)
     private Integer stock;
     private String imageUrl;
+    private String category;
+    private String badge;
+    @DecimalMin(value = "1.0")
+    @DecimalMax(value = "5.0")
+    private BigDecimal rating;
+    @Min(0)
+    private Integer reviews;
 
     public ProductRequest() {}
 
@@ -67,5 +76,37 @@ public class ProductRequest {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getBadge() {
+        return badge;
+    }
+
+    public void setBadge(String badge) {
+        this.badge = badge;
+    }
+
+    public BigDecimal getRating() {
+        return rating;
+    }
+
+    public void setRating(BigDecimal rating) {
+        this.rating = rating;
+    }
+
+    public Integer getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(Integer reviews) {
+        this.reviews = reviews;
     }
 }
