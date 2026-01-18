@@ -1,11 +1,5 @@
 -- Dev seed data for merchandise products (schema-qualified)
 
--- Ensure columns exist (safe to run multiple times)
-ALTER TABLE merchandise_service.products ADD COLUMN IF NOT EXISTS category varchar(255);
-ALTER TABLE merchandise_service.products ADD COLUMN IF NOT EXISTS badge varchar(100);
-ALTER TABLE merchandise_service.products ADD COLUMN IF NOT EXISTS rating numeric(3,1);
-ALTER TABLE merchandise_service.products ADD COLUMN IF NOT EXISTS reviews integer;
-
 -- Seed data: only insert if table is currently empty to avoid destructive resets
 INSERT INTO merchandise_service.products (name, description, price, stock, image_url, category, badge, rating, reviews)
 SELECT name, description, price, stock, image_url, category, badge, rating, reviews
