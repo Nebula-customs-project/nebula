@@ -45,6 +45,23 @@ logging:
     com.netflix.discovery: WARN
     com.netflix.eureka: WARN
     c.n.d.s.t.d.RetryableEurekaHttpClient: ERROR
+    
+    # Reduce Hibernate and SQL verbosity
+    org.hibernate: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type: WARN
+
+    # Reduce container / connection pool verbosity
+    org.apache.catalina: WARN
+    org.apache.tomcat: WARN
+    com.zaxxer.hikari: WARN
+
+    # Reduce cloud and networking noise
+    org.springframework.cloud: WARN
+    io.netty: WARN
+
+    # Keep important app-level logs at INFO
+    pse.nebula: INFO
 
 # Eureka client configuration
 # Services will register with Eureka when available
