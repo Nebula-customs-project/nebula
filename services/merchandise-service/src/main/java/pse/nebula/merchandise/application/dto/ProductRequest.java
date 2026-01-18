@@ -25,6 +25,7 @@ public class ProductRequest {
     @DecimalMin(value = "1.0")
     @DecimalMax(value = "5.0")
     private BigDecimal rating;
+    @Min(0)
     private Integer reviews;
 
     public ProductRequest() {}
