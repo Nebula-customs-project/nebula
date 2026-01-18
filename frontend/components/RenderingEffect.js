@@ -1,89 +1,104 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import PropTypes from "prop-types";
 
 /**
  * RenderingEffect Component
- * 
+ *
  * Displays a beautiful rendering transition effect when:
  * - User first visits the page
  * - User changes to a different car model
- * 
- * @param {Object} props
- * @param {boolean} props.isRendering - Whether rendering is in progress
- * @param {Function} props.onComplete - Callback when rendering completes
  */
 
-export default function RenderingEffect({ isRendering, onComplete, modelLoaded }) {
-  const [progress, setProgress] = useState(0)
-  const [showEffect, setShowEffect] = useState(false)
-  const intervalRef = useRef(null)
-  const modelLoadedRef = useRef(false)
+// Generate particle positions once (stable between renders)
+const generateParticleStyles = (count) =>
+  new Array(count).fill(null).map((_, i) => ({
+    id: `particle-${i}`,
+    left: `${(i * 17 + 23) % 100}%`,
+    top: `${(i * 31 + 13) % 100}%`,
+    animationDelay: `${(i * 0.1) % 2}s`,
+    animationDuration: `${2 + (i % 3)}s`,
+  }));
+
+export default function RenderingEffect({
+  isRendering,
+  onComplete,
+  modelLoaded,
+}) {
+  const [progress, setProgress] = useState(0);
+  const [showEffect, setShowEffect] = useState(false);
+  const intervalRef = useRef(null);
+  const modelLoadedRef = useRef(false);
+
+  // Memoize particle styles to avoid regeneration
+  const particleStyles = useMemo(() => generateParticleStyles(20), []);
 
   // Update ref when modelLoaded changes (without triggering effect)
   useEffect(() => {
-    modelLoadedRef.current = modelLoaded
-  }, [modelLoaded])
+    modelLoadedRef.current = modelLoaded;
+  }, [modelLoaded]);
 
   useEffect(() => {
     // Only start effect when isRendering becomes true
     if (isRendering) {
       // Clear any existing interval
       if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
 
-      setShowEffect(true)
-      setProgress(0)
+      setShowEffect(true);
+      setProgress(0);
 
       // Fast animation - complete in less than 1.5 seconds
-      const totalDuration = 1200 // 1.2 seconds total
-      const steps = 60
-      const increment = 100 / steps
-      const stepDuration = totalDuration / steps
+      const totalDuration = 1200; // 1.2 seconds total
+      const steps = 60;
+      const increment = 100 / steps;
+      const stepDuration = totalDuration / steps;
 
-      let currentStep = 0
+      let currentStep = 0;
       intervalRef.current = setInterval(() => {
-        currentStep++
-        const newProgress = Math.min(currentStep * increment, 100)
-        setProgress(newProgress)
+        currentStep++;
+        const newProgress = Math.min(currentStep * increment, 100);
+        setProgress(newProgress);
 
         // Complete when we reach 100% or model is loaded and we're past 70%
-        const shouldComplete = newProgress >= 100 || (modelLoadedRef.current && newProgress >= 70)
-        
+        const shouldComplete =
+          newProgress >= 100 || (modelLoadedRef.current && newProgress >= 70);
+
         if (shouldComplete) {
           if (intervalRef.current) {
-            clearInterval(intervalRef.current)
-            intervalRef.current = null
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
           }
-          setProgress(100)
+          setProgress(100);
           // Quick fade out
           setTimeout(() => {
-            setShowEffect(false)
-            onComplete?.()
-          }, 150)
+            setShowEffect(false);
+            onComplete?.();
+          }, 150);
         }
-      }, stepDuration)
+      }, stepDuration);
 
       return () => {
         if (intervalRef.current) {
-          clearInterval(intervalRef.current)
-          intervalRef.current = null
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
         }
-      }
+      };
     } else {
       // Reset when rendering stops
       if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
-      setShowEffect(false)
-      setProgress(0)
+      setShowEffect(false);
+      setProgress(0);
     }
-  }, [isRendering, onComplete]) // Only depends on isRendering to prevent double render
+  }, [isRendering, onComplete]); // Only depends on isRendering to prevent double render
 
-  if (!showEffect) return null
+  if (!showEffect) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black backdrop-blur-sm">
@@ -91,8 +106,14 @@ export default function RenderingEffect({ isRendering, onComplete, modelLoaded }
       <div className="absolute inset-0 overflow-hidden">
         {/* Rotating gradient orbs */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-red-600/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-500/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+        <div
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-red-600/20 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-500/10 rounded-full blur-2xl animate-pulse"
+          style={{ animationDelay: "0.5s" }}
+        ></div>
       </div>
 
       {/* Main Content */}
@@ -102,7 +123,10 @@ export default function RenderingEffect({ isRendering, onComplete, modelLoaded }
           {/* Outer ring */}
           <div className="w-24 h-24 border-4 border-red-500/30 rounded-full animate-spin"></div>
           {/* Inner ring */}
-          <div className="absolute inset-0 w-24 h-24 border-4 border-transparent border-t-red-500 rounded-full animate-spin" style={{ animationDuration: '0.8s' }}></div>
+          <div
+            className="absolute inset-0 w-24 h-24 border-4 border-transparent border-t-red-500 rounded-full animate-spin"
+            style={{ animationDuration: "0.8s" }}
+          ></div>
           {/* Center dot */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
@@ -136,15 +160,15 @@ export default function RenderingEffect({ isRendering, onComplete, modelLoaded }
 
         {/* Particle Effects */}
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(20)].map((_, i) => (
+          {particleStyles.map((particle) => (
             <div
-              key={i}
+              key={particle.id}
               className="absolute w-1 h-1 bg-red-500 rounded-full animate-float"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
+                left: particle.left,
+                top: particle.top,
+                animationDelay: particle.animationDelay,
+                animationDuration: particle.animationDuration,
               }}
             ></div>
           ))}
@@ -156,5 +180,16 @@ export default function RenderingEffect({ isRendering, onComplete, modelLoaded }
         <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black animate-fadeOut"></div>
       )}
     </div>
-  )
+  );
 }
+
+RenderingEffect.propTypes = {
+  isRendering: PropTypes.bool.isRequired,
+  onComplete: PropTypes.func,
+  modelLoaded: PropTypes.bool,
+};
+
+RenderingEffect.defaultProps = {
+  onComplete: () => {},
+  modelLoaded: false,
+};
