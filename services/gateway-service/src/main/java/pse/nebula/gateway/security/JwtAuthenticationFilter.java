@@ -76,7 +76,6 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                         String email = jwtValidator.getEmail(claims);
                         String roles = jwtValidator.getRoles(claims);
 
-                        log.info("Authenticated user: {} ({}) for path: {}", userId, email, path);
 
                         // Add user info to request headers for downstream services
                         ServerHttpRequest modifiedRequest = request.mutate()
