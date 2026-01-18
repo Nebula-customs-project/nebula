@@ -135,4 +135,4 @@ redis-stable.tar.gz
 test-*.sh
 build-*.txt
 REDIS_*.md
-TEST_*.mdfrontend/test-results/
+TEST_*.md
