@@ -10,7 +10,7 @@ spring:
 
   # dev profile for local development
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+    active: ${SPRING_PROFILES_ACTIVE:shared-database}
 
   # Import configurations from Config Server (optional - won't fail if unavailable)
   config:
