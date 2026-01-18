@@ -10,22 +10,34 @@ export default function MerchandisePage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [debugInfo, setDebugInfo] = useState(null)
 
   useEffect(() => {
     const controller = new AbortController()
     const fetchProducts = async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_MERCHANDISE_URL || 'http://localhost:8084'
-        const res = await fetch(`${baseUrl}/api/v1/merchandise/products`, {
+        // Use gateway for REST API requests when NEXT_PUBLIC_GATEWAY_URL is set.
+        // Otherwise use the Next server proxy at `/api/merchandise/products` to avoid CORS.
+        const gateway = process.env.NEXT_PUBLIC_GATEWAY_URL
+        const url = gateway ? `${gateway}/api/v1/merchandise/products` : '/api/merchandise/products'
+        setDebugInfo({ attemptingUrl: url })
+        const res = await fetch(url, {
           signal: controller.signal,
         })
-        if (!res.ok) throw new Error(`Failed to load products (${res.status})`)
+        if (!res.ok) {
+          const text = await res.text().catch(() => '')
+          throw new Error(`Failed to load products (${res.status}) ${text}`)
+        }
         const data = await res.json()
         setProducts(Array.isArray(data) ? data : [])
         setError(null)
+        setDebugInfo(prev => ({ ...prev, success: true, count: Array.isArray(data) ? data.length : 0 }))
       } catch (err) {
         if (err.name === 'AbortError') return
-        setError(err.message)
+        // Provide richer debug info for client-side troubleshooting
+        const message = err && err.message ? err.message : String(err)
+        setError(message)
+        setDebugInfo(prev => ({ ...prev, error: message }))
         setProducts([])
       } finally {
         setLoading(false)
@@ -107,7 +119,19 @@ export default function MerchandisePage() {
           <div className="text-center py-20 text-gray-300">Loading merchandise...</div>
         )}
         {error && !loading && (
-          <div className="text-center py-20 text-red-400">{error}</div>
+          <div className="text-center py-20 text-red-400">
+            <div>{error}</div>
+            {debugInfo && (
+              <div className="text-sm text-gray-400 mt-2">
+                <div>URL: {debugInfo.attemptingUrl}</div>
+                {debugInfo.error && <div>Error: {debugInfo.error}</div>}
+                {debugInfo.success && <div>Loaded {debugInfo.count} products</div>}
+              </div>
+            )}
+            <div className="mt-4">
+              <button onClick={() => { setLoading(true); setError(null); setDebugInfo(null); fetchProducts() }} className="px-4 py-2 bg-gray-700 rounded">Retry</button>
+            </div>
+          </div>
         )}
 
         {/* Products Grid */}
