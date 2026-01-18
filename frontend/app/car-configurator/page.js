@@ -26,6 +26,7 @@ import LoadingSkeleton, {
 } from "../../components/LoadingSkeleton";
 import { vehicleServiceApi, API_ERROR_TYPES } from "./lib/api";
 import { PROGRESS_MAX_COST } from "./constants";
+import { useAudioManager } from "../../hooks/useAudioManager";
 
 export default function CarConfiguratorPage() {
   // API State
@@ -42,6 +43,12 @@ export default function CarConfiguratorPage() {
   const [modelLoaded, setModelLoaded] = useState(false);
   const [isLoadingConfig, setIsLoadingConfig] = useState(false);
   const [introCompleted, setIntroCompleted] = useState(false);
+  const [pendingPaintChange, setPendingPaintChange] = useState(null);
+  const [isPaintChanging, setIsPaintChanging] = useState(false);
+
+  // Audio management
+  const { startBgMusic, playPaintSfx, enableAudioOnInteraction } =
+    useAudioManager();
 
   // Get current vehicle
   const currentVehicle = useMemo(() => {
@@ -223,13 +230,43 @@ export default function CarConfiguratorPage() {
 
   /**
    * Handles part selection in a category
+   * For paint changes, syncs with audio SFX and flash animation
    */
-  const handlePartSelect = (categoryId, partVisualKey) => {
-    setConfiguration((prev) => ({
-      ...prev,
-      [categoryId]: partVisualKey,
-    }));
-  };
+  const handlePartSelect = useCallback(
+    (categoryId, partVisualKey) => {
+      // Enable audio on first interaction (browser autoplay policy)
+      enableAudioOnInteraction();
+
+      // Special handling for paint selection - sync with audio + flash
+      if (categoryId === "paint") {
+        // Set pending paint change and trigger flash effect
+        setPendingPaintChange(partVisualKey);
+        setIsPaintChanging(true);
+
+        // Play paint SFX, apply color change mid-flash, then end flash
+        playPaintSfx(() => {
+          // Apply the color change
+          setConfiguration((prev) => ({
+            ...prev,
+            [categoryId]: partVisualKey,
+          }));
+
+          // Small delay before ending flash for smooth reveal
+          setTimeout(() => {
+            setIsPaintChanging(false);
+            setPendingPaintChange(null);
+          }, 150);
+        });
+      } else {
+        // Non-paint selections apply immediately
+        setConfiguration((prev) => ({
+          ...prev,
+          [categoryId]: partVisualKey,
+        }));
+      }
+    },
+    [enableAudioOnInteraction, playPaintSfx],
+  );
 
   /**
    * Calculate pricing and selected parts count
@@ -374,6 +411,7 @@ export default function CarConfiguratorPage() {
       {/* Video Intro Effect - Only plays on FIRST visit */}
       <VideoIntroEffect
         videoSrc="/videos/car-intro.mp4"
+        onStart={startBgMusic}
         onComplete={() => setIntroCompleted(true)}
       />
 
@@ -414,6 +452,20 @@ export default function CarConfiguratorPage() {
                   onModelLoad={handleModelLoad}
                 />
               )}
+
+              {/* Paint Change Flash Effect */}
+              <div
+                className={`absolute inset-0 pointer-events-none transition-opacity duration-200 ${
+                  isPaintChanging ? 'opacity-100' : 'opacity-0'
+                }`}
+                style={{
+                  background: 'radial-gradient(circle at center, rgba(239, 68, 68, 0.4) 0%, rgba(0, 0, 0, 0.8) 70%)',
+                }}
+              >
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-32 h-32 border-4 border-red-500/50 rounded-full animate-ping" />
+                </div>
+              </div>
             </div>
           </div>
         </div>

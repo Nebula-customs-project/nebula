@@ -1,5 +1,7 @@
 "use client";
 
+import { API_TIMEOUT_MS } from "../constants";
+
 // Use gateway for all API requests (port 8080)
 // Gateway routes: /api/v1/vehicles/** → vehicle-service
 const VEHICLE_SERVICE_URL =
@@ -42,7 +44,7 @@ class VehicleServiceApi {
         headers: {
           "Content-Type": "application/json",
         },
-        signal: AbortSignal.timeout(5000), // 5 second timeout
+        signal: AbortSignal.timeout(API_TIMEOUT_MS), // 5 second timeout
       });
 
       if (!res.ok) {
@@ -102,7 +104,7 @@ class VehicleServiceApi {
           headers: {
             "Content-Type": "application/json",
           },
-          signal: AbortSignal.timeout(5000), // 5 second timeout
+          signal: AbortSignal.timeout(API_TIMEOUT_MS), // 5 second timeout
         },
       );
 
