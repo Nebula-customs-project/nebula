@@ -22,7 +22,7 @@ public class ProductRequest {
     private String imageUrl;
     private String category;
     private String badge;
-    @DecimalMin(value = "0.0")
+    @DecimalMin(value = "1.0")
     @DecimalMax(value = "5.0")
     private BigDecimal rating;
     private Integer reviews;
