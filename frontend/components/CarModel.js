@@ -5,7 +5,10 @@ import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
-import { carModelPropTypes, carModelDefaultProps } from "./CarModel.propTypes";
+import {
+  carModelPropTypes,
+  carModelDefaultProps,
+} from "./propTypes/CarModel.propTypes";
 
 // --- Material Detection Helpers ---
 const isGlassMaterial = (originalMat, name) =>
