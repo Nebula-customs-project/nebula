@@ -51,12 +51,16 @@ public class ProductService {
 
     private ProductResponse toResponse(Product product) {
         return new ProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getStock(),
-                product.getImageUrl()
+            product.getId(),
+            product.getName(),
+            product.getDescription(),
+            product.getPrice(),
+            product.getStock(),
+            product.getImageUrl(),
+            product.getCategory(),
+            product.getBadge(),
+            product.getRating(),
+            product.getReviews()
         );
     }
 }
