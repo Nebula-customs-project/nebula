@@ -358,7 +358,7 @@ const MapView = forwardRef(({
       {/* Map frame with 3D styling */}
       <div className="flex-1 relative">
         {/* Outer glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-pink-500/20 rounded-3xl blur-xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 via-rose-500/10 to-pink-500/20 rounded-3xl blur-xl" />
 
         {/* Main frame container */}
         <div className="relative h-full bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 rounded-3xl p-1.5 shadow-2xl">
@@ -367,6 +367,31 @@ const MapView = forwardRef(({
             {/* White map container with inner shadow */}
             <div className="h-full bg-white rounded-[19px] relative overflow-hidden shadow-inner">
               <div ref={containerRef} className="w-full h-full" />
+
+              <button
+                className={`absolute bottom-4 right-4 z-[1000] px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-md ${followCar
+                    ? 'bg-red-600 text-white'
+                    : 'bg-white text-gray-700 border border-gray-200'
+                  }`}
+                onClick={() => setFollowCar(!followCar)}
+              >
+                {followCar ? '📍 Following' : '🗺️ Free View'}
+              </button>
+
+              <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+                <button
+                  className="w-10 h-10 bg-white hover:bg-gray-100 rounded-lg flex items-center justify-center text-gray-700 font-bold shadow-md border border-gray-200"
+                  onClick={handleZoomIn}
+                >
+                  +
+                </button>
+                <button
+                  className="w-10 h-10 bg-white hover:bg-gray-100 rounded-lg flex items-center justify-center text-gray-700 font-bold shadow-md border border-gray-200"
+                  onClick={handleZoomOut}
+                >
+                  −
+                </button>
+              </div>
             </div>
           </div>
         </div>
