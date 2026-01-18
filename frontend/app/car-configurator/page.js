@@ -24,7 +24,7 @@ import ServiceStatusNotification from "../../components/ServiceStatusNotificatio
 import LoadingSkeleton, {
   CategoryTabSkeleton,
 } from "../../components/LoadingSkeleton";
-import { vehicleServiceApi, API_ERROR_TYPES } from "./lib/api";
+import { vehicleServiceApi } from "./lib/api";
 import { PROGRESS_MAX_COST } from "./constants";
 import { useAudioManager } from "../../hooks/useAudioManager";
 
@@ -42,13 +42,10 @@ export default function CarConfiguratorPage() {
   const [isRendering, setIsRendering] = useState(true);
   const [modelLoaded, setModelLoaded] = useState(false);
   const [isLoadingConfig, setIsLoadingConfig] = useState(false);
-  const [introCompleted, setIntroCompleted] = useState(false);
-  const [pendingPaintChange, setPendingPaintChange] = useState(null);
   const [isPaintChanging, setIsPaintChanging] = useState(false);
 
-  // Audio management
-  const { startBgMusic, playPaintSfx, enableAudioOnInteraction } =
-    useAudioManager();
+  // Audio management (paint SFX only)
+  const { playPaintSfx } = useAudioManager();
 
   // Get current vehicle
   const currentVehicle = useMemo(() => {
@@ -234,13 +231,9 @@ export default function CarConfiguratorPage() {
    */
   const handlePartSelect = useCallback(
     (categoryId, partVisualKey) => {
-      // Enable audio on first interaction (browser autoplay policy)
-      enableAudioOnInteraction();
-
       // Special handling for paint selection - sync with audio + flash
       if (categoryId === "paint") {
-        // Set pending paint change and trigger flash effect
-        setPendingPaintChange(partVisualKey);
+        // Trigger flash effect
         setIsPaintChanging(true);
 
         // Play paint SFX, apply color change mid-flash, then end flash
@@ -254,7 +247,6 @@ export default function CarConfiguratorPage() {
           // Small delay before ending flash for smooth reveal
           setTimeout(() => {
             setIsPaintChanging(false);
-            setPendingPaintChange(null);
           }, 150);
         });
       } else {
@@ -265,7 +257,7 @@ export default function CarConfiguratorPage() {
         }));
       }
     },
-    [enableAudioOnInteraction, playPaintSfx],
+    [playPaintSfx],
   );
 
   /**
@@ -411,8 +403,7 @@ export default function CarConfiguratorPage() {
       {/* Video Intro Effect - Only plays on FIRST visit */}
       <VideoIntroEffect
         videoSrc="/videos/car-intro.mp4"
-        onStart={startBgMusic}
-        onComplete={() => setIntroCompleted(true)}
+        onComplete={() => {}}
       />
 
       <ServiceStatusNotification
@@ -456,10 +447,11 @@ export default function CarConfiguratorPage() {
               {/* Paint Change Flash Effect */}
               <div
                 className={`absolute inset-0 pointer-events-none transition-opacity duration-200 ${
-                  isPaintChanging ? 'opacity-100' : 'opacity-0'
+                  isPaintChanging ? "opacity-100" : "opacity-0"
                 }`}
                 style={{
-                  background: 'radial-gradient(circle at center, rgba(239, 68, 68, 0.4) 0%, rgba(0, 0, 0, 0.8) 70%)',
+                  background:
+                    "radial-gradient(circle at center, rgba(239, 68, 68, 0.4) 0%, rgba(0, 0, 0, 0.8) 70%)",
                 }}
               >
                 <div className="absolute inset-0 flex items-center justify-center">
