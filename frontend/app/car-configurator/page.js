@@ -19,6 +19,7 @@ import Vehicle3DScene from "../../components/Vehicle3DScene";
 import CustomizationPanel from "../../components/CustomizationPanel";
 import CarSelector from "../../components/CarSelector";
 import RenderingEffect from "../../components/RenderingEffect";
+import VideoIntroEffect from "../../components/VideoIntroEffect";
 import ServiceStatusNotification from "../../components/ServiceStatusNotification";
 import LoadingSkeleton, {
   CategoryTabSkeleton,
@@ -40,6 +41,7 @@ export default function CarConfiguratorPage() {
   const [isRendering, setIsRendering] = useState(true);
   const [modelLoaded, setModelLoaded] = useState(false);
   const [isLoadingConfig, setIsLoadingConfig] = useState(false);
+  const [introCompleted, setIntroCompleted] = useState(false);
 
   // Get current vehicle
   const currentVehicle = useMemo(() => {
@@ -369,6 +371,12 @@ export default function CarConfiguratorPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+      {/* Video Intro Effect - Only plays on FIRST visit */}
+      <VideoIntroEffect
+        videoSrc="/videos/car-intro.mp4"
+        onComplete={() => setIntroCompleted(true)}
+      />
+
       <ServiceStatusNotification
         status={serviceStatus}
         message={serviceMessage}
