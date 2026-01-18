@@ -19,7 +19,7 @@ import PropTypes from "prop-types";
 
 const STORAGE_KEY = "nebula-car-configurator-intro-seen";
 
-export default function VideoIntroEffect({ onComplete, onStart, videoSrc }) {
+export default function VideoIntroEffect({ onComplete, videoSrc }) {
   const [showIntro, setShowIntro] = useState(false);
   const [exitPhase, setExitPhase] = useState(0); // 0: playing, 1: pulse, 2: zoom, 3: fade, 4: done
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -32,11 +32,10 @@ export default function VideoIntroEffect({ onComplete, onStart, videoSrc }) {
     if (!hasSeenIntro) {
       setShowIntro(true);
     } else {
-      // User has seen intro - skip but still trigger callbacks
-      onStart?.(); // Start BG music even on return visits
+      // User has seen intro - skip directly to configurator (no audio)
       onComplete?.();
     }
-  }, [onComplete, onStart]);
+  }, [onComplete]);
 
   // Handle video loaded
   const handleVideoLoaded = useCallback(() => {
@@ -44,16 +43,12 @@ export default function VideoIntroEffect({ onComplete, onStart, videoSrc }) {
     if (videoRef.current) {
       videoRef.current
         .play()
-        .then(() => {
-          // Video started playing - trigger onStart callback
-          onStart?.();
-        })
         .catch((err) => {
           console.warn("Video autoplay failed:", err);
           handleIntroComplete();
         });
     }
-  }, [onStart]);
+  }, []);
 
   // Premium exit animation sequence - smooth timing
   const handleIntroComplete = useCallback(() => {
@@ -91,10 +86,9 @@ export default function VideoIntroEffect({ onComplete, onStart, videoSrc }) {
     if (videoRef.current) {
       videoRef.current.pause();
     }
-    // User clicked - this gesture enables audio, so trigger onStart
-    onStart?.();
+    // User skipped - stop audio and complete intro
     handleIntroComplete();
-  }, [handleIntroComplete, onStart]);
+  }, [handleIntroComplete]);
 
   if (!showIntro) {
     return null;
@@ -112,8 +106,8 @@ export default function VideoIntroEffect({ onComplete, onStart, videoSrc }) {
         filter: exitPhase >= 2 ? "blur(12px)" : "blur(0px)",
       }}
     >
-      {/* Video Container - clicking anywhere enables audio */}
-      <div className="relative w-full h-full" onClick={() => onStart?.()}>
+      {/* Video Container */}
+      <div className="relative w-full h-full">
         {/* Video Element */}
         <video
           ref={videoRef}
@@ -246,12 +240,10 @@ function VideoProgress({ videoRef }) {
 
 VideoIntroEffect.propTypes = {
   onComplete: PropTypes.func.isRequired,
-  onStart: PropTypes.func,
   videoSrc: PropTypes.string,
 };
 
 VideoIntroEffect.defaultProps = {
-  onStart: () => {},
   videoSrc: "/videos/car-intro.mp4",
 };
 

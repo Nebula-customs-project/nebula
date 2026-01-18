@@ -3,11 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Car, ShoppingCart, MapPin, User, Settings } from "lucide-react";
-import { useAudioManager } from "../hooks/useAudioManager";
 
 export default function Navigation() {
   const pathname = usePathname();
-  const { startBgMusic } = useAudioManager();
 
   const navigation = [
     { href: "/", label: "Home", icon: Car },
@@ -17,13 +15,6 @@ export default function Navigation() {
     { href: "/merchandise", label: "Merchandise", icon: ShoppingCart },
     { href: "/my-car", label: "My PSE Car", icon: User },
   ];
-
-  // Handle navigation click - start audio for car-configurator
-  const handleNavClick = (href) => {
-    if (href === "/car-configurator") {
-      startBgMusic();
-    }
-  };
 
   return (
     <nav className="bg-black text-white sticky top-0 z-50 shadow-lg">
@@ -41,7 +32,6 @@ export default function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => handleNavClick(item.href)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
                     isActive ? "bg-red-600" : "hover:bg-gray-800"
                   }`}
