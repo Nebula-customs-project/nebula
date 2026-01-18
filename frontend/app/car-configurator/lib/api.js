@@ -77,21 +77,6 @@ class VehicleServiceApi {
     }
   }
 
-  /**
-   * Check if vehicle service is available
-   * Tries to fetch vehicles as a health check (more reliable than actuator)
-   */
-  async checkHealth() {
-    try {
-      const res = await fetch(`${this.baseUrl}/api/v1/vehicles?size=1`, {
-        method: 'GET',
-        signal: AbortSignal.timeout(3000), // 3 second timeout
-      })
-      return res.ok || res.status === 200
-    } catch (error) {
-      return false
-    }
-  }
 }
 
 export const vehicleServiceApi = new VehicleServiceApi()
