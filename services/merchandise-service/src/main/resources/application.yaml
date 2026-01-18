@@ -16,7 +16,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5434}/${POSTGRES_DB:nebula_db}
     username: ${POSTGRES_USER:nebula_user}
-    password: ${POSTGRES_PASSWORD:nebula@2025}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
