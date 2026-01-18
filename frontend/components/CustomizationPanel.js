@@ -1,20 +1,21 @@
-'use client'
+"use client";
 
 /**
  * CustomizationPanel Component
- * 
+ *
  * Displays customization options for the selected category.
  * Shows parts list with selection state, pricing, and descriptions.
- * 
- * @param {Object} props
- * @param {Array} props.categories - Array of customization categories
- * @param {string} props.activeCategory - Currently active category ID
- * @param {Function} props.setActiveCategory - Function to change active category
- * @param {Object} props.configuration - Current configuration state
- * @param {Function} props.onPartSelect - Callback when a part is selected
  */
 
-import React from 'react'
+import React from "react";
+import { customizationPanelPropTypes } from "./CustomizationPanel.propTypes";
+
+// Helper function to determine price color class - extracted to fix nested ternary
+const getPriceColorClass = (cost, isSelected) => {
+  if (cost === 0) return "text-green-400";
+  if (isSelected) return "text-red-300";
+  return "text-gray-300";
+};
 
 export default function CustomizationPanel({
   categories,
@@ -23,7 +24,7 @@ export default function CustomizationPanel({
   configuration,
   onPartSelect,
 }) {
-  const currentCategory = categories.find((cat) => cat.id === activeCategory)
+  const currentCategory = categories.find((cat) => cat.id === activeCategory);
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-gray-900 to-black text-white">
@@ -66,7 +67,7 @@ export default function CustomizationPanel({
             <div className="grid gap-2">
               {currentCategory.parts.map((part) => {
                 const isSelected =
-                  configuration[currentCategory.id] === part.visualKey
+                  configuration[currentCategory.id] === part.visualKey;
 
                 return (
                   <button
@@ -103,13 +104,7 @@ export default function CustomizationPanel({
                         )}
                         <div className="flex items-center justify-between">
                           <span
-                            className={`text-sm font-bold ${
-                              part.cost === 0
-                                ? "text-green-400"
-                                : isSelected
-                                ? "text-red-300"
-                                : "text-gray-300"
-                            }`}
+                            className={`text-sm font-bold ${getPriceColorClass(part.cost, isSelected)}`}
                           >
                             {part.cost === 0
                               ? "Included"
@@ -144,7 +139,7 @@ export default function CustomizationPanel({
                       </div>
                     </div>
                   </button>
-                )
+                );
               })}
             </div>
           </>
@@ -163,5 +158,7 @@ export default function CustomizationPanel({
         </div>
       </div>
     </div>
-  )
+  );
 }
+
+CustomizationPanel.propTypes = customizationPanelPropTypes;

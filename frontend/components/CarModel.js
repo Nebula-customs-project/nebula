@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
-import FallbackCar from "./FallbackCar";
+
 import { carModelPropTypes, carModelDefaultProps } from "./CarModel.propTypes";
 
 // --- Material Detection Helpers ---
@@ -233,9 +233,9 @@ export default function CarModel({
     }
   });
 
-  // If no model found, use fallback geometric car
+  // If no model found, render nothing
   if (hasError || !scene) {
-    return <FallbackCar paintMaterial={paintMaterial} />;
+    return null;
   }
 
   // NO-SONAR: object, position, rotation are valid React Three Fiber props
