@@ -7,7 +7,6 @@ import {
   Environment,
   ContactShadows,
   PerspectiveCamera,
-  Html,
 } from "@react-three/drei";
 import CarModel from "./CarModel";
 import * as THREE from "three";
@@ -15,7 +14,6 @@ import {
   vehicle3DScenePropTypes,
   vehicle3DSceneDefaultProps,
 } from "./propTypes/Vehicle3DScene.propTypes";
-
 
 const COLOR_MAP = {
   "racing-red": {
@@ -54,31 +52,6 @@ const COLOR_MAP = {
     roughness: 0.12,
   },
 };
-
-// Loading component for 3D scene - adapted to Nebula red theme
-function Loader() {
-  return (
-    <Html center>
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin"></div>
-          <div
-            className="absolute inset-0 w-16 h-16 border-4 border-red-400/20 border-b-red-400 rounded-full animate-spin"
-            style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
-          ></div>
-        </div>
-        <div className="bg-black/90 backdrop-blur-md px-6 py-3 rounded-xl border border-red-500/50">
-          <p className="text-white text-sm font-semibold">
-            Loading 3D Model...
-          </p>
-          <p className="text-gray-400 text-xs mt-1">
-            Preparing realistic rendering
-          </p>
-        </div>
-      </div>
-    </Html>
-  );
-}
 
 // Scene lighting setup
 // NO-SONAR: intensity, position, castShadow, shadow-*, angle, penumbra are valid React Three Fiber props
@@ -143,17 +116,18 @@ export default function Vehicle3DScene({
       {/* 3D Canvas - Optimized settings for better performance */}
       <Canvas
         shadows
+        frameloop="demand"
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.2,
           outputColorSpace: THREE.SRGBColorSpace,
-          powerPreference: "high-performance", // Prefer GPU performance
-          stencil: false, // Disable stencil buffer for better performance
+          powerPreference: "high-performance",
+          stencil: false,
           depth: true,
         }}
-        dpr={[1, 2]} // Limit pixel ratio for better performance on high-DPI displays
-        performance={{ min: 0.5 }} // Reduce quality if FPS drops below 30
+        dpr={[1, 1.5]}
+        performance={{ min: 0.5 }}
         className="bg-gradient-to-b from-black via-gray-900 to-black"
       >
         {/* Camera setup */}
@@ -165,8 +139,8 @@ export default function Vehicle3DScene({
         {/* Environment map for realistic reflections */}
         <Environment preset="city" background={false} blur={0.8} />
 
-        {/* Suspense boundary for async model loading */}
-        <Suspense fallback={<Loader />}>
+        {/* Suspense boundary for async model loading - no fallback to avoid duplicate with RenderingEffect */}
+        <Suspense fallback={null}>
           {/* Main car model (with automatic fallback) - Key forces remount on model change */}
           <CarModel
             key={modelPath}

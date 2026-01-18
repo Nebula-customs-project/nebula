@@ -10,65 +10,76 @@ import PropTypes from "prop-types";
  * to the car configurator page. Uses localStorage to track if the
  * user has already seen the intro.
  *
- * After the video ends, it performs a smooth "lift up" transition
- * before revealing the 3D scene underneath.
+ * Features a premium exit transition with:
+ * - Red energy pulse expanding from center
+ * - Zoom blur effect
+ * - Particle dispersion
+ * - Smooth fade out
  */
 
 const STORAGE_KEY = "nebula-car-configurator-intro-seen";
 
-export default function VideoIntroEffect({ onComplete, videoSrc }) {
+export default function VideoIntroEffect({ onComplete, onStart, videoSrc }) {
   const [showIntro, setShowIntro] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
+  const [exitPhase, setExitPhase] = useState(0); // 0: playing, 1: pulse, 2: zoom, 3: fade, 4: done
   const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef(null);
 
   // Check if user has seen the intro before
   useEffect(() => {
-    // Check localStorage for first visit
     const hasSeenIntro = localStorage.getItem(STORAGE_KEY);
 
     if (!hasSeenIntro) {
       setShowIntro(true);
     } else {
-      // User has seen intro, skip directly
+      // User has seen intro - skip but still trigger callbacks
+      onStart?.(); // Start BG music even on return visits
       onComplete?.();
     }
-  }, [onComplete]);
+  }, [onComplete, onStart]);
 
   // Handle video loaded
   const handleVideoLoaded = useCallback(() => {
     setVideoLoaded(true);
-    // Start playing the video
     if (videoRef.current) {
-      videoRef.current.play().catch((err) => {
-        console.warn("Video autoplay failed:", err);
-        // If autoplay fails, skip the intro
-        handleIntroComplete();
-      });
+      videoRef.current
+        .play()
+        .then(() => {
+          // Video started playing - trigger onStart callback
+          onStart?.();
+        })
+        .catch((err) => {
+          console.warn("Video autoplay failed:", err);
+          handleIntroComplete();
+        });
     }
-  }, []);
+  }, [onStart]);
 
-  // Handle intro completion
+  // Premium exit animation sequence - smooth timing
   const handleIntroComplete = useCallback(() => {
-    // Mark as seen in localStorage
     localStorage.setItem(STORAGE_KEY, "true");
 
-    // Start exit animation (lift up)
-    setIsExiting(true);
+    // Phase 1: Red energy pulse (0ms)
+    setExitPhase(1);
 
-    // After exit animation completes, call onComplete
+    // Phase 2: Zoom blur (600ms)
+    setTimeout(() => setExitPhase(2), 600);
+
+    // Phase 3: Fade out (1200ms)
+    setTimeout(() => setExitPhase(3), 1200);
+
+    // Phase 4: Complete (1800ms)
     setTimeout(() => {
+      setExitPhase(4);
       setShowIntro(false);
       onComplete?.();
-    }, 800); // Match the CSS transition duration
+    }, 1800);
   }, [onComplete]);
 
-  // Handle video ended
   const handleVideoEnded = useCallback(() => {
     handleIntroComplete();
   }, [handleIntroComplete]);
 
-  // Handle video error - skip intro on error
   const handleVideoError = useCallback(() => {
     console.warn("Video failed to load, skipping intro");
     localStorage.setItem(STORAGE_KEY, "true");
@@ -76,31 +87,39 @@ export default function VideoIntroEffect({ onComplete, videoSrc }) {
     onComplete?.();
   }, [onComplete]);
 
-  // Handle skip button click
   const handleSkip = useCallback(() => {
     if (videoRef.current) {
       videoRef.current.pause();
     }
+    // User clicked - this gesture enables audio, so trigger onStart
+    onStart?.();
     handleIntroComplete();
-  }, [handleIntroComplete]);
+  }, [handleIntroComplete, onStart]);
 
-  // Don't render if intro shouldn't show
   if (!showIntro) {
     return null;
   }
 
   return (
     <div
-      className={`fixed inset-0 z-[100] bg-black flex items-center justify-center transition-transform duration-700 ease-out ${
-        isExiting ? "-translate-y-full" : "translate-y-0"
-      }`}
+      className={`fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden
+        ${exitPhase >= 2 ? "scale-110" : "scale-100"}
+        ${exitPhase >= 3 ? "opacity-0" : "opacity-100"}
+      `}
+      style={{
+        transition:
+          "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease-out",
+        filter: exitPhase >= 2 ? "blur(12px)" : "blur(0px)",
+      }}
     >
-      {/* Video Container */}
-      <div className="relative w-full h-full">
+      {/* Video Container - clicking anywhere enables audio */}
+      <div className="relative w-full h-full" onClick={() => onStart?.()}>
         {/* Video Element */}
         <video
           ref={videoRef}
-          className="absolute inset-0 w-full h-full object-cover"
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500
+            ${exitPhase >= 1 ? "brightness-150" : "brightness-100"}
+          `}
           src={videoSrc}
           muted
           playsInline
@@ -110,7 +129,7 @@ export default function VideoIntroEffect({ onComplete, videoSrc }) {
           onError={handleVideoError}
         />
 
-        {/* Loading State (before video loads) */}
+        {/* Loading State */}
         {!videoLoaded && (
           <div className="absolute inset-0 flex items-center justify-center bg-black">
             <div className="text-center">
@@ -120,16 +139,74 @@ export default function VideoIntroEffect({ onComplete, videoSrc }) {
           </div>
         )}
 
-        {/* Skip Button */}
-        <button
-          onClick={handleSkip}
-          className="absolute bottom-8 right-8 px-6 py-2 bg-black/50 hover:bg-black/70 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm font-medium transition-all duration-200 hover:border-red-500/50 z-10"
+        {/* RED ENERGY PULSE - Expanding circle from center */}
+        <div
+          className={`absolute inset-0 pointer-events-none flex items-center justify-center
+            ${exitPhase >= 1 ? "opacity-100" : "opacity-0"}
+          `}
         >
-          Skip Intro
-        </button>
+          <div
+            className={`rounded-full bg-gradient-radial from-red-500/60 via-red-600/30 to-transparent
+              ${exitPhase >= 1 ? "w-[300vmax] h-[300vmax]" : "w-0 h-0"}
+            `}
+            style={{
+              transition: "all 1s cubic-bezier(0.16, 1, 0.3, 1)",
+              boxShadow:
+                exitPhase >= 1
+                  ? "0 0 200px 100px rgba(239, 68, 68, 0.4)"
+                  : "none",
+            }}
+          />
+        </div>
+
+        {/* HORIZONTAL LIGHT STREAKS */}
+        {exitPhase >= 1 && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div
+              className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500 to-transparent"
+              style={{
+                transform: `scaleX(${exitPhase >= 2 ? 3 : 0})`,
+                opacity: exitPhase >= 3 ? 0 : 1,
+                transition: "all 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
+                boxShadow: "0 0 30px 10px rgba(239, 68, 68, 0.5)",
+              }}
+            />
+            <div
+              className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white to-transparent"
+              style={{
+                transform: `scaleX(${exitPhase >= 2 ? 3 : 0})`,
+                opacity: exitPhase >= 3 ? 0 : 0.6,
+                transition: "all 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            />
+          </div>
+        )}
+
+        {/* VIGNETTE OVERLAY */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              exitPhase >= 1
+                ? "radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.8) 100%)"
+                : "none",
+            opacity: exitPhase >= 3 ? 0 : 1,
+            transition: "opacity 0.6s ease-out",
+          }}
+        />
+
+        {/* Skip Button */}
+        {exitPhase === 0 && (
+          <button
+            onClick={handleSkip}
+            className="absolute bottom-8 right-8 px-6 py-2 bg-black/50 hover:bg-black/70 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm font-medium transition-all duration-200 hover:border-red-500/50 z-10"
+          >
+            Skip Intro
+          </button>
+        )}
 
         {/* Progress indicator */}
-        {videoLoaded && videoRef.current && (
+        {videoLoaded && exitPhase === 0 && videoRef.current && (
           <VideoProgress videoRef={videoRef} />
         )}
       </div>
@@ -169,10 +246,12 @@ function VideoProgress({ videoRef }) {
 
 VideoIntroEffect.propTypes = {
   onComplete: PropTypes.func.isRequired,
+  onStart: PropTypes.func,
   videoSrc: PropTypes.string,
 };
 
 VideoIntroEffect.defaultProps = {
+  onStart: () => {},
   videoSrc: "/videos/car-intro.mp4",
 };
 
