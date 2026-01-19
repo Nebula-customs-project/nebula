@@ -1,18 +1,12 @@
 spring:
   application:
     name: merchandise-service
-  # Pull shared DB/Eureka defaults from config server (optional – fallback below)
   config:
     import: optional:configserver:http://localhost:8761
 
-  # Activate shared database profile (see platform-core config-repo)
   profiles:
     active: shared-database
 
-  # =====================================================================
-  # Fallback datasource – used when config server is unavailable
-  # Values match docker/.env defaults; override via env vars if needed
-  # =====================================================================
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER:nebula_user}
@@ -23,7 +17,6 @@ spring:
       minimum-idle: 2
       connection-timeout: 20000
 
-  # Service-specific JPA overrides only
   jpa:
     properties:
       hibernate:
@@ -41,35 +34,27 @@ server:
 logging:
   level:
     org.springframework: INFO
-    # Suppress Eureka shutdown errors (non-critical)
     com.netflix.discovery: WARN
     com.netflix.eureka: WARN
     c.n.d.s.t.d.RetryableEurekaHttpClient: ERROR
     
-    # Reduce Hibernate and SQL verbosity
     org.hibernate: WARN
     org.hibernate.SQL: WARN
     org.hibernate.type: WARN
 
-    # Reduce container / connection pool verbosity
     org.apache.catalina: WARN
     org.apache.tomcat: WARN
     com.zaxxer.hikari: WARN
 
-    # Reduce cloud and networking noise
     org.springframework.cloud: WARN
     io.netty: WARN
 
-    # Keep important app-level logs at INFO
     pse.nebula: INFO
 
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
-# Eureka client configuration
-# Services will register with Eureka when available
-# Startup won't be blocked if Eureka is temporarily unavailable
 eureka:
   client:
     service-url:
@@ -77,7 +62,6 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     enabled: true
-    # Retry configuration
     registry-fetch-interval-seconds: 5
     initial-instance-info-replication-interval-seconds: 5
     instance-info-replication-interval-seconds: 30
