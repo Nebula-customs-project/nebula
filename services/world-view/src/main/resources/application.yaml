@@ -17,7 +17,7 @@ spring:
 
   # Activate shared-database profile to get DB config from config server
   profiles:
-    active: dev
+    active: shared-database
 
   # ============ SERVICE-SPECIFIC OVERRIDES ONLY ============
   # Only override JPA schema - all other DB config comes from config server

@@ -7,7 +7,7 @@ spring:
 
   # Activate shared database profile (see platform-core config-repo)
   profiles:
-    active: dev
+    active: shared-database
 
   # =====================================================================
   # Fallback datasource – used when config server is unavailable
