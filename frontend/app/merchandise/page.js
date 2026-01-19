@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ShoppingCart, Heart, Star, Filter } from 'lucide-react'
 
 export default function MerchandisePage() {
@@ -12,40 +12,43 @@ export default function MerchandisePage() {
   const [error, setError] = useState(null)
   const [debugInfo, setDebugInfo] = useState(null)
 
+  const fetchProducts = useCallback(async (signal) => {
+    try {
+      setLoading(true)
+      setError(null)
+      setDebugInfo(null)
+      // Use gateway for REST API requests when NEXT_PUBLIC_GATEWAY_URL is set.
+      // Otherwise use the Next server proxy at `/api/merchandise/products` to avoid CORS.
+      const gateway = process.env.NEXT_PUBLIC_GATEWAY_URL
+      const url = gateway ? `${gateway}/api/v1/merchandise/products` : '/api/merchandise/products'
+      setDebugInfo({ attemptingUrl: url })
+      const res = await fetch(url, {
+        signal,
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`Failed to load products (${res.status}) ${text}`)
+      }
+      const data = await res.json()
+      setProducts(Array.isArray(data) ? data : [])
+      setDebugInfo({ attemptingUrl: url, success: true, count: Array.isArray(data) ? data.length : 0 })
+    } catch (err) {
+      if (err && err.name === 'AbortError') return
+      // Provide richer debug info for client-side troubleshooting
+      const message = err && err.message ? err.message : String(err)
+      setError(message)
+      setDebugInfo(prev => ({ ...prev, error: message }))
+      setProducts([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     const controller = new AbortController()
-    const fetchProducts = async () => {
-      try {
-        // Use gateway for REST API requests when NEXT_PUBLIC_GATEWAY_URL is set.
-        // Otherwise use the Next server proxy at `/api/merchandise/products` to avoid CORS.
-        const gateway = process.env.NEXT_PUBLIC_GATEWAY_URL
-        const url = gateway ? `${gateway}/api/v1/merchandise/products` : '/api/merchandise/products'
-        setDebugInfo({ attemptingUrl: url })
-        const res = await fetch(url, {
-          signal: controller.signal,
-        })
-        if (!res.ok) {
-          const text = await res.text().catch(() => '')
-          throw new Error(`Failed to load products (${res.status}) ${text}`)
-        }
-        const data = await res.json()
-        setProducts(Array.isArray(data) ? data : [])
-        setError(null)
-        setDebugInfo(prev => ({ ...prev, success: true, count: Array.isArray(data) ? data.length : 0 }))
-      } catch (err) {
-        if (err.name === 'AbortError') return
-        // Provide richer debug info for client-side troubleshooting
-        const message = err && err.message ? err.message : String(err)
-        setError(message)
-        setDebugInfo(prev => ({ ...prev, error: message }))
-        setProducts([])
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchProducts()
+    fetchProducts(controller.signal)
     return () => controller.abort()
-  }, [])
+  }, [fetchProducts])
 
   const categories = ['All', 'Apparel', 'Accessories', 'Models', 'Lifestyle']
 
@@ -129,7 +132,7 @@ export default function MerchandisePage() {
               </div>
             )}
             <div className="mt-4">
-              <button onClick={() => { setLoading(true); setError(null); setDebugInfo(null); fetchProducts() }} className="px-4 py-2 bg-gray-700 rounded">Retry</button>
+              <button onClick={() => fetchProducts()} className="px-4 py-2 bg-gray-700 rounded">Retry</button>
             </div>
           </div>
         )}
