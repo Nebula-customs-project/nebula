@@ -19,26 +19,24 @@ import PropTypes from "prop-types";
 
 const STORAGE_KEY = "nebula-car-configurator-intro-seen";
 
-// Helper to check localStorage (only on client)
-const shouldShowIntro = () => {
-  if (typeof window === "undefined") return false;
-  return !localStorage.getItem(STORAGE_KEY);
-};
-
 export default function VideoIntroEffect({ onComplete, videoSrc }) {
-  // Initialize state from localStorage to avoid useEffect setState
-  const [showIntro, setShowIntro] = useState(shouldShowIntro);
+  const [showIntro, setShowIntro] = useState(false);
   const [exitPhase, setExitPhase] = useState(0); // 0: playing, 1: pulse, 2: zoom, 3: fade, 4: done
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay policy
   const videoRef = useRef(null);
 
-  // Call onComplete if user has already seen intro
+  // Check if user has seen the intro before
   useEffect(() => {
-    if (!showIntro) {
+    const hasSeenIntro = localStorage.getItem(STORAGE_KEY);
+
+    if (!hasSeenIntro) {
+      setShowIntro(true);
+    } else {
+      // User has seen intro - skip directly to configurator (no audio)
       onComplete?.();
     }
-  }, [showIntro, onComplete]);
+  }, [onComplete]);
 
   // Handle video loaded - just marks as loaded and ensures playback
   const handleVideoLoaded = useCallback(() => {
@@ -57,23 +55,18 @@ export default function VideoIntroEffect({ onComplete, videoSrc }) {
     }
   }, [videoLoaded]);
 
-  // Subscribe to canplay event if video is already ready when effect runs
+  // Try to play video when component mounts and showIntro is true
+  // This handles the case where onLoadedData fired before React hydration
   useEffect(() => {
     if (!showIntro || videoLoaded) return;
 
     const video = videoRef.current;
     if (!video) return;
 
-    // Use event listener pattern to avoid synchronous setState
-    const onCanPlay = () => handleVideoLoaded();
-
-    // If already ready, fire immediately via microtask (not synchronous)
+    // Check if video is already ready to play (readyState >= 3 means HAVE_FUTURE_DATA)
     if (video.readyState >= 3) {
-      queueMicrotask(onCanPlay);
+      handleVideoLoaded();
     }
-
-    video.addEventListener("canplay", onCanPlay);
-    return () => video.removeEventListener("canplay", onCanPlay);
   }, [showIntro, videoLoaded, handleVideoLoaded]);
 
   // Premium exit animation sequence - smooth timing
@@ -158,10 +151,7 @@ export default function VideoIntroEffect({ onComplete, videoSrc }) {
           onCanPlay={handleVideoLoaded}
           onEnded={handleVideoEnded}
           onError={handleVideoError}
-        >
-          {/* Empty track for accessibility - video has no dialogue */}
-          <track kind="captions" />
-        </video>
+        />
 
         {/* Loading State */}
         {!videoLoaded && (
@@ -240,40 +230,14 @@ export default function VideoIntroEffect({ onComplete, videoSrc }) {
             >
               {isMuted ? (
                 /* Muted Icon */
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
-                  />
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
                 </svg>
               ) : (
                 /* Unmuted Icon */
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
-                  />
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                 </svg>
               )}
             </button>
@@ -288,8 +252,8 @@ export default function VideoIntroEffect({ onComplete, videoSrc }) {
           </div>
         )}
 
-        {/* Progress indicator - only show when video is playing */}
-        {videoLoaded && exitPhase === 0 && (
+        {/* Progress indicator */}
+        {videoLoaded && exitPhase === 0 && videoRef.current && (
           <VideoProgress videoRef={videoRef} />
         )}
       </div>
@@ -339,7 +303,7 @@ VideoIntroEffect.defaultProps = {
 VideoProgress.propTypes = {
   videoRef: PropTypes.shape({
     current: PropTypes.instanceOf(
-      typeof HTMLVideoElement === "undefined" ? Object : HTMLVideoElement,
+      typeof HTMLVideoElement !== "undefined" ? HTMLVideoElement : Object,
     ),
   }).isRequired,
 };
