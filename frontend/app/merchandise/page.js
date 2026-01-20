@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ShoppingCart, Heart, Star, Filter } from 'lucide-react'
 
 export default function MerchandisePage() {
@@ -10,30 +10,44 @@ export default function MerchandisePage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [debugInfo, setDebugInfo] = useState(null)
+
+  const fetchProducts = useCallback(async (signal) => {
+    try {
+      setLoading(true)
+      setError(null)
+      setDebugInfo(null)
+      // Use gateway for REST API requests when NEXT_PUBLIC_GATEWAY_URL is set.
+      const gateway = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080'
+      const url = `${gateway}/api/v1/merchandise/products`
+      setDebugInfo({ attemptingUrl: url })
+      const res = await fetch(url, {
+        signal,
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`Failed to load products (${res.status}) ${text}`)
+      }
+      const data = await res.json()
+      setProducts(Array.isArray(data) ? data : [])
+      setDebugInfo({ attemptingUrl: url, success: true, count: Array.isArray(data) ? data.length : 0 })
+    } catch (err) {
+      if (err && err.name === 'AbortError') return
+      // Provide richer debug info for client-side troubleshooting
+      const message = err && err.message ? err.message : String(err)
+      setError(message)
+      setDebugInfo(prev => ({ ...prev, error: message }))
+      setProducts([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
-    const fetchProducts = async () => {
-      try {
-        const baseUrl = process.env.NEXT_PUBLIC_MERCHANDISE_URL || 'http://localhost:8084'
-        const res = await fetch(`${baseUrl}/api/v1/merchandise/products`, {
-          signal: controller.signal,
-        })
-        if (!res.ok) throw new Error(`Failed to load products (${res.status})`)
-        const data = await res.json()
-        setProducts(Array.isArray(data) ? data : [])
-        setError(null)
-      } catch (err) {
-        if (err.name === 'AbortError') return
-        setError(err.message)
-        setProducts([])
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchProducts()
+    fetchProducts(controller.signal)
     return () => controller.abort()
-  }, [])
+  }, [fetchProducts])
 
   const categories = ['All', 'Apparel', 'Accessories', 'Models', 'Lifestyle']
 
@@ -106,7 +120,24 @@ export default function MerchandisePage() {
           <div className="text-center py-20 text-gray-300">Loading merchandise...</div>
         )}
         {error && !loading && (
-          <div className="text-center py-20 text-red-400">{error}</div>
+          <div className="text-center py-20 text-red-400">
+            <div>{error}</div>
+            {process.env.NODE_ENV === 'development' && debugInfo && (
+              <div className="text-sm text-gray-400 mt-2">
+                <div>URL: {debugInfo.attemptingUrl}</div>
+                {debugInfo.error && <div>Error: {debugInfo.error}</div>}
+                {debugInfo.success && <div>Loaded {debugInfo.count} products</div>}
+              </div>
+            )}
+            <div className="mt-4">
+              <button
+                onClick={() => fetchProducts()}
+                className="px-4 py-2 bg-gray-700 rounded"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Products Grid */}
@@ -142,8 +173,8 @@ export default function MerchandisePage() {
                     <button
                       onClick={() => toggleFavorite(product.id)}
                       className={`absolute top-4 right-4 p-2 rounded-full backdrop-blur-sm transition-all ${favorites.includes(product.id)
-                          ? 'bg-red-600 text-white'
-                          : 'bg-white/20 text-white hover:bg-white/30'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-white/20 text-white hover:bg-white/30'
                         }`}
                     >
                       <Heart className={`w-5 h-5 ${favorites.includes(product.id) ? 'fill-current' : ''}`} />
@@ -164,8 +195,8 @@ export default function MerchandisePage() {
                         <Star
                           key={i}
                           className={`w-4 h-4 ${i < Math.floor(rating)
-                              ? 'text-yellow-400 fill-current'
-                              : 'text-gray-600'
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-600'
                             }`}
                         />
                       ))}
@@ -206,14 +237,14 @@ export default function MerchandisePage() {
               {cart.map((item, idx) => (
                 <div key={idx} className="flex justify-between text-sm">
                   <span className="text-gray-400">{item.name}</span>
-                  <span className="font-semibold">€{Number(item.price).toFixed(2)}</span>
+                  <span className="font-semibold">€{item.price}</span>
                 </div>
               ))}
             </div>
             <div className="border-t border-gray-700 pt-4 mb-4">
               <div className="flex justify-between text-lg font-bold">
                 <span>Total:</span>
-                <span className="text-red-500">€{cart.reduce((sum, item) => sum + (Number(item.price) || 0), 0).toFixed(2)}</span>
+                <span className="text-red-500">€{cart.reduce((sum, item) => sum + item.price, 0)}</span>
               </div>
             </div>
             <button className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition">
