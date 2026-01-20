@@ -19,36 +19,62 @@ import PropTypes from "prop-types";
 
 const STORAGE_KEY = "nebula-car-configurator-intro-seen";
 
+// Helper to check localStorage (only on client)
+const shouldShowIntro = () => {
+  if (typeof window === "undefined") return false;
+  return !localStorage.getItem(STORAGE_KEY);
+};
+
 export default function VideoIntroEffect({ onComplete, videoSrc }) {
-  const [showIntro, setShowIntro] = useState(false);
+  // Initialize state from localStorage to avoid useEffect setState
+  const [showIntro, setShowIntro] = useState(shouldShowIntro);
   const [exitPhase, setExitPhase] = useState(0); // 0: playing, 1: pulse, 2: zoom, 3: fade, 4: done
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay policy
   const videoRef = useRef(null);
 
-  // Check if user has seen the intro before
+  // Call onComplete if user has already seen intro
   useEffect(() => {
-    const hasSeenIntro = localStorage.getItem(STORAGE_KEY);
-
-    if (!hasSeenIntro) {
-      setShowIntro(true);
-    } else {
-      // User has seen intro - skip directly to configurator (no audio)
+    if (!showIntro) {
       onComplete?.();
     }
-  }, [onComplete]);
+  }, [showIntro, onComplete]);
 
-  // Handle video loaded
+  // Handle video loaded - just marks as loaded and ensures playback
   const handleVideoLoaded = useCallback(() => {
+    if (videoLoaded) return; // Guard against multiple calls
     setVideoLoaded(true);
-    if (videoRef.current) {
-      videoRef.current
-        .play()
-        .catch((err) => {
-          console.warn("Video autoplay failed:", err);
-          handleIntroComplete();
-        });
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    // If video isn't playing yet, try to start it (muted, so should work)
+    if (video.paused) {
+      video.play().catch((err) => {
+        console.warn("Video autoplay failed:", err);
+        // Don't skip - just show the video paused, user can interact
+      });
     }
-  }, []);
+  }, [videoLoaded]);
+
+  // Subscribe to canplay event if video is already ready when effect runs
+  useEffect(() => {
+    if (!showIntro || videoLoaded) return;
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Use event listener pattern to avoid synchronous setState
+    const onCanPlay = () => handleVideoLoaded();
+
+    // If already ready, fire immediately via microtask (not synchronous)
+    if (video.readyState >= 3) {
+      queueMicrotask(onCanPlay);
+    }
+
+    video.addEventListener("canplay", onCanPlay);
+    return () => video.removeEventListener("canplay", onCanPlay);
+  }, [showIntro, videoLoaded, handleVideoLoaded]);
 
   // Premium exit animation sequence - smooth timing
   const handleIntroComplete = useCallback(() => {
@@ -90,13 +116,22 @@ export default function VideoIntroEffect({ onComplete, videoSrc }) {
     handleIntroComplete();
   }, [handleIntroComplete]);
 
+  // Toggle mute/unmute
+  const handleToggleMute = useCallback(() => {
+    if (videoRef.current) {
+      const newMuted = !videoRef.current.muted;
+      videoRef.current.muted = newMuted;
+      setIsMuted(newMuted);
+    }
+  }, []);
+
   if (!showIntro) {
     return null;
   }
 
   return (
     <div
-      className={`fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden
+      className={`absolute inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden rounded-xl
         ${exitPhase >= 2 ? "scale-110" : "scale-100"}
         ${exitPhase >= 3 ? "opacity-0" : "opacity-100"}
       `}
@@ -111,17 +146,22 @@ export default function VideoIntroEffect({ onComplete, videoSrc }) {
         {/* Video Element */}
         <video
           ref={videoRef}
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 rounded-xl
             ${exitPhase >= 1 ? "brightness-150" : "brightness-100"}
           `}
           src={videoSrc}
-          muted
+          muted={isMuted}
+          autoPlay
           playsInline
           preload="auto"
           onLoadedData={handleVideoLoaded}
+          onCanPlay={handleVideoLoaded}
           onEnded={handleVideoEnded}
           onError={handleVideoError}
-        />
+        >
+          {/* Empty track for accessibility - video has no dialogue */}
+          <track kind="captions" />
+        </video>
 
         {/* Loading State */}
         {!videoLoaded && (
@@ -189,18 +229,67 @@ export default function VideoIntroEffect({ onComplete, videoSrc }) {
           }}
         />
 
-        {/* Skip Button */}
+        {/* Control Buttons */}
         {exitPhase === 0 && (
-          <button
-            onClick={handleSkip}
-            className="absolute bottom-8 right-8 px-6 py-2 bg-black/50 hover:bg-black/70 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm font-medium transition-all duration-200 hover:border-red-500/50 z-10"
-          >
-            Skip Intro
-          </button>
+          <div className="absolute bottom-8 right-8 flex items-center gap-3 z-10">
+            {/* Mute/Unmute Button */}
+            <button
+              onClick={handleToggleMute}
+              className="p-2.5 bg-black/50 hover:bg-black/70 backdrop-blur-sm border border-white/20 rounded-lg text-white transition-all duration-200 hover:border-red-500/50"
+              title={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? (
+                /* Muted Icon */
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
+                  />
+                </svg>
+              ) : (
+                /* Unmuted Icon */
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                  />
+                </svg>
+              )}
+            </button>
+
+            {/* Skip Button */}
+            <button
+              onClick={handleSkip}
+              className="px-6 py-2 bg-black/50 hover:bg-black/70 backdrop-blur-sm border border-white/20 rounded-lg text-white text-sm font-medium transition-all duration-200 hover:border-red-500/50"
+            >
+              Skip Intro
+            </button>
+          </div>
         )}
 
-        {/* Progress indicator */}
-        {videoLoaded && exitPhase === 0 && videoRef.current && (
+        {/* Progress indicator - only show when video is playing */}
+        {videoLoaded && exitPhase === 0 && (
           <VideoProgress videoRef={videoRef} />
         )}
       </div>
@@ -250,7 +339,7 @@ VideoIntroEffect.defaultProps = {
 VideoProgress.propTypes = {
   videoRef: PropTypes.shape({
     current: PropTypes.instanceOf(
-      typeof HTMLVideoElement !== "undefined" ? HTMLVideoElement : Object,
+      typeof HTMLVideoElement === "undefined" ? Object : HTMLVideoElement,
     ),
   }).isRequired,
 };

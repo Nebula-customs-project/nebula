@@ -138,15 +138,8 @@ export default function MerchandisePage() {
         )}
 
         {/* Products Grid */}
-        {!loading && !error && (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map(product => {
-            const rating = product.rating ? Number(product.rating) : 0
-            const reviews = product.reviews ?? 0
-            const priceNumber = product.price !== undefined && product.price !== null ? Number(product.price) : 0
-            const priceDisplay = Number.isNaN(priceNumber) ? '0.00' : priceNumber.toFixed(2)
-
-            return (
+          {filteredProducts.map(product => (
             <div
               key={product.id}
               className="bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl group"
@@ -155,7 +148,7 @@ export default function MerchandisePage() {
               <div className="relative h-64 overflow-hidden">
                 <div 
                   className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
-                  style={{ backgroundImage: `url(${product.imageUrl || product.img || ''})` }}
+                  style={{ backgroundImage: `url(${product.img})` }}
                 ></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60"></div>
                 
@@ -193,20 +186,20 @@ export default function MerchandisePage() {
                     <Star
                       key={i}
                       className={`w-4 h-4 ${
-                        i < Math.floor(rating)
+                        i < Math.floor(product.rating)
                           ? 'text-yellow-400 fill-current'
                           : 'text-gray-600'
                       }`}
                     />
                   ))}
-                  <span className="text-sm text-gray-400 ml-2">({reviews})</span>
+                  <span className="text-sm text-gray-400 ml-2">({product.reviews})</span>
                 </div>
 
                 <h3 className="text-xl font-bold mb-1 line-clamp-1">{product.name}</h3>
-                <p className="text-sm text-gray-400 mb-3">{product.category || 'Accessories'}</p>
+                <p className="text-sm text-gray-400 mb-3">{product.category}</p>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-red-500">€{priceDisplay}</span>
+                  <span className="text-2xl font-bold text-red-500">€{product.price}</span>
                   <button
                     onClick={() => addToCart(product)}
                     className="bg-red-600 hover:bg-red-700 p-3 rounded-lg transition transform hover:scale-110 active:scale-95"
@@ -216,10 +209,8 @@ export default function MerchandisePage() {
                 </div>
               </div>
             </div>
-            )
-          })}
+          ))}
         </div>
-        )}
 
         {/* Empty State */}
         {filteredProducts.length === 0 && (
@@ -236,14 +227,14 @@ export default function MerchandisePage() {
               {cart.map((item, idx) => (
                 <div key={idx} className="flex justify-between text-sm">
                   <span className="text-gray-400">{item.name}</span>
-                  <span className="font-semibold">€{Number(item.price).toFixed(2)}</span>
+                  <span className="font-semibold">€{item.price}</span>
                 </div>
               ))}
             </div>
             <div className="border-t border-gray-700 pt-4 mb-4">
               <div className="flex justify-between text-lg font-bold">
                 <span>Total:</span>
-                <span className="text-red-500">€{cart.reduce((sum, item) => sum + (Number(item.price) || 0), 0).toFixed(2)}</span>
+                <span className="text-red-500">€{cart.reduce((sum, item) => sum + item.price, 0)}</span>
               </div>
             </div>
             <button className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition">
