@@ -1,140 +1,58 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ShoppingCart, Heart, Star, Filter } from 'lucide-react'
 
 export default function MerchandisePage() {
   const [cart, setCart] = useState([])
   const [favorites, setFavorites] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('All')
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [debugInfo, setDebugInfo] = useState(null)
 
-  const products = [
-    { 
-      id: 1, 
-      name: 'Nebula Racing Cap', 
-      price: 35, 
-      category: 'Apparel',
-      rating: 4.8,
-      reviews: 124,
-      img: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400',
-      badge: 'Bestseller'
-    },
-    { 
-      id: 2, 
-      name: 'Team Jacket', 
-      price: 129, 
-      category: 'Apparel',
-      rating: 4.9,
-      reviews: 89,
-      img: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400',
-      badge: 'Premium'
-    },
-    { 
-      id: 3, 
-      name: 'Car Model 1:18 Apex', 
-      price: 89, 
-      category: 'Models',
-      rating: 5.0,
-      reviews: 203,
-      img: 'https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=400',
-      badge: 'Limited'
-    },
-    { 
-      id: 4, 
-      name: 'Premium Keychain', 
-      price: 25, 
-      category: 'Accessories',
-      rating: 4.6,
-      reviews: 312,
-      img: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=400',
-      badge: null
-    },
-    { 
-      id: 5, 
-      name: 'Carbon Fiber Wallet', 
-      price: 78, 
-      category: 'Accessories',
-      rating: 4.7,
-      reviews: 156,
-      img: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=400',
-      badge: 'New'
-    },
-    { 
-      id: 6, 
-      name: 'Racing Gloves', 
-      price: 65, 
-      category: 'Apparel',
-      rating: 4.8,
-      reviews: 98,
-      img: 'https://images.unsplash.com/photo-1605733513597-f5a5f08c48fa?w=400',
-      badge: null
-    },
-    { 
-      id: 7, 
-      name: 'Nebula Coffee Mug Set', 
-      price: 32, 
-      category: 'Lifestyle',
-      rating: 4.5,
-      reviews: 267,
-      img: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400',
-      badge: null
-    },
-    { 
-      id: 8, 
-      name: 'Performance T-Shirt', 
-      price: 45, 
-      category: 'Apparel',
-      rating: 4.7,
-      reviews: 189,
-      img: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400',
-      badge: 'Bestseller'
-    },
-    { 
-      id: 9, 
-      name: 'Leather Driving Shoes', 
-      price: 145, 
-      category: 'Apparel',
-      rating: 4.9,
-      reviews: 76,
-      img: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400',
-      badge: 'Premium'
-    },
-    { 
-      id: 10, 
-      name: 'Backpack - Velocity Series', 
-      price: 95, 
-      category: 'Accessories',
-      rating: 4.8,
-      reviews: 142,
-      img: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400',
-      badge: 'New'
-    },
-    { 
-      id: 11, 
-      name: 'Watch - Limited Edition', 
-      price: 299, 
-      category: 'Accessories',
-      rating: 5.0,
-      reviews: 54,
-      img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
-      badge: 'Limited'
-    },
-    { 
-      id: 12, 
-      name: 'Sunglasses - Sport', 
-      price: 89, 
-      category: 'Accessories',
-      rating: 4.6,
-      reviews: 223,
-      img: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400',
-      badge: null
+  const fetchProducts = useCallback(async (signal) => {
+    try {
+      setLoading(true)
+      setError(null)
+      setDebugInfo(null)
+      // Use gateway for REST API requests when NEXT_PUBLIC_GATEWAY_URL is set.
+      const gateway = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080'
+      const url = `${gateway}/api/v1/merchandise/products`
+      setDebugInfo({ attemptingUrl: url })
+      const res = await fetch(url, {
+        signal,
+      })
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`Failed to load products (${res.status}) ${text}`)
+      }
+      const data = await res.json()
+      setProducts(Array.isArray(data) ? data : [])
+      setDebugInfo({ attemptingUrl: url, success: true, count: Array.isArray(data) ? data.length : 0 })
+    } catch (err) {
+      if (err && err.name === 'AbortError') return
+      // Provide richer debug info for client-side troubleshooting
+      const message = err && err.message ? err.message : String(err)
+      setError(message)
+      setDebugInfo(prev => ({ ...prev, error: message }))
+      setProducts([])
+    } finally {
+      setLoading(false)
     }
-  ]
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetchProducts(controller.signal)
+    return () => controller.abort()
+  }, [fetchProducts])
 
   const categories = ['All', 'Apparel', 'Accessories', 'Models', 'Lifestyle']
 
-  const filteredProducts = selectedCategory === 'All' 
-    ? products 
+  const filteredProducts = selectedCategory === 'All'
+    ? products
     : products.filter(p => p.category === selectedCategory)
 
   const addToCart = (product) => {
@@ -150,7 +68,7 @@ export default function MerchandisePage() {
   }
 
   const getBadgeColor = (badge) => {
-    switch(badge) {
+    switch (badge) {
       case 'Bestseller': return 'bg-yellow-500'
       case 'New': return 'bg-green-500'
       case 'Limited': return 'bg-purple-500'
@@ -187,91 +105,122 @@ export default function MerchandisePage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-6 py-2 rounded-full font-semibold transition whitespace-nowrap ${
-                selectedCategory === category
-                  ? 'bg-red-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-              }`}
+              className={`px-6 py-2 rounded-full font-semibold transition whitespace-nowrap ${selectedCategory === category
+                ? 'bg-red-600 text-white'
+                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                }`}
             >
               {category}
             </button>
           ))}
         </div>
 
-        {/* Products Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map(product => (
-            <div
-              key={product.id}
-              className="bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl group"
-            >
-              {/* Product Image */}
-              <div className="relative h-64 overflow-hidden">
-                <div 
-                  className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
-                  style={{ backgroundImage: `url(${product.img})` }}
-                ></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60"></div>
-                
-                {/* Badge */}
-                {product.badge && (
-                  <div className={`absolute top-4 left-4 ${getBadgeColor(product.badge)} text-white text-xs font-bold px-3 py-1 rounded-full`}>
-                    {product.badge}
-                  </div>
-                )}
-                
-                {/* Favorite Button */}
-                <button
-                  onClick={() => toggleFavorite(product.id)}
-                  className={`absolute top-4 right-4 p-2 rounded-full backdrop-blur-sm transition-all ${
-                    favorites.includes(product.id)
-                      ? 'bg-red-600 text-white'
-                      : 'bg-white/20 text-white hover:bg-white/30'
-                  }`}
-                >
-                  <Heart className={`w-5 h-5 ${favorites.includes(product.id) ? 'fill-current' : ''}`} />
-                </button>
-
-                {/* Quick View on Hover */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <button className="bg-white text-gray-900 px-6 py-2 rounded-full font-semibold hover:bg-gray-200 transition">
-                    Quick View
-                  </button>
-                </div>
+        {/* Loading / Error */}
+        {loading && (
+          <div className="text-center py-20 text-gray-300">Loading merchandise...</div>
+        )}
+        {error && !loading && (
+          <div className="text-center py-20 text-red-400">
+            <div>{error}</div>
+            {process.env.NODE_ENV === 'development' && debugInfo && (
+              <div className="text-sm text-gray-400 mt-2">
+                <div>URL: {debugInfo.attemptingUrl}</div>
+                {debugInfo.error && <div>Error: {debugInfo.error}</div>}
+                {debugInfo.success && <div>Loaded {debugInfo.count} products</div>}
               </div>
-
-              {/* Product Info */}
-              <div className="p-5">
-                <div className="flex items-center gap-1 mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 ${
-                        i < Math.floor(product.rating)
-                          ? 'text-yellow-400 fill-current'
-                          : 'text-gray-600'
-                      }`}
-                    />
-                  ))}
-                  <span className="text-sm text-gray-400 ml-2">({product.reviews})</span>
-                </div>
-
-                <h3 className="text-xl font-bold mb-1 line-clamp-1">{product.name}</h3>
-                <p className="text-sm text-gray-400 mb-3">{product.category}</p>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-red-500">€{product.price}</span>
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="bg-red-600 hover:bg-red-700 p-3 rounded-lg transition transform hover:scale-110 active:scale-95"
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
+            )}
+            <div className="mt-4">
+              <button
+                onClick={() => fetchProducts()}
+                className="px-4 py-2 bg-gray-700 rounded"
+              >
+                Retry
+              </button>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
+
+        {/* Products Grid */}
+        {!loading && !error && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map(product => {
+              const rating = product.rating ? Number(product.rating) : 0
+              const reviews = product.reviews ?? 0
+              const priceNumber = product.price !== undefined && product.price !== null ? Number(product.price) : 0
+              const priceDisplay = Number.isNaN(priceNumber) ? '0.00' : priceNumber.toFixed(2)
+
+              return (
+                <div
+                  key={product.id}
+                  className="bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl group"
+                >
+                  {/* Product Image */}
+                  <div className="relative h-64 overflow-hidden">
+                    <div
+                      className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
+                      style={{ backgroundImage: `url(${product.imageUrl || product.img || ''})` }}
+                    ></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60"></div>
+
+                    {/* Badge */}
+                    {product.badge && (
+                      <div className={`absolute top-4 left-4 ${getBadgeColor(product.badge)} text-white text-xs font-bold px-3 py-1 rounded-full`}>
+                        {product.badge}
+                      </div>
+                    )}
+
+                    {/* Favorite Button */}
+                    <button
+                      onClick={() => toggleFavorite(product.id)}
+                      className={`absolute top-4 right-4 p-2 rounded-full backdrop-blur-sm transition-all ${favorites.includes(product.id)
+                        ? 'bg-red-600 text-white'
+                        : 'bg-white/20 text-white hover:bg-white/30'
+                        }`}
+                    >
+                      <Heart className={`w-5 h-5 ${favorites.includes(product.id) ? 'fill-current' : ''}`} />
+                    </button>
+
+                    {/* Quick View on Hover */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <button className="bg-white text-gray-900 px-6 py-2 rounded-full font-semibold hover:bg-gray-200 transition">
+                        Quick View
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Product Info */}
+                  <div className="p-5">
+                    <div className="flex items-center gap-1 mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${i < Math.floor(rating)
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-600'
+                            }`}
+                        />
+                      ))}
+                      <span className="text-sm text-gray-400 ml-2">({reviews})</span>
+                    </div>
+
+                    <h3 className="text-xl font-bold mb-1 line-clamp-1">{product.name}</h3>
+                    <p className="text-sm text-gray-400 mb-3">{product.category || 'Accessories'}</p>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-red-500">€{priceDisplay}</span>
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="bg-red-600 hover:bg-red-700 p-3 rounded-lg transition transform hover:scale-110 active:scale-95"
+                      >
+                        <ShoppingCart className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Empty State */}
         {filteredProducts.length === 0 && (
