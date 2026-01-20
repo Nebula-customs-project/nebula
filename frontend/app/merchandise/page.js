@@ -124,7 +124,7 @@ export default function MerchandisePage() {
         {error && !loading && (
           <div className="text-center py-20 text-red-400">
             <div>{error}</div>
-            {debugInfo && (
+            {process.env.NODE_ENV === 'development' && debugInfo && (
               <div className="text-sm text-gray-400 mt-2">
                 <div>URL: {debugInfo.attemptingUrl}</div>
                 {debugInfo.error && <div>Error: {debugInfo.error}</div>}
@@ -133,10 +133,7 @@ export default function MerchandisePage() {
             )}
             <div className="mt-4">
               <button
-                onClick={() => {
-                  const controller = new AbortController()
-                  fetchProducts(controller.signal)
-                }}
+                onClick={() => fetchProducts()}
                 className="px-4 py-2 bg-gray-700 rounded"
               >
                 Retry
