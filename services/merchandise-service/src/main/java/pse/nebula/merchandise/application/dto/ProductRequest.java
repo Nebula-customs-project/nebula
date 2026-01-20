@@ -10,21 +10,21 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public record ProductRequest(
-        @NotBlank String name,
+                @NotBlank String name,
 
-        String description,
+                String description,
 
-        @NotNull @Positive BigDecimal price,
+                @NotNull @Positive BigDecimal price,
 
-        @NotNull @Min(0) Integer stock,
+                @NotNull @Min(0) Integer stock,
 
-        String imageUrl,
+                String imageUrl,
 
-        String category,
+                String category,
 
-        String badge,
+                String badge,
 
-        @DecimalMin(value = "1.0") @DecimalMax(value = "5.0") BigDecimal rating,
+                @NotNull @DecimalMin(value = "1.0") @DecimalMax(value = "5.0") BigDecimal rating,
 
-        @Min(0) Integer reviews) {
+                @Min(0) Integer reviews) {
 }
