@@ -132,7 +132,15 @@ export default function MerchandisePage() {
               </div>
             )}
             <div className="mt-4">
-              <button onClick={() => fetchProducts()} className="px-4 py-2 bg-gray-700 rounded">Retry</button>
+              <button
+                onClick={() => {
+                  const controller = new AbortController()
+                  fetchProducts(controller.signal)
+                }}
+                className="px-4 py-2 bg-gray-700 rounded"
+              >
+                Retry
+              </button>
             </div>
           </div>
         )}

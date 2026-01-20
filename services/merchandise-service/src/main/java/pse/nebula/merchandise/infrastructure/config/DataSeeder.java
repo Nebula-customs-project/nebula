@@ -27,14 +27,14 @@ public class DataSeeder {
     CommandLineRunner seedDatabase(ProductRepository productRepository, TransactionTemplate transactionTemplate) {
         return args -> {
             transactionTemplate.executeWithoutResult(status -> {
-            boolean hasProducts = productRepository.count() > 0;
+                boolean hasProducts = productRepository.count() > 0;
 
-            if (hasProducts) {
-                logger.info("Merchandise DB already contains products, skipping seeder.");
-                return;
-            }
+                if (hasProducts) {
+                    logger.info("Merchandise DB already contains products, skipping seeder.");
+                    return;
+                }
 
-            logger.info("Seeding merchandise products...");
+                logger.info("Seeding merchandise products...");
 
                 List<Product> products = List.of(
                 Product.builder()

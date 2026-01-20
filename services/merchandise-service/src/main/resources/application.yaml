@@ -51,9 +51,6 @@ logging:
 
     pse.nebula: INFO
 
-app:
-  
-
 eureka:
   client:
     service-url:
