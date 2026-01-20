@@ -30,76 +30,78 @@ import pse.nebula.merchandise.domain.repository.ProductRepository;
 @ActiveProfiles("test")
 class MerchandiseIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Autowired
-    private ProductRepository productRepository;
+        @Autowired
+        private ProductRepository productRepository;
 
-    @Autowired
-    private CartRepository cartRepository;
+        @Autowired
+        private CartRepository cartRepository;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+        @Autowired
+        private JdbcTemplate jdbcTemplate;
 
-    // Schema creation is handled by test profile (spring.jpa.hibernate.ddl-auto=create-drop)
+        // Schema creation is handled by test profile
+        // (spring.jpa.hibernate.ddl-auto=create-drop)
 
-    @BeforeEach
-    void setup() {
-        // Clear repositories after schema creation
-        cartRepository.deleteAll();
-        productRepository.deleteAll();
-    }
+        @BeforeEach
+        void setup() {
+                // Clear repositories after schema creation
+                cartRepository.deleteAll();
+                productRepository.deleteAll();
+        }
 
-    @Test
-    void productEndpoints_createThenList() throws Exception {
-        ProductRequest request = new ProductRequest("Hat", "Blue hat", new BigDecimal("9.99"), 10, "img");
+        @Test
+        void productEndpoints_createThenList() throws Exception {
+                ProductRequest request = new ProductRequest("Hat", "Blue hat", new BigDecimal("9.99"), 10, "img", null,
+                                null, null, null);
 
-        mockMvc.perform(post("/api/v1/merchandise/products")
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.name").value("Hat"));
+                mockMvc.perform(post("/api/v1/merchandise/products")
+                                .contentType(APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.id").isNumber())
+                                .andExpect(jsonPath("$.name").value("Hat"));
 
-        mockMvc.perform(get("/api/v1/merchandise/products"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Hat"))
-                .andExpect(jsonPath("$[0].price").value(9.99));
-    }
+                mockMvc.perform(get("/api/v1/merchandise/products"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].name").value("Hat"))
+                                .andExpect(jsonPath("$[0].price").value(9.99));
+        }
 
-    @Test
-    void cartEndpoints_addAndRemoveItems() throws Exception {
-        Product product = productRepository.save(Product.builder()
-                .name("Shirt")
-                .description("Blue shirt")
-                .price(new BigDecimal("15.00"))
-                .stock(5)
-                .imageUrl("img")
-                .build());
+        @Test
+        void cartEndpoints_addAndRemoveItems() throws Exception {
+                Product product = productRepository.save(Product.builder()
+                                .name("Shirt")
+                                .description("Blue shirt")
+                                .price(new BigDecimal("15.00"))
+                                .stock(5)
+                                .imageUrl("img")
+                                .build());
 
-        AddCartItemRequest addRequest = new AddCartItemRequest(product.getId(), 2);
+                AddCartItemRequest addRequest = new AddCartItemRequest(product.getId(), 2);
 
-        mockMvc.perform(post("/api/v1/cart/integration-user/items")
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(addRequest)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.items[0].productId").value(product.getId().intValue()))
-                .andExpect(jsonPath("$.items[0].quantity").value(2));
+                mockMvc.perform(post("/api/v1/cart/integration-user/items")
+                                .contentType(APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(addRequest)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.items[0].productId").value(product.getId().intValue()))
+                                .andExpect(jsonPath("$.items[0].quantity").value(2));
 
-        mockMvc.perform(get("/api/v1/cart/integration-user"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].productId").value(product.getId().intValue()))
-                .andExpect(jsonPath("$.items[0].quantity").value(2));
+                mockMvc.perform(get("/api/v1/cart/integration-user"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.items[0].productId").value(product.getId().intValue()))
+                                .andExpect(jsonPath("$.items[0].quantity").value(2));
 
-        mockMvc.perform(delete("/api/v1/cart/integration-user/items/" + product.getId()))
-                .andExpect(status().isNoContent());
+                mockMvc.perform(delete("/api/v1/cart/integration-user/items/" + product.getId()))
+                                .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/v1/cart/integration-user"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items").isEmpty());
-    }
+                mockMvc.perform(get("/api/v1/cart/integration-user"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.items").isEmpty());
+        }
 }

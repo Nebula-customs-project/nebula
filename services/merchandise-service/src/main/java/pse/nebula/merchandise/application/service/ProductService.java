@@ -38,16 +38,16 @@ public class ProductService {
     @Transactional
     public ProductResponse create(ProductRequest request) {
         Product product = Product.builder()
-            .name(request.getName())
-            .description(request.getDescription())
-            .price(request.getPrice())
-            .stock(request.getStock())
-            .imageUrl(request.getImageUrl())
-            .category(request.getCategory())
-            .badge(request.getBadge())
-            .rating(request.getRating())
-            .reviews(request.getReviews())
-            .build();
+                .name(request.name())
+                .description(request.description())
+                .price(request.price())
+                .stock(request.stock())
+                .imageUrl(request.imageUrl())
+                .category(request.category())
+                .badge(request.badge())
+                .rating(request.rating())
+                .reviews(request.reviews())
+                .build();
 
         Product saved = productRepository.save(product);
         return toResponse(saved);
@@ -56,17 +56,17 @@ public class ProductService {
     @Transactional
     public ProductResponse update(Long id, ProductRequest request) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
-        
-        product.setName(request.getName());
-        product.setDescription(request.getDescription());
-        product.setPrice(request.getPrice());
-        product.setStock(request.getStock());
-        product.setImageUrl(request.getImageUrl());
-        product.setCategory(request.getCategory());
-        product.setBadge(request.getBadge());
-        product.setRating(request.getRating());
-        product.setReviews(request.getReviews());
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+
+        product.setName(request.name());
+        product.setDescription(request.description());
+        product.setPrice(request.price());
+        product.setStock(request.stock());
+        product.setImageUrl(request.imageUrl());
+        product.setCategory(request.category());
+        product.setBadge(request.badge());
+        product.setRating(request.rating());
+        product.setReviews(request.reviews());
 
         Product saved = productRepository.save(product);
         return toResponse(saved);
@@ -82,16 +82,15 @@ public class ProductService {
 
     private ProductResponse toResponse(Product product) {
         return new ProductResponse(
-            product.getId(),
-            product.getName(),
-            product.getDescription(),
-            product.getPrice(),
-            product.getStock(),
-            product.getImageUrl(),
-            product.getCategory(),
-            product.getBadge(),
-            product.getRating(),
-            product.getReviews()
-        );
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getStock(),
+                product.getImageUrl(),
+                product.getCategory(),
+                product.getBadge(),
+                product.getRating(),
+                product.getReviews());
     }
 }

@@ -33,10 +33,10 @@ public class CartService {
         Cart cart = cartRepository.findById(userId).orElseGet(() -> new Cart(userId, new ArrayList<>()));
         List<CartItem> items = cart.getItems();
         CartItem existing = items.stream()
-            .filter(item -> item.getProductId().equals(request.getProductId()))
-            .findFirst()
-            .orElse(null);
-        BigDecimal price = product.getPrice();
+                .filter(item -> item.getProductId().equals(request.getProductId()))
+                .findFirst()
+                .orElse(null);
+        BigDecimal price = product.price();
         if (existing != null) {
             existing.setQuantity(existing.getQuantity() + request.getQuantity());
             existing.setPrice(price);
@@ -72,8 +72,6 @@ public class CartService {
         cartRepository.save(cart);
         return toResponse(cart);
     }
-
-
 
     private CartResponse toResponse(Cart cart) {
         List<CartItemResponse> itemResponses = new ArrayList<>();

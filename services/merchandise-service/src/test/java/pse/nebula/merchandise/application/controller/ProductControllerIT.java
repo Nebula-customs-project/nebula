@@ -29,80 +29,81 @@ import pse.nebula.merchandise.application.dto.ProductResponse;
 @ActiveProfiles("test")
 class ProductControllerIT {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Test
-    void createThenListProducts_shouldReturnCreatedAndListContainsIt() throws Exception {
-        ProductRequest request = new ProductRequest(
-                "Test Cap",
-                "A cap for testing",
-                BigDecimal.valueOf(19.99),
-                10,
-                "http://example.com/img.png");
+        @Test
+        void createThenListProducts_shouldReturnCreatedAndListContainsIt() throws Exception {
+                ProductRequest request = new ProductRequest(
+                                "Test Cap",
+                                "A cap for testing",
+                                BigDecimal.valueOf(19.99),
+                                10,
+                                "http://example.com/img.png",
+                                null, null, null, null);
 
-        mockMvc.perform(post("/api/v1/merchandise/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.name", is("Test Cap")));
+                mockMvc.perform(post("/api/v1/merchandise/products")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.id").exists())
+                                .andExpect(jsonPath("$.name", is("Test Cap")));
 
-        mockMvc.perform(get("/api/v1/merchandise/products"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()", greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$[0].name").exists());
-    }
+                mockMvc.perform(get("/api/v1/merchandise/products"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.length()", greaterThanOrEqualTo(1)))
+                                .andExpect(jsonPath("$[0].name").exists());
+        }
 
-    @Test
-    void updateThenDeleteProduct_shouldUpdateAndRemove() throws Exception {
-        ProductRequest createRequest = new ProductRequest(
-                "Starter Cap",
-                "Initial product",
-                BigDecimal.valueOf(25.00),
-                8,
-                "http://example.com/start.png");
-        createRequest.setCategory("Apparel");
-        createRequest.setBadge("New");
-        createRequest.setRating(BigDecimal.valueOf(4.2));
-        createRequest.setReviews(12);
+        @Test
+        void updateThenDeleteProduct_shouldUpdateAndRemove() throws Exception {
+                ProductRequest createRequest = new ProductRequest(
+                                "Starter Cap",
+                                "Initial product",
+                                BigDecimal.valueOf(25.00),
+                                8,
+                                "http://example.com/start.png",
+                                "Apparel",
+                                "New",
+                                BigDecimal.valueOf(4.2),
+                                12);
 
-        MvcResult createResult = mockMvc.perform(post("/api/v1/merchandise/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isCreated())
-                .andReturn();
+                MvcResult createResult = mockMvc.perform(post("/api/v1/merchandise/products")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createRequest)))
+                                .andExpect(status().isCreated())
+                                .andReturn();
 
-        ProductResponse created = objectMapper.readValue(
-                createResult.getResponse().getContentAsString(),
-                ProductResponse.class);
+                ProductResponse created = objectMapper.readValue(
+                                createResult.getResponse().getContentAsString(),
+                                ProductResponse.class);
 
-        ProductRequest updateRequest = new ProductRequest(
-                "Updated Cap",
-                "Updated description",
-                BigDecimal.valueOf(30.00),
-                5,
-                "http://example.com/updated.png");
-        updateRequest.setCategory("Apparel");
-        updateRequest.setBadge("Bestseller");
-        updateRequest.setRating(BigDecimal.valueOf(4.8));
-        updateRequest.setReviews(30);
+                ProductRequest updateRequest = new ProductRequest(
+                                "Updated Cap",
+                                "Updated description",
+                                BigDecimal.valueOf(30.00),
+                                5,
+                                "http://example.com/updated.png",
+                                "Apparel",
+                                "Bestseller",
+                                BigDecimal.valueOf(4.8),
+                                30);
 
-        mockMvc.perform(put("/api/v1/merchandise/products/{id}", created.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(created.getId().intValue())))
-                .andExpect(jsonPath("$.name", is("Updated Cap")))
-                .andExpect(jsonPath("$.stock", is(5)));
+                mockMvc.perform(put("/api/v1/merchandise/products/{id}", created.id())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateRequest)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id", is(created.id().intValue())))
+                                .andExpect(jsonPath("$.name", is("Updated Cap")))
+                                .andExpect(jsonPath("$.stock", is(5)));
 
-        mockMvc.perform(delete("/api/v1/merchandise/products/{id}", created.getId()))
-                .andExpect(status().isNoContent());
+                mockMvc.perform(delete("/api/v1/merchandise/products/{id}", created.id()))
+                                .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/v1/merchandise/products/{id}", created.getId()))
-                .andExpect(status().isNotFound());
-    }
+                mockMvc.perform(get("/api/v1/merchandise/products/{id}", created.id()))
+                                .andExpect(status().isNotFound());
+        }
 }

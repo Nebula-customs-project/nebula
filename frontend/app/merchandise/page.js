@@ -18,9 +18,8 @@ export default function MerchandisePage() {
       setError(null)
       setDebugInfo(null)
       // Use gateway for REST API requests when NEXT_PUBLIC_GATEWAY_URL is set.
-      // Otherwise use the Next server proxy at `/api/merchandise/products` to avoid CORS.
-      const gateway = process.env.NEXT_PUBLIC_GATEWAY_URL
-      const url = gateway ? `${gateway}/api/v1/merchandise/products` : '/api/merchandise/products'
+      const gateway = process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://localhost:8080'
+      const url = `${gateway}/api/v1/merchandise/products`
       setDebugInfo({ attemptingUrl: url })
       const res = await fetch(url, {
         signal,
@@ -52,8 +51,8 @@ export default function MerchandisePage() {
 
   const categories = ['All', 'Apparel', 'Accessories', 'Models', 'Lifestyle']
 
-  const filteredProducts = selectedCategory === 'All' 
-    ? products 
+  const filteredProducts = selectedCategory === 'All'
+    ? products
     : products.filter(p => p.category === selectedCategory)
 
   const addToCart = (product) => {
@@ -69,7 +68,7 @@ export default function MerchandisePage() {
   }
 
   const getBadgeColor = (badge) => {
-    switch(badge) {
+    switch (badge) {
       case 'Bestseller': return 'bg-yellow-500'
       case 'New': return 'bg-green-500'
       case 'Limited': return 'bg-purple-500'
@@ -106,11 +105,10 @@ export default function MerchandisePage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-6 py-2 rounded-full font-semibold transition whitespace-nowrap ${
-                selectedCategory === category
-                  ? 'bg-red-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-              }`}
+              className={`px-6 py-2 rounded-full font-semibold transition whitespace-nowrap ${selectedCategory === category
+                ? 'bg-red-600 text-white'
+                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                }`}
             >
               {category}
             </button>
@@ -144,86 +142,84 @@ export default function MerchandisePage() {
 
         {/* Products Grid */}
         {!loading && !error && (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map(product => {
-            const rating = product.rating ? Number(product.rating) : 0
-            const reviews = product.reviews ?? 0
-            const priceNumber = product.price !== undefined && product.price !== null ? Number(product.price) : 0
-            const priceDisplay = Number.isNaN(priceNumber) ? '0.00' : priceNumber.toFixed(2)
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map(product => {
+              const rating = product.rating ? Number(product.rating) : 0
+              const reviews = product.reviews ?? 0
+              const priceNumber = product.price !== undefined && product.price !== null ? Number(product.price) : 0
+              const priceDisplay = Number.isNaN(priceNumber) ? '0.00' : priceNumber.toFixed(2)
 
-            return (
-            <div
-              key={product.id}
-              className="bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl group"
-            >
-              {/* Product Image */}
-              <div className="relative h-64 overflow-hidden">
-                <div 
-                  className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
-                  style={{ backgroundImage: `url(${product.imageUrl || product.img || ''})` }}
-                ></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60"></div>
-                
-                {/* Badge */}
-                {product.badge && (
-                  <div className={`absolute top-4 left-4 ${getBadgeColor(product.badge)} text-white text-xs font-bold px-3 py-1 rounded-full`}>
-                    {product.badge}
-                  </div>
-                )}
-                
-                {/* Favorite Button */}
-                <button
-                  onClick={() => toggleFavorite(product.id)}
-                  className={`absolute top-4 right-4 p-2 rounded-full backdrop-blur-sm transition-all ${
-                    favorites.includes(product.id)
-                      ? 'bg-red-600 text-white'
-                      : 'bg-white/20 text-white hover:bg-white/30'
-                  }`}
+              return (
+                <div
+                  key={product.id}
+                  className="bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl group"
                 >
-                  <Heart className={`w-5 h-5 ${favorites.includes(product.id) ? 'fill-current' : ''}`} />
-                </button>
+                  {/* Product Image */}
+                  <div className="relative h-64 overflow-hidden">
+                    <div
+                      className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
+                      style={{ backgroundImage: `url(${product.imageUrl || product.img || ''})` }}
+                    ></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60"></div>
 
-                {/* Quick View on Hover */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <button className="bg-white text-gray-900 px-6 py-2 rounded-full font-semibold hover:bg-gray-200 transition">
-                    Quick View
-                  </button>
+                    {/* Badge */}
+                    {product.badge && (
+                      <div className={`absolute top-4 left-4 ${getBadgeColor(product.badge)} text-white text-xs font-bold px-3 py-1 rounded-full`}>
+                        {product.badge}
+                      </div>
+                    )}
+
+                    {/* Favorite Button */}
+                    <button
+                      onClick={() => toggleFavorite(product.id)}
+                      className={`absolute top-4 right-4 p-2 rounded-full backdrop-blur-sm transition-all ${favorites.includes(product.id)
+                        ? 'bg-red-600 text-white'
+                        : 'bg-white/20 text-white hover:bg-white/30'
+                        }`}
+                    >
+                      <Heart className={`w-5 h-5 ${favorites.includes(product.id) ? 'fill-current' : ''}`} />
+                    </button>
+
+                    {/* Quick View on Hover */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <button className="bg-white text-gray-900 px-6 py-2 rounded-full font-semibold hover:bg-gray-200 transition">
+                        Quick View
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Product Info */}
+                  <div className="p-5">
+                    <div className="flex items-center gap-1 mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${i < Math.floor(rating)
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-600'
+                            }`}
+                        />
+                      ))}
+                      <span className="text-sm text-gray-400 ml-2">({reviews})</span>
+                    </div>
+
+                    <h3 className="text-xl font-bold mb-1 line-clamp-1">{product.name}</h3>
+                    <p className="text-sm text-gray-400 mb-3">{product.category || 'Accessories'}</p>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-red-500">€{priceDisplay}</span>
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="bg-red-600 hover:bg-red-700 p-3 rounded-lg transition transform hover:scale-110 active:scale-95"
+                      >
+                        <ShoppingCart className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-
-              {/* Product Info */}
-              <div className="p-5">
-                <div className="flex items-center gap-1 mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 ${
-                        i < Math.floor(rating)
-                          ? 'text-yellow-400 fill-current'
-                          : 'text-gray-600'
-                      }`}
-                    />
-                  ))}
-                  <span className="text-sm text-gray-400 ml-2">({reviews})</span>
-                </div>
-
-                <h3 className="text-xl font-bold mb-1 line-clamp-1">{product.name}</h3>
-                <p className="text-sm text-gray-400 mb-3">{product.category || 'Accessories'}</p>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-red-500">€{priceDisplay}</span>
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="bg-red-600 hover:bg-red-700 p-3 rounded-lg transition transform hover:scale-110 active:scale-95"
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
         )}
 
         {/* Empty State */}

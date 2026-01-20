@@ -105,6 +105,6 @@ class CartServiceTest {
     }
 
     private ProductResponse productResponse() {
-        return new ProductResponse(1L, "name", "desc", BigDecimal.TEN, 5, "img");
+        return new ProductResponse(1L, "name", "desc", BigDecimal.TEN, 5, "img", null, null, null, null);
     }
 }

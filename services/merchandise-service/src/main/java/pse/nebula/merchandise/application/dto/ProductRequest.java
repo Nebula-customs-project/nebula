@@ -9,104 +9,22 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-public class ProductRequest {
-    @NotBlank
-    private String name;
-    private String description;
-    @NotNull
-    @Positive
-    private BigDecimal price;
-    @NotNull
-    @Min(0)
-    private Integer stock;
-    private String imageUrl;
-    private String category;
-    private String badge;
-    @DecimalMin(value = "1.0")
-    @DecimalMax(value = "5.0")
-    private BigDecimal rating;
-    @Min(0)
-    private Integer reviews;
+public record ProductRequest(
+        @NotBlank String name,
 
-    public ProductRequest() {}
+        String description,
 
-    public ProductRequest(String name, String description, BigDecimal price, Integer stock, String imageUrl) {
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.stock = stock;
-        this.imageUrl = imageUrl;
-    }
+        @NotNull @Positive BigDecimal price,
 
-    public String getName() {
-        return name;
-    }
+        @NotNull @Min(0) Integer stock,
 
-    public void setName(String name) {
-        this.name = name;
-    }
+        String imageUrl,
 
-    public String getDescription() {
-        return description;
-    }
+        String category,
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+        String badge,
 
-    public BigDecimal getPrice() {
-        return price;
-    }
+        @DecimalMin(value = "1.0") @DecimalMax(value = "5.0") BigDecimal rating,
 
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public Integer getStock() {
-        return stock;
-    }
-
-    public void setStock(Integer stock) {
-        this.stock = stock;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getBadge() {
-        return badge;
-    }
-
-    public void setBadge(String badge) {
-        this.badge = badge;
-    }
-
-    public BigDecimal getRating() {
-        return rating;
-    }
-
-    public void setRating(BigDecimal rating) {
-        this.rating = rating;
-    }
-
-    public Integer getReviews() {
-        return reviews;
-    }
-
-    public void setReviews(Integer reviews) {
-        this.reviews = reviews;
-    }
+        @Min(0) Integer reviews) {
 }

@@ -47,8 +47,8 @@ class ProductServiceTest {
         List<ProductResponse> responses = productService.findAll();
 
         assertEquals(1, responses.size());
-        assertEquals("Hat", responses.get(0).getName());
-        assertEquals(BigDecimal.TEN, responses.get(0).getPrice());
+        assertEquals("Hat", responses.get(0).name());
+        assertEquals(BigDecimal.TEN, responses.get(0).price());
     }
 
     @Test
@@ -60,7 +60,8 @@ class ProductServiceTest {
 
     @Test
     void create_persistsProductAndReturnsResponse() {
-        ProductRequest request = new ProductRequest("Hat", "Blue hat", BigDecimal.valueOf(12.50), 3, "img");
+        ProductRequest request = new ProductRequest("Hat", "Blue hat", BigDecimal.valueOf(12.50), 3, "img", null, null,
+                null, null);
         when(productRepository.save(any(Product.class))).thenAnswer(invocation -> {
             Product toSave = invocation.getArgument(0);
             toSave.setId(99L);
@@ -70,9 +71,9 @@ class ProductServiceTest {
         ProductResponse response = productService.create(request);
 
         verify(productRepository).save(argThat(p -> p.getName().equals("Hat") && p.getStock() == 3));
-        assertEquals(99L, response.getId());
-        assertEquals("Hat", response.getName());
-        assertEquals(BigDecimal.valueOf(12.50), response.getPrice());
+        assertEquals(99L, response.id());
+        assertEquals("Hat", response.name());
+        assertEquals(BigDecimal.valueOf(12.50), response.price());
     }
 
     @Test
@@ -92,29 +93,33 @@ class ProductServiceTest {
         when(productRepository.findById(5L)).thenReturn(Optional.of(existing));
         when(productRepository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ProductRequest request = new ProductRequest("New Name", "New desc", BigDecimal.valueOf(20.00), 5, "new-img");
-        request.setCategory("Apparel");
-        request.setBadge("Premium");
-        request.setRating(BigDecimal.valueOf(4.8));
-        request.setReviews(42);
+        ProductRequest request = new ProductRequest(
+                "New Name",
+                "New desc",
+                BigDecimal.valueOf(20.00),
+                5,
+                "new-img",
+                "Apparel",
+                "Premium",
+                BigDecimal.valueOf(4.8),
+                42);
 
         ProductResponse response = productService.update(5L, request);
 
-        verify(productRepository).save(argThat(p ->
-                p.getId().equals(5L)
-                        && p.getName().equals("New Name")
-                        && p.getDescription().equals("New desc")
-                        && p.getPrice().equals(BigDecimal.valueOf(20.00))
-                        && p.getStock().equals(5)
-                        && p.getImageUrl().equals("new-img")
-                        && p.getCategory().equals("Apparel")
-                        && p.getBadge().equals("Premium")
-                        && p.getRating().equals(BigDecimal.valueOf(4.8))
-                        && p.getReviews().equals(42)));
+        verify(productRepository).save(argThat(p -> p.getId().equals(5L)
+                && p.getName().equals("New Name")
+                && p.getDescription().equals("New desc")
+                && p.getPrice().equals(BigDecimal.valueOf(20.00))
+                && p.getStock().equals(5)
+                && p.getImageUrl().equals("new-img")
+                && p.getCategory().equals("Apparel")
+                && p.getBadge().equals("Premium")
+                && p.getRating().equals(BigDecimal.valueOf(4.8))
+                && p.getReviews().equals(42)));
 
-        assertEquals(5L, response.getId());
-        assertEquals("New Name", response.getName());
-        assertEquals(BigDecimal.valueOf(20.00), response.getPrice());
+        assertEquals(5L, response.id());
+        assertEquals("New Name", response.name());
+        assertEquals(BigDecimal.valueOf(20.00), response.price());
     }
 
     @Test
