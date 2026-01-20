@@ -237,14 +237,14 @@ export default function MerchandisePage() {
               {cart.map((item, idx) => (
                 <div key={idx} className="flex justify-between text-sm">
                   <span className="text-gray-400">{item.name}</span>
-                  <span className="font-semibold">€{Number(item.price).toFixed(2)}</span>
+                  <span className="font-semibold">€{item.price}</span>
                 </div>
               ))}
             </div>
             <div className="border-t border-gray-700 pt-4 mb-4">
               <div className="flex justify-between text-lg font-bold">
                 <span>Total:</span>
-                <span className="text-red-500">€{cart.reduce((sum, item) => sum + (Number(item.price) || 0), 0).toFixed(2)}</span>
+                <span className="text-red-500">€{cart.reduce((sum, item) => sum + item.price, 0)}</span>
               </div>
             </div>
             <button className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition">
