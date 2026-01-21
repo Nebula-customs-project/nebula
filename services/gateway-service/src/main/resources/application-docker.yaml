@@ -1,0 +1,18 @@
+# =============================================================================
+# Gateway Service - Docker Profile Configuration
+# =============================================================================
+
+spring:
+  config:
+    import: ""
+
+eureka:
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:false}
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    root: INFO
+    pse.nebula: INFO

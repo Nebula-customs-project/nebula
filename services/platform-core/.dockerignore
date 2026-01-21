@@ -1,0 +1,15 @@
+# Docker Ignore File
+target/
+.idea/
+*.iml
+.vscode/
+.git/
+.gitignore
+*.log
+logs/
+Dockerfile
+.dockerignore
+.mvn/
+mvnw
+mvnw.cmd
+.DS_Store
