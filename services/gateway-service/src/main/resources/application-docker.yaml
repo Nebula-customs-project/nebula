@@ -1,14 +1,54 @@
 # =============================================================================
 # Gateway Service - Docker Profile Configuration
+# Uses direct service URLs instead of Eureka service discovery
 # =============================================================================
 
 spring:
   config:
     import: ""
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        # User Service Routes
+        - id: user-service
+          uri: http://user-service:8083
+          predicates:
+            - Path=/api/users/**
+
+        # World-View Service Routes
+        - id: world-view-routes
+          uri: http://world-view:8082
+          predicates:
+            - Path=/api/v1/routes/**
+
+        - id: world-view-journeys
+          uri: http://world-view:8082
+          predicates:
+            - Path=/api/v1/journeys/**
+
+        # Vehicle Service Routes
+        - id: vehicle-service-vehicles
+          uri: http://vehicle-service:8081
+          predicates:
+            - Path=/api/v1/vehicles/**
+
+        # Merchandise Service Routes
+        - id: merchandise-service-products
+          uri: http://merchandise-service:8084
+          predicates:
+            - Path=/api/v1/merchandise/**
+
+        - id: merchandise-service-cart
+          uri: http://merchandise-service:8084
+          predicates:
+            - Path=/api/v1/cart/**
 
 eureka:
   client:
-    enabled: ${EUREKA_CLIENT_ENABLED:false}
+    enabled: false
     register-with-eureka: false
     fetch-registry: false
 
@@ -16,3 +56,4 @@ logging:
   level:
     root: INFO
     pse.nebula: INFO
+    org.springframework.cloud.gateway: DEBUG
