@@ -28,6 +28,8 @@ RUN mkdir -p /root/.m2 && \
 
 # Copy parent POM and install it first
 COPY pom.xml /build/pom.xml
+
+# Install parent POM to local repository (skip modules)
 RUN mvn -N install -DskipTests
 
 # Copy service POM and source
@@ -54,7 +56,9 @@ RUN groupadd -g 1001 nebula && \
 WORKDIR /app
 
 # Copy the built JAR from builder stage
-COPY --from=builder /build/services/user-service/target/user-service-*.jar app.jar
+COPY --from=builder /build/services/user-service/target/*.jar app.jar
+
+# Change ownership to non-root user
 RUN chown nebula:nebula app.jar
 
 # Switch to non-root user

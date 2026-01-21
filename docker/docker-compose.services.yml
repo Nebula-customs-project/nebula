@@ -1,20 +1,108 @@
 # =============================================================================
-# Nebula Application Services
+# Nebula Application Services - Production Configuration
 # =============================================================================
-# This compose file runs the application services (merchandise, vehicle, world-view)
+# Only the Gateway Service is exposed externally.
+# All other services communicate internally via the Docker network.
 #
 # Usage:
-#   Build and run all (infrastructure + services):
-#      docker compose -f docker-compose.yml -f docker-compose.services.yml up -d --build
-#
-#   Or build services only (requires infrastructure already running):
-#      docker compose -f docker-compose.yml -f docker-compose.services.yml build
+#   docker compose -f docker-compose.yml -f docker-compose.services.yml up -d --build
 # =============================================================================
 
 services:
   # ---------------------------------------------------------------------------
-  # Vehicle Service
-  # Cars Overview and Configurator API
+  # Platform Core (Eureka + Config Server) - INTERNAL ONLY
+  # Must start first as other services depend on it
+  # ---------------------------------------------------------------------------
+  platform-core:
+    build:
+      context: ..
+      dockerfile: services/platform-core/Dockerfile
+    container_name: nebula-platform-core
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,native
+    expose:
+      - "8761"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+  # ---------------------------------------------------------------------------
+  # Gateway Service - EXTERNALLY EXPOSED (Entry point for all API requests)
+  # ---------------------------------------------------------------------------
+  gateway-service:
+    build:
+      context: ..
+      dockerfile: services/gateway-service/Dockerfile
+    container_name: nebula-gateway-service
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+      # Service URLs for routing
+      VEHICLE_SERVICE_URL: http://vehicle-service:8081
+      WORLD_VIEW_SERVICE_URL: http://world-view:8082
+      USER_SERVICE_URL: http://user-service:8083
+      MERCHANDISE_SERVICE_URL: http://merchandise-service:8084
+    ports:
+      - "8080:8080"
+    depends_on:
+      platform-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+  # ---------------------------------------------------------------------------
+  # User Service - INTERNAL ONLY
+  # ---------------------------------------------------------------------------
+  user-service:
+    build:
+      context: ..
+      dockerfile: services/user-service/Dockerfile
+    container_name: nebula-user-service
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+    expose:
+      - "8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      platform-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+  # ---------------------------------------------------------------------------
+  # Vehicle Service - INTERNAL ONLY
   # ---------------------------------------------------------------------------
   vehicle-service:
     build:
@@ -29,10 +117,12 @@ services:
       POSTGRES_PORT: 5432
       EUREKA_CLIENT_ENABLED: "false"
       SPRING_CLOUD_CONFIG_ENABLED: "false"
-    ports:
-      - "8081:8081"
+    expose:
+      - "8081"
     depends_on:
       postgres:
+        condition: service_healthy
+      platform-core:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
@@ -45,8 +135,7 @@ services:
       - nebula-network
 
   # ---------------------------------------------------------------------------
-  # World View Service
-  # Journey Simulation and Route Management API
+  # World View Service - INTERNAL ONLY
   # ---------------------------------------------------------------------------
   world-view:
     build:
@@ -63,12 +152,14 @@ services:
       MQTT_PORT: 1883
       EUREKA_CLIENT_ENABLED: "false"
       SPRING_CLOUD_CONFIG_ENABLED: "false"
-    ports:
-      - "8082:8082"
+    expose:
+      - "8082"
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      platform-core:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
@@ -81,8 +172,7 @@ services:
       - nebula-network
 
   # ---------------------------------------------------------------------------
-  # Merchandise Service
-  # Product Catalog and Shopping Cart API
+  # Merchandise Service - INTERNAL ONLY
   # ---------------------------------------------------------------------------
   merchandise-service:
     build:
@@ -97,10 +187,12 @@ services:
       POSTGRES_PORT: 5432
       EUREKA_CLIENT_ENABLED: "false"
       SPRING_CLOUD_CONFIG_ENABLED: "false"
-    ports:
-      - "8084:8084"
+    expose:
+      - "8084"
     depends_on:
       postgres:
+        condition: service_healthy
+      platform-core:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]

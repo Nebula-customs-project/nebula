@@ -1,0 +1,22 @@
+# =============================================================================
+# Platform Core Service - Docker Profile Configuration
+# =============================================================================
+
+spring:
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/config-repo/
+
+eureka:
+  instance:
+    hostname: platform-core
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    root: INFO
+    pse.nebula: INFO

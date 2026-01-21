@@ -10,24 +10,10 @@ FROM maven:3.9.6-eclipse-temurin-17 AS builder
 
 WORKDIR /build
 
-# Create toolchains.xml for Maven toolchains plugin
-RUN mkdir -p /root/.m2 && \
-    echo '<?xml version="1.0" encoding="UTF-8"?>\
-<toolchains xmlns="http://maven.apache.org/TOOLCHAINS/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/TOOLCHAINS/1.1.0 http://maven.apache.org/xsd/toolchains-1.1.0.xsd">\
-  <toolchain>\
-    <type>jdk</type>\
-    <provides>\
-      <version>17</version>\
-      <vendor>any</vendor>\
-    </provides>\
-    <configuration>\
-      <jdkHome>/opt/java/openjdk</jdkHome>\
-    </configuration>\
-  </toolchain>\
-</toolchains>' > /root/.m2/toolchains.xml
-
 # Copy parent POM and install it first
 COPY pom.xml /build/pom.xml
+
+# Install parent POM to local repository (skip modules)
 RUN mvn -N install -DskipTests
 
 # Copy service POM and source
@@ -54,18 +40,20 @@ RUN groupadd -g 1001 nebula && \
 WORKDIR /app
 
 # Copy the built JAR from builder stage
-COPY --from=builder /build/services/platform-core/target/platform-core-*.jar app.jar
+COPY --from=builder /build/services/platform-core/target/platform-core.jar app.jar
+
+# Change ownership to non-root user
 RUN chown nebula:nebula app.jar
 
 # Switch to non-root user
 USER nebula
 
-# Expose service port
-EXPOSE 8081
+# Expose service port (Eureka + Config Server)
+EXPOSE 8761
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8081/actuator/health || exit 1
+    CMD curl -f http://localhost:8761/actuator/health || exit 1
 
 # JVM optimizations for containers
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0"
