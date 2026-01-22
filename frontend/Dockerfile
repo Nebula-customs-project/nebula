@@ -30,8 +30,8 @@ COPY . .
 # Build arguments for environment variables (passed at build time)
 ARG NEXT_PUBLIC_GATEWAY_URL=http://gateway-service:8080
 ARG NEXT_PUBLIC_MQTT_URL=ws://rabbitmq:15675/ws
-ARG NEXT_PUBLIC_MQTT_USERNAME=nebula
-ARG NEXT_PUBLIC_MQTT_PASSWORD=nebula@2025
+ARG NEXT_PUBLIC_MQTT_USERNAME
+ARG NEXT_PUBLIC_MQTT_PASSWORD
 
 # Set environment variables for build
 ENV NEXT_PUBLIC_GATEWAY_URL=$NEXT_PUBLIC_GATEWAY_URL
