@@ -34,67 +34,56 @@ export default function JourneyPanel({
     const statusStyle = statusConfig[status] || statusConfig.WAITING
 
     return (
-        <div className="absolute top-24 right-6 w-72">
+        <div className="w-80 pointer-events-auto">
             {/* Glassmorphism container */}
-            <div className="bg-gray-900/70 backdrop-blur-md rounded-2xl p-5 border border-gray-700/50 shadow-2xl">
+            <div className="bg-gray-900/80 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-2xl">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-white">Live Journey</h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
+                <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-xl font-bold text-white tracking-tight">Live Journey</h3>
+                    <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${statusStyle.bg} ${statusStyle.text} border border-current opacity-80`}>
                         {statusStyle.label}
                     </span>
                 </div>
 
                 {/* Route name */}
-                <div className="mb-4">
-                    <p className="text-xs text-gray-400 mb-1">Route</p>
-                    <p className="text-sm font-medium text-white truncate">{routeName}</p>
+                <div className="mb-6">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Current Route</p>
+                    <p className="text-lg font-bold text-white leading-tight">{routeName}</p>
                 </div>
 
                 {/* Stats grid */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="grid grid-cols-2 gap-4 mb-6 pt-4 border-t border-white/5">
                     {/* Distance */}
-                    <div className="bg-gray-800/50 rounded-xl p-3">
-                        <p className="text-xs text-gray-400 mb-1">Distance</p>
-                        <p className="text-lg font-bold text-cyan-400">{formattedDistance}</p>
+                    <div>
+                        <p className="text-lg font-bold text-white">{formattedDistance}</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest">remaining</p>
                     </div>
 
                     {/* ETA */}
-                    <div className="bg-gray-800/50 rounded-xl p-3">
-                        <p className="text-xs text-gray-400 mb-1">ETA</p>
-                        <p className="text-lg font-bold text-cyan-400">{formatETA(etaSeconds)}</p>
+                    <div>
+                        <p className="text-lg font-bold text-white">{formatETA(etaSeconds)}</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest">ETA</p>
                     </div>
                 </div>
 
-                {/* Destination */}
-                <div className="bg-gray-800/50 rounded-xl p-3 mb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
-                            <span className="text-base">🏁</span>
-                        </div>
-                        <div>
-                            <p className="text-xs text-gray-400">Destination</p>
-                            <p className="text-sm font-medium text-white">Stuttgart, DE</p>
-                        </div>
+                {/* Info rows */}
+                <div className="space-y-3 pt-4 border-t border-white/5">
+                    {/* Destination */}
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-gray-500 uppercase tracking-widest">Destination</span>
+                        <span className="text-sm font-medium text-white">Stuttgart, DE</span>
                     </div>
-                </div>
 
-                {/* Current position */}
-                <div className="bg-gray-800/50 rounded-xl p-3">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                            <span className="text-base">📍</span>
-                        </div>
-                        <div>
-                            <p className="text-xs text-gray-400">Position</p>
-                            {currentPosition ? (
-                                <p className="text-xs font-mono text-white">
-                                    {currentPosition.lat.toFixed(4)}°, {currentPosition.lng.toFixed(4)}°
-                                </p>
-                            ) : (
-                                <p className="text-xs text-gray-500">—</p>
-                            )}
-                        </div>
+                    {/* Current position */}
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-gray-500 uppercase tracking-widest">Position</span>
+                        {currentPosition ? (
+                            <span className="text-xs font-mono text-gray-300">
+                                {currentPosition.lat.toFixed(4)}°, {currentPosition.lng.toFixed(4)}°
+                            </span>
+                        ) : (
+                            <span className="text-xs text-gray-600">—</span>
+                        )}
                     </div>
                 </div>
             </div>

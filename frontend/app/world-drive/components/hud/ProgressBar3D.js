@@ -4,49 +4,38 @@ export default function ProgressBar3D({ progress = 0, checkpoints = 10 }) {
     const filledCheckpoints = Math.floor((progress / 100) * checkpoints)
 
     return (
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[400px] max-w-[80vw]">
-            {/* Glassmorphism container */}
-            <div className="bg-gray-900/60 backdrop-blur-md rounded-2xl px-6 py-4 border border-gray-700/50 shadow-2xl">
-                {/* Label */}
-                <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs text-gray-400 uppercase tracking-wider">Progress</span>
-                    <span
-                        className="text-lg font-bold text-cyan-400"
-                        style={{ textShadow: '0 0 10px rgba(0, 212, 255, 0.5)' }}
-                    >
-                        {Math.round(progress)}%
-                    </span>
-                </div>
-
-                {/* Checkpoint bar */}
-                <div className="relative h-3 bg-gray-800 rounded-full overflow-hidden">
-                    {/* Glow background */}
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[500px] max-w-[90vw]">
+            <div className="relative">
+                {/* Background "Road" */}
+                <div className="h-2 bg-white/5 rounded-full relative overflow-hidden ring-1 ring-white/10">
+                    {/* Glowing Progress */}
                     <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-500"
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-600 to-cyan-400 transition-all duration-700 ease-out"
                         style={{
                             width: `${progress}%`,
-                            boxShadow: '0 0 15px rgba(0, 212, 255, 0.6), 0 0 30px rgba(0, 212, 255, 0.3)'
+                            boxShadow: '0 0 20px rgba(6, 182, 212, 0.5)'
                         }}
                     />
-
-                    {/* Checkpoint markers */}
-                    <div className="absolute inset-0 flex justify-between items-center px-1">
-                        {Array.from({ length: checkpoints }).map((_, i) => (
-                            <div
-                                key={i}
-                                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i < filledCheckpoints
-                                        ? 'bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]'
-                                        : 'bg-gray-600'
-                                    }`}
-                            />
-                        ))}
-                    </div>
                 </div>
 
-                {/* Distance markers */}
-                <div className="flex justify-between mt-2 text-[10px] text-gray-500">
-                    <span>Start</span>
-                    <span>Destination</span>
+                {/* Percentage Marker */}
+                <div
+                    className="absolute top-[-30px] transition-all duration-700 ease-out flex flex-col items-center"
+                    style={{ left: `${progress}%`, transform: 'translateX(-50%)' }}
+                >
+                    <span className="text-sm font-bold text-white mb-1">{Math.round(progress)}%</span>
+                    <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-[0_0_10px_#22d3ee]" />
+                </div>
+
+                {/* Checkpoints */}
+                <div className="absolute inset-x-0 -bottom-6 flex justify-between px-1">
+                    <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Start</span>
+                    <div className="flex gap-4">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="w-[1px] h-1 bg-white/10" />
+                        ))}
+                    </div>
+                    <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">End</span>
                 </div>
             </div>
         </div>
