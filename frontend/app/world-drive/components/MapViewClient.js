@@ -9,6 +9,7 @@ export default function MapView({
   startPoint,
   waypoints = [],
   status,
+  isEmbedded,
 }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
@@ -28,7 +29,7 @@ export default function MapView({
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
 
-    const initialCenter = currentPosition 
+    const initialCenter = currentPosition
       ? [currentPosition.lat, currentPosition.lng]
       : [startPoint.lat, startPoint.lng]
 
@@ -162,11 +163,11 @@ export default function MapView({
       iconAnchor: [28, 14],
       popupAnchor: [0, -14],
     })
-    
-    const initialPos = currentPosition 
+
+    const initialPos = currentPosition
       ? [currentPosition.lat, currentPosition.lng]
       : [startPoint.lat, startPoint.lng]
-    
+
     markersRef.current.car = L.marker(initialPos, { icon: carIcon })
       .addTo(mapRef.current)
       .bindPopup('<strong>🚗 Your Vehicle</strong>')
@@ -182,7 +183,7 @@ export default function MapView({
   // Update car position
   useEffect(() => {
     if (!mapRef.current) return
-    
+
     console.log('Car marker update - currentPosition:', currentPosition)
 
     // If no position, remove car marker
@@ -326,14 +327,48 @@ export default function MapView({
   const handleZoomIn = () => mapRef.current?.zoomIn()
   const handleZoomOut = () => mapRef.current?.zoomOut()
 
+  if (isEmbedded) {
+    return (
+      <div className="w-full h-full relative group">
+        <div ref={containerRef} className="w-full h-full rounded-lg overflow-hidden" />
+
+        {/* Controls overlay - visible on hover */}
+        <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            className="w-8 h-8 bg-white/90 hover:bg-white rounded-md flex items-center justify-center text-gray-700 font-bold shadow-sm"
+            onClick={handleZoomIn}
+          >
+            +
+          </button>
+          <button
+            className="w-8 h-8 bg-white/90 hover:bg-white rounded-md flex items-center justify-center text-gray-700 font-bold shadow-sm"
+            onClick={handleZoomOut}
+          >
+            −
+          </button>
+        </div>
+
+        <button
+          className={`absolute bottom-2 right-2 px-3 py-1 rounded-md text-xs font-semibold shadow-sm opacity-0 group-hover:opacity-100 transition-opacity ${followCar
+            ? 'bg-blue-600/90 text-white'
+            : 'bg-white/90 text-gray-700'
+            }`}
+          onClick={() => setFollowCar(!followCar)}
+        >
+          {followCar ? '📍 Following' : 'Free'}
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="h-full pt-4 px-16 pb-16 flex flex-col bg-gray-900">
       {/* Title with neon sign effect */}
       <div className="text-center mb-2">
-        <h2 
-          className="text-4xl font-bold tracking-widest uppercase neon-text" 
-          style={{ 
-            fontFamily: '"Roboto", sans-serif', 
+        <h2
+          className="text-4xl font-bold tracking-widest uppercase neon-text"
+          style={{
+            fontFamily: '"Roboto", sans-serif',
             letterSpacing: '0.3em',
             fontWeight: 700,
             color: '#fff',
@@ -357,7 +392,7 @@ export default function MapView({
       <div className="flex-1 relative">
         {/* Outer glow */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-pink-500/20 rounded-3xl blur-xl" />
-        
+
         {/* Main frame container */}
         <div className="relative h-full bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 rounded-3xl p-1.5 shadow-2xl">
           {/* Inner frame with bevel effect */}
@@ -367,11 +402,10 @@ export default function MapView({
               <div ref={containerRef} className="w-full h-full" />
 
               <button
-                className={`absolute bottom-4 right-4 z-[1000] px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-md ${
-                  followCar 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-white text-gray-700 border border-gray-200'
-                }`}
+                className={`absolute bottom-4 right-4 z-[1000] px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-md ${followCar
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-200'
+                  }`}
                 onClick={() => setFollowCar(!followCar)}
               >
                 {followCar ? '📍 Following' : '🗺️ Free View'}
