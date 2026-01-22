@@ -75,6 +75,30 @@ services:
     networks:
       - nebula-network
 
+  # ---------------------------------------------------------------------------
+  # Redis Cache (Token Blacklist)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: nebula-redis
+    env_file:
+      - .env
+    command: >
+      sh -c "redis-server
+      ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}"
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
   # ===========================================================================
   # BACKEND SERVICES
   # ===========================================================================
@@ -338,3 +362,4 @@ networks:
 volumes:
   postgres_data:
   rabbitmq_data:
+  redis_data:
