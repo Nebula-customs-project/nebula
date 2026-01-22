@@ -13,7 +13,7 @@ import pse.nebula.user.repository.BlacklistedTokenRepository;
  * The Redis-based implementation provides better performance with automatic TTL expiration and eliminates
  * the need for scheduled cleanup tasks. This class is kept for backward compatibility but is no longer
  * registered as a Spring bean to avoid bean definition conflicts.
- * 
+ *
  * @see RedisTokenBlacklistService
  */
 @Deprecated(since = "1.0", forRemoval = true)
