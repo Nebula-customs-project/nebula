@@ -6,12 +6,19 @@ import java.time.ZoneId;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pse.nebula.user.model.BlacklistedToken;
 import pse.nebula.user.repository.BlacklistedTokenRepository;
 
-@Service
+/**
+ * @deprecated This database-based token blacklist service has been replaced by {@link RedisTokenBlacklistService}.
+ * The Redis-based implementation provides better performance with automatic TTL expiration and eliminates
+ * the need for scheduled cleanup tasks. This class is kept for backward compatibility but is no longer
+ * registered as a Spring bean to avoid bean definition conflicts.
+ * 
+ * @see RedisTokenBlacklistService
+ */
+@Deprecated(since = "1.0", forRemoval = true)
 @Slf4j
 public class TokenBlacklistService {
 
