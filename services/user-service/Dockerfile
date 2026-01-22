@@ -56,7 +56,7 @@ RUN groupadd -g 1001 nebula && \
 WORKDIR /app
 
 # Copy the built JAR from builder stage
-COPY --from=builder /build/services/user-service/target/*.jar app.jar
+COPY --from=builder /build/services/user-service/target/user-service.jar app.jar
 
 # Change ownership to non-root user
 RUN chown nebula:nebula app.jar
