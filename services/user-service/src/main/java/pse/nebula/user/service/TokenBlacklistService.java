@@ -23,13 +23,13 @@ public class TokenBlacklistService {
     private final BlacklistedTokenRepository blacklistedTokenRepository;
     private final JwtUtil jwtUtil;
 
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = true)
     public TokenBlacklistService(BlacklistedTokenRepository blacklistedTokenRepository, JwtUtil jwtUtil) {
         this.blacklistedTokenRepository = blacklistedTokenRepository;
         this.jwtUtil = jwtUtil;
     }
 
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = true)
     public void blacklistToken(String token) {
         try {
             // Parse the token to get expiration time using JwtUtil
@@ -57,7 +57,7 @@ public class TokenBlacklistService {
     }
 
     // Currently unused
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = true)
     public boolean isBlacklisted(String token) {
         try {
             return blacklistedTokenRepository.existsByToken(token);
@@ -69,7 +69,7 @@ public class TokenBlacklistService {
 
     // Cleanup expired tokens every hour
     // Note: This method will not execute since this class is no longer a Spring bean
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = true)
     public void cleanupExpiredTokens() {
         try {
             blacklistedTokenRepository.deleteExpiredTokens(LocalDateTime.now());
