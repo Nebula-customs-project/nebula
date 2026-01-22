@@ -7,6 +7,9 @@ import { worldDriveApi } from './lib/api'
 // Dynamic imports for UI components
 const MapView = dynamic(() => import('./components/MapView'), { ssr: false })
 const JourneyPanel = dynamic(() => import('./components/hud/JourneyPanel'), { ssr: false })
+const Speedometer = dynamic(() => import('./components/hud/Speedometer'), { ssr: false })
+const ProgressBar3D = dynamic(() => import('./components/hud/ProgressBar3D'), { ssr: false })
+const MapControls = dynamic(() => import('./components/hud/MapControls'), { ssr: false })
 
 // Dealership coordinates
 const DEALERSHIP_LOCATION = {
@@ -24,6 +27,8 @@ export default function WorldDrivePage() {
   const [isConnecting, setIsConnecting] = useState(true)
   const [error, setError] = useState(null)
   const [mqttError, setMqttError] = useState(null)
+  const [isMapVisible, setIsMapVisible] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(true)
 
   // Refs
   const videoRef = useRef(null)
@@ -54,10 +59,19 @@ export default function WorldDrivePage() {
     ? { lat: currentRoute.start_point.latitude, lng: currentRoute.start_point.longitude }
     : DEALERSHIP_LOCATION
 
-  // Video loop logic: handle loop from 8 seconds
+  // Video loop logic: handle loop from 8 seconds and delay map visibility
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
+
+    const handleTimeUpdate = () => {
+      // Show map when interior is visible (after 3 seconds)
+      if (video.currentTime >= 3 && !isMapVisible) {
+        setIsMapVisible(true)
+      } else if (video.currentTime < 3 && isMapVisible) {
+        setIsMapVisible(false)
+      }
+    }
 
     const handleEnded = () => {
       console.log('Video ended, looping back to 8s')
@@ -65,9 +79,13 @@ export default function WorldDrivePage() {
       video.play().catch(err => console.error('Video play error:', err))
     }
 
+    video.addEventListener('timeupdate', handleTimeUpdate)
     video.addEventListener('ended', handleEnded)
-    return () => video.removeEventListener('ended', handleEnded)
-  }, [])
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate)
+      video.removeEventListener('ended', handleEnded)
+    }
+  }, [isMapVisible])
 
   // Handle coordinate updates from MQTT
   const handleCoordinateUpdate = useCallback((update) => {
@@ -179,15 +197,15 @@ export default function WorldDrivePage() {
 
       {/* Infotainment Screen Overlay (Map) */}
       <div
-        className="absolute z-10 overflow-hidden bg-gray-900 border border-white/10"
+        className={`absolute z-10 overflow-hidden bg-gray-900 border border-white/5 transition-opacity duration-1000 ${isMapVisible ? 'opacity-100' : 'opacity-0'}`}
         style={{
-          top: '61.5%',
-          left: '40.2%',
-          width: '28.2%',
-          height: '24.2%',
-          transform: 'perspective(1200px) rotateX(15deg) rotateY(-5deg) skewX(-1deg)',
-          borderRadius: '4px',
-          boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.3)',
+          top: '65.4%',
+          left: '40.6%',
+          width: '27.3%',
+          height: '25.9%',
+          transform: 'perspective(3000px) rotateX(0deg) rotateY(0deg) skewX(0deg)',
+          borderRadius: '3px',
+          boxShadow: 'inset 0 0 50px rgba(0,0,0,0.9), 0 0 25px rgba(0,0,0,0.4)',
         }}
       >
         <MapView
@@ -198,18 +216,33 @@ export default function WorldDrivePage() {
           status={status}
           isEmbedded={true}
         />
-        {/* Anti-aliasing / blending overlay */}
-        <div className="absolute inset-0 pointer-events-none border-[1px] border-white/5 rounded-sm shadow-[inset_0_0_15px_black]" />
+        {/* Anti-aliasing / glare overlay */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-white/5 via-transparent to-transparent opacity-40" />
+        <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-white/10" />
       </div>
 
-      {/* Floating HUD - Journey Details */}
-      <div className="absolute top-10 right-10 z-20 w-80">
-        <JourneyPanel
-          status={status}
-          routeName={currentRoute?.name || 'Waiting for Route...'}
-          distanceRemaining={distanceRemaining}
-          etaSeconds={estimatedTimeRemaining}
-          currentPosition={currentPosition}
+      {/* Floating HUD Overlays */}
+      <div className={`transition-opacity duration-1000 delay-500 ${isMapVisible ? 'opacity-100' : 'opacity-0'}`}>
+        <ProgressBar3D progress={progress} />
+
+        <div className="absolute top-6 right-6 z-20">
+          <JourneyPanel
+            status={status}
+            routeName={currentRoute?.name || 'Waiting for Route...'}
+            distanceRemaining={distanceRemaining}
+            etaSeconds={estimatedTimeRemaining}
+            currentPosition={currentPosition}
+          />
+        </div>
+
+        <Speedometer speed={speedKmh} />
+
+        <MapControls
+          isFollowing={isFollowing}
+          onFollowingToggle={() => setIsFollowing(!isFollowing)}
+          onZoomIn={() => { }} // Leaflet handles internal zoom with isEmbedded
+          onZoomOut={() => { }}
+          onSettings={() => { }}
         />
       </div>
 
