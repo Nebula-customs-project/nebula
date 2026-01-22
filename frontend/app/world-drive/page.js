@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import MapView from './components/MapView'
-import JourneyStatusDisplay from './components/JourneyStatusDisplay'
+import dynamic from 'next/dynamic'
 import { worldDriveApi } from './lib/api'
+
+// Dynamic imports for UI components
+const MapView = dynamic(() => import('./components/MapView'), { ssr: false })
+const JourneyPanel = dynamic(() => import('./components/hud/JourneyPanel'), { ssr: false })
 
 // Dealership coordinates
 const DEALERSHIP_LOCATION = {
@@ -23,6 +26,7 @@ export default function WorldDrivePage() {
   const [mqttError, setMqttError] = useState(null)
 
   // Refs
+  const videoRef = useRef(null)
   const cleanupRef = useRef(null)
   const pollIntervalRef = useRef(null)
   const currentJourneyIdRef = useRef(null)
@@ -50,6 +54,21 @@ export default function WorldDrivePage() {
     ? { lat: currentRoute.start_point.latitude, lng: currentRoute.start_point.longitude }
     : DEALERSHIP_LOCATION
 
+  // Video loop logic: handle loop from 8 seconds
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const handleEnded = () => {
+      console.log('Video ended, looping back to 8s')
+      video.currentTime = 8
+      video.play().catch(err => console.error('Video play error:', err))
+    }
+
+    video.addEventListener('ended', handleEnded)
+    return () => video.removeEventListener('ended', handleEnded)
+  }, [])
+
   // Handle coordinate updates from MQTT
   const handleCoordinateUpdate = useCallback((update) => {
     setCurrentPosition({
@@ -68,10 +87,6 @@ export default function WorldDrivePage() {
         speed_meters_per_second: update.speed_meters_per_second || prev.speed_meters_per_second,
       }
     })
-
-    if (update.status === 'COMPLETED') {
-      console.log('Journey completed, will wait for next journey...')
-    }
   }, [])
 
   // Cleanup MQTT connection
@@ -84,16 +99,11 @@ export default function WorldDrivePage() {
 
   // Subscribe to journey updates
   const subscribeToJourney = useCallback((journeyId) => {
-    // Don't resubscribe to same journey
-    if (currentJourneyIdRef.current === journeyId && cleanupRef.current) {
-      return
-    }
+    if (currentJourneyIdRef.current === journeyId && cleanupRef.current) return
 
-    // Cleanup previous subscription
     cleanupConnection()
     currentJourneyIdRef.current = journeyId
 
-    console.log('Subscribing to journey:', journeyId)
     try {
       cleanupRef.current = worldDriveApi.subscribeToJourney(
         journeyId,
@@ -104,22 +114,17 @@ export default function WorldDrivePage() {
             setMqttError(err.message || 'Failed to connect to MQTT broker')
           },
           onEvent: (event) => {
-            console.log('Journey event:', event)
-            // Handle MQTT error events
             if (event.type === 'mqtt-error') {
-              setMqttError(event.message || event.error || 'MQTT connection failed')
+              setMqttError(event.message || 'MQTT connection failed')
             } else if (event.type === 'journey-completed') {
-              // Clear MQTT error on journey completion
               setMqttError(null)
             }
           }
         }
       )
-      // Clear MQTT error on successful subscription
       setMqttError(null)
     } catch (err) {
-      console.error('Failed to subscribe to MQTT:', err)
-      setMqttError(err.message || 'Failed to connect to MQTT broker. Real-time updates will not be available.')
+      setMqttError(err.message || 'Failed to connect to MQTT broker.')
     }
   }, [handleCoordinateUpdate, cleanupConnection])
 
@@ -134,159 +139,107 @@ export default function WorldDrivePage() {
           lat: journey.current_position.latitude,
           lng: journey.current_position.longitude,
         })
-
-        // Subscribe to real-time updates if not already subscribed
         subscribeToJourney(journey.journey_id)
-        setIsConnecting(false)
       } else {
-        // No active journey - clear state but keep polling
-        if (journeyState?.status === 'COMPLETED') {
-          // Keep showing completed state briefly
-        } else {
+        if (journeyState?.status !== 'COMPLETED') {
           setJourneyState(null)
           currentJourneyIdRef.current = null
           cleanupConnection()
         }
-        setIsConnecting(false)
       }
-
-      // Clear any previous errors on successful poll
+      setIsConnecting(false)
       setError(null)
     } catch (err) {
-      console.error('Failed to poll journey:', err)
-      const errorMessage = err.message || 'Failed to connect to backend. Please ensure the gateway-service and world-view service are running.'
-      setError(errorMessage)
+      setError(err.message || 'Failed to connect to backend.')
       setIsConnecting(false)
-      
-      // Don't keep polling aggressively if there's a persistent error
-      // Will retry on next interval
     }
   }, [journeyState?.status, subscribeToJourney, cleanupConnection])
 
   // Start polling on mount
   useEffect(() => {
-    // Initial poll
     pollCurrentJourney()
-
-    // Set up polling interval
     pollIntervalRef.current = setInterval(pollCurrentJourney, JOURNEY_POLL_INTERVAL)
-
     return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current)
-      }
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
       cleanupConnection()
     }
   }, [pollCurrentJourney, cleanupConnection])
 
   return (
-    <div className="h-dvh max-h-dvh bg-gray-900 text-white flex flex-col overflow-hidden">
-      {/* Main content */}
-      <main className="flex-1 flex flex-row min-h-0">
-        {/* Map area */}
-        <div className="flex-1 relative min-h-0 overflow-hidden">
-          <MapView
-            currentPosition={currentPosition}
-            destination={DEALERSHIP_LOCATION}
-            startPoint={startPoint}
-            waypoints={waypoints}
-            status={status}
-          />
+    <div className="relative w-full h-dvh bg-black overflow-hidden font-sans">
+      {/* Background Video Dashboard */}
+      <video
+        ref={videoRef}
+        className="absolute inset-0 w-full h-full object-cover"
+        src="/videos/dashboard-loop.mp4"
+        autoPlay
+        muted
+        playsInline
+      />
 
-          {/* Backend API Error toast */}
-          {error && (
-            <div className="absolute top-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-red-900 border border-red-700 text-red-100 p-4 rounded-lg shadow-lg z-[1000]">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-semibold mb-1">Backend Connection Error</p>
-                  <p className="text-xs opacity-90">{error}</p>
-                </div>
-                <button
-                  onClick={() => setError(null)}
-                  className="text-red-300 hover:text-red-100 ml-2 flex-shrink-0"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          )}
+      {/* Infotainment Screen Overlay (Map) */}
+      <div
+        className="absolute z-10 overflow-hidden bg-gray-900 border border-white/10"
+        style={{
+          top: '61.5%',
+          left: '40.2%',
+          width: '28.2%',
+          height: '24.2%',
+          transform: 'perspective(1200px) rotateX(15deg) rotateY(-5deg) skewX(-1deg)',
+          borderRadius: '4px',
+          boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.3)',
+        }}
+      >
+        <MapView
+          currentPosition={currentPosition}
+          destination={DEALERSHIP_LOCATION}
+          startPoint={startPoint}
+          waypoints={waypoints}
+          status={status}
+          isEmbedded={true}
+        />
+        {/* Anti-aliasing / blending overlay */}
+        <div className="absolute inset-0 pointer-events-none border-[1px] border-white/5 rounded-sm shadow-[inset_0_0_15px_black]" />
+      </div>
 
-          {/* MQTT Connection Error toast */}
-          {mqttError && (
-            <div className={`absolute ${error ? 'top-24' : 'top-4'} left-4 right-4 md:left-auto md:right-4 md:w-96 bg-orange-900 border border-orange-700 text-orange-100 p-4 rounded-lg shadow-lg z-[1000]`}>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-semibold mb-1 flex items-center gap-2">
-                    <span>⚠️</span>
-                    MQTT Broker Not Connected
-                  </p>
-                  <p className="text-xs opacity-90">{mqttError}</p>
-                  <p className="text-xs opacity-75 mt-2">
-                    Real-time position updates are disabled. Journey status will still update via API polling.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setMqttError(null)}
-                  className="text-orange-300 hover:text-orange-100 ml-2 flex-shrink-0"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+      {/* Floating HUD - Journey Details */}
+      <div className="absolute top-10 right-10 z-20 w-80">
+        <JourneyPanel
+          status={status}
+          routeName={currentRoute?.name || 'Waiting for Route...'}
+          distanceRemaining={distanceRemaining}
+          etaSeconds={estimatedTimeRemaining}
+          currentPosition={currentPosition}
+        />
+      </div>
 
-        {/* Side panel */}
-        <div className="w-[400px] max-w-[40vw] flex-shrink-0 bg-gray-800 p-3 border-l border-gray-700 overflow-hidden flex flex-col">
-          <div className="space-y-2.5 overflow-y-auto scrollbar-hide">
-            {/* Journey status display */}
-            <JourneyStatusDisplay
-              status={status}
-              progress={progress}
-              speedMps={journeyState?.speed_meters_per_second || 0}
-              distanceRemainingMeters={distanceRemaining}
-              etaSeconds={estimatedTimeRemaining}
-              routeName={currentRoute?.name}
-              isConnecting={isConnecting}
-            />
+      {/* Speedometer Overlay (optional extra visual since video has one) */}
+      {/* If the video speedometer doesn't move or the user wants our live data visible elsewhere */}
+      {/* But user said "dont change anything in the background... or change the speedometer" */}
+      {/* So I'll keep ours hidden to let the video one show, assuming it matches the vibe */}
 
-            {/* Destination & Position - right after stats */}
-            <div className="space-y-2">
-            {/* Destination */}
-            <div className="bg-gray-700/50 rounded-xl p-3 border border-gray-600/50">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-red-500/20 rounded-lg flex items-center justify-center">
-                  <span className="text-lg">🏁</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-400">Destination</p>
-                  <p className="text-sm font-semibold text-white truncate">Stuttgart, DE</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Current position */}
-            <div className="bg-gray-700/50 rounded-xl p-3 border border-gray-600/50">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                  <span className="text-lg">📍</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-400">Position</p>
-                  {currentPosition ? (
-                    <p className="text-xs font-mono text-white truncate">
-                      {currentPosition.lat.toFixed(4)}°, {currentPosition.lng.toFixed(4)}°
-                    </p>
-                  ) : (
-                    <p className="text-xs text-gray-400 truncate">—</p>
-                  )}
-                </div>
-              </div>
-            </div>
-            </div>
+      {/* Connection / Error Toasts */}
+      <div className="absolute bottom-10 left-10 z-30 space-y-4 max-w-sm">
+        {error && (
+          <div className="bg-red-900/80 backdrop-blur-md border border-red-700 p-4 rounded-xl text-red-100 animate-in fade-in slide-in-from-bottom-4">
+            <p className="font-bold text-sm">System Alert</p>
+            <p className="text-xs opacity-90">{error}</p>
           </div>
+        )}
+        {mqttError && (
+          <div className="bg-orange-900/80 backdrop-blur-md border border-orange-700 p-4 rounded-xl text-orange-100 animate-in fade-in slide-in-from-bottom-4">
+            <p className="font-bold text-sm">Connection Warning</p>
+            <p className="text-xs opacity-90">{mqttError}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Loading State */}
+      {isConnecting && !journeyState && (
+        <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center">
+          <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin" />
         </div>
-      </main>
+      )}
     </div>
   )
 }
