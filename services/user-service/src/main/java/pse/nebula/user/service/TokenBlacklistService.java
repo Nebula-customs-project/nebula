@@ -5,8 +5,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.transaction.annotation.Transactional;
 import pse.nebula.user.model.BlacklistedToken;
 import pse.nebula.user.repository.BlacklistedTokenRepository;
 
@@ -30,7 +28,6 @@ public class TokenBlacklistService {
         this.jwtUtil = jwtUtil;
     }
 
-    @Transactional
     public void blacklistToken(String token) {
         try {
             // Parse the token to get expiration time using JwtUtil
@@ -68,8 +65,7 @@ public class TokenBlacklistService {
     }
 
     // Cleanup expired tokens every hour
-    @Scheduled(fixedRate = 3600000) // 1 hour in milliseconds
-    @Transactional
+    // Note: This method will not execute since this class is no longer a Spring bean
     public void cleanupExpiredTokens() {
         try {
             blacklistedTokenRepository.deleteExpiredTokens(LocalDateTime.now());
