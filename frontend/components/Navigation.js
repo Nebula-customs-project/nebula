@@ -6,12 +6,9 @@ import { Car, ShoppingCart, MapPin, User, Settings, LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function Navigation() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const { user, logout } = useAuth()
-  
-  // Don't highlight nav items on dashboard pages
-  const isDashboardPage = pathname.includes('dashboard')
+  const pathname = usePathname();
+  const router = useRouter();
+  const { isAuthenticated, logout } = useAuth();
 
   const navigation = [
     { href: '/', label: 'Home', icon: Car },
@@ -19,13 +16,13 @@ export default function Navigation() {
     { href: '/car-configurator', label: 'Car Configurator', icon: Settings },
     { href: '/world-drive', label: 'World Drive', icon: MapPin },
     { href: '/merchandise', label: 'Merchandise', icon: ShoppingCart },
-    ...(user && user.role === 'USER' ? [{ href: '/my-car', label: 'My Car', icon: User }] : [])
-  ]
+    { href: '/my-car', label: 'My Car', icon: User },
+  ];
 
   const handleLogout = () => {
-    logout()
-    router.push('/login')
-  }
+    logout();
+    router.push('/login');
+  };
 
   return (
     <nav className="bg-black/90 backdrop-blur-md text-white fixed top-0 left-0 right-0 z-[100] shadow-lg">
@@ -36,22 +33,24 @@ export default function Navigation() {
             <span className="text-2xl font-bold">NEBULA</span>
           </Link>
           <div className="flex gap-1">
-            {navigation.map(item => {
-              const Icon = item.icon
-              const isActive = !isDashboardPage && pathname === item.href
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${isActive ? 'bg-red-600' : 'hover:bg-gray-800'
-                    }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden md:inline">{item.label}</span>
-                </Link>
-              )
-            })}
-            {user ? (
+            {navigation
+              .filter(item => item.href !== '/my-car' || isAuthenticated)
+              .map(item => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${isActive ? 'bg-red-600' : 'hover:bg-gray-800'
+                      }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="hidden md:inline">{item.label}</span>
+                  </Link>
+                );
+              })}
+            {isAuthenticated ? (
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800 transition"
@@ -72,5 +71,5 @@ export default function Navigation() {
         </div>
       </div>
     </nav>
-  )
+  );
 }

@@ -18,11 +18,7 @@ function PaymentQR({ onSuccess, onBack }) {
       <h2 className="text-3xl font-extrabold text-gray-100 tracking-tight mb-2">Scan to Pay</h2>
       <div className="bg-gray-900 p-5 rounded-2xl shadow-2xl border-4 border-gray-700 flex flex-col items-center">
         <div className="bg-white rounded-xl p-2 shadow-inner">
-          <img
-            src="/qr-demo.png"
-            alt="Scan QR to pay"
-            className="w-44 h-44 object-contain drop-shadow-lg"
-          />
+          <QRCode value="Gotcha!!!" size={176} />
         </div>
         <div className="mt-4 text-lg font-semibold text-gray-200 text-center">Please scan the QR code</div>
       </div>
