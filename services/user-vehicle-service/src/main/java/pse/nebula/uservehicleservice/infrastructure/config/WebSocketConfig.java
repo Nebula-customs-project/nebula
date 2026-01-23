@@ -22,7 +22,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(telemetryHandler, "/ws/vehicle-telemetry")
-                .setAllowedOrigins("*"); // Gateway handles CORS and authentication
+        registry.addHandler(telemetryHandler, "/ws/vehicle-telemetry");
     }
 }

@@ -15,6 +15,9 @@ import pse.nebula.uservehicleservice.domain.repository.UserVehicleRepository;
 import pse.nebula.uservehicleservice.infrastructure.adapter.outbound.rest.VehicleServiceClient;
 import pse.nebula.uservehicleservice.infrastructure.adapter.outbound.rest.dto.VehicleDto;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -109,6 +112,7 @@ class UserVehicleIntegrationTest {
         LocalDate maintenanceDate = LocalDate.now().plusMonths(6);
         UserVehicle existingVehicle = new UserVehicle(userId, 1, "Furari", maintenanceDate);
         userVehicleRepository.save(existingVehicle);
+        ObjectMapper objectMapper = new ObjectMapper();
 
         // When - make two requests
         String response1 = mockMvc.perform(get(USER_VEHICLE_INFO_URL)
@@ -123,22 +127,33 @@ class UserVehicleIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        // Then - responses should have different tyre pressures (high probability)
-        assertThat(response1).isNotBlank();
-        assertThat(response2).isNotBlank();
+        // Then - deserialize and compare tyre pressures
+        JsonNode json1 = objectMapper.readTree(response1).get("tyrePressures");
+        JsonNode json2 = objectMapper.readTree(response2).get("tyrePressures");
+
+        // At least one tyre pressure should differ between requests (high probability
+        // with random generation)
+        boolean anyDifferent = !json1.get("frontLeft").equals(json2.get("frontLeft")) ||
+                !json1.get("frontRight").equals(json2.get("frontRight")) ||
+                !json1.get("rearLeft").equals(json2.get("rearLeft")) ||
+                !json1.get("rearRight").equals(json2.get("rearRight"));
+
+        assertThat(anyDifferent)
+                .as("Tyre pressures should differ between requests (random generation)")
+                .isTrue();
     }
 
     @Test
-    @DisplayName("should handle concurrent requests for same user")
-    void shouldHandleConcurrentRequests() throws Exception {
+    @DisplayName("should return same vehicle on repeated requests (idempotent)")
+    void shouldReturnSameVehicleOnRepeatedRequests() throws Exception {
         // Given
-        String userId = "concurrent-user";
+        String userId = "repeated-request-user";
         List<VehicleDto> availableVehicles = List.of(
                 new VehicleDto(1, "Furari", "SPORTS", 670, new BigDecimal("245000.00"), "furari-hero",
                         "/models/furarri.glb"));
         when(vehicleServiceClient.getAllVehicles()).thenReturn(availableVehicles);
 
-        // When - make multiple requests (simulating concurrent access)
+        // When - make multiple sequential requests for the same user
         for (int i = 0; i < 5; i++) {
             mockMvc.perform(get(USER_VEHICLE_INFO_URL)
                     .header(USER_ID_HEADER, userId)
@@ -146,9 +161,12 @@ class UserVehicleIntegrationTest {
                     .andExpect(status().isOk());
         }
 
-        // Then - should only have one entry in database
+        // Then - should only have one entry in database (idempotent assignment)
         long count = userVehicleRepository.count();
         assertThat(count).isEqualTo(1);
+
+        // Verify vehicle service was called only once (for first request)
+        verify(vehicleServiceClient, times(1)).getAllVehicles();
     }
 
     @Test

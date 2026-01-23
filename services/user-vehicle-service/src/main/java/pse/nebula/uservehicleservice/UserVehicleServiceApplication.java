@@ -7,8 +7,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 /**
  * User Vehicle Service Application.
  *
- * Manages user-vehicle assignments and publishes real-time vehicle telemetry
- * (location and fuel) via MQTT.
+ * Manages user-vehicle assignments and exposes real-time vehicle telemetry
+ * (location and fuel) over WebSocket connections.
  */
 @SpringBootApplication
 @EnableDiscoveryClient
@@ -18,4 +18,3 @@ public class UserVehicleServiceApplication {
         SpringApplication.run(UserVehicleServiceApplication.class, args);
     }
 }
-
