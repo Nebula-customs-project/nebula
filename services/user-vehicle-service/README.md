@@ -1,6 +1,6 @@
 # User Vehicle Service
 
-Manages user-vehicle assignments and publishes real-time vehicle telemetry (location and fuel) via MQTT.
+Manages user-vehicle assignments and provides real-time vehicle telemetry (location and fuel) via WebSocket.
 
 ## Overview
 
@@ -8,7 +8,7 @@ This service handles:
 - **Vehicle Assignment**: Assigns a random vehicle from the vehicle catalog to users on their first request
 - **Maintenance Tracking**: Sets maintenance due date to 6 months from assignment
 - **Tyre Pressure**: Generates random tyre pressures (28-35 PSI) for all 4 tyres
-- **Real-time Telemetry**: Publishes vehicle location and fuel data to MQTT every 5 minutes
+- **Real-time Telemetry**: Sends vehicle location and fuel data via WebSocket every 5 minutes
 
 ## Architecture
 
@@ -18,9 +18,9 @@ This service handles:
 ├─────────────────────────────────────────────────────────────────┤
 │  Infrastructure Layer                                           │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │ REST Controller │  │ MQTT Publisher  │  │ JPA Repository  │ │
-│  │ /api/v1/user-   │  │ (5 min interval)│  │                 │ │
-│  │ vehicle/info    │  │                 │  │                 │ │
+│  │ REST Controller │  │ WebSocket       │  │ JPA Repository  │ │
+│  │ /api/v1/user-   │  │ Handler         │  │                 │ │
+│  │ vehicle/info    │  │ (5 min interval)│  │                 │ │
 │  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘ │
 │           │                    │                    │           │
 ├───────────┼────────────────────┼────────────────────┼───────────┤
@@ -60,13 +60,21 @@ Response 200 OK:
 }
 ```
 
-## MQTT Topics
+## WebSocket Endpoint
 
-| Topic | Description | Interval |
-|-------|-------------|----------|
-| `nebula/user/{userId}/vehicle/info` | Real-time vehicle telemetry | Every 5 minutes |
+### Connect for Real-time Telemetry
+```
+WebSocket: ws://localhost:8085/ws/vehicle-telemetry
+Header: X-User-Id: <userId> (injected by gateway after JWT validation)
+```
 
-### MQTT Payload Structure
+**Connection Flow:**
+1. Client connects to gateway with JWT token
+2. Gateway validates JWT and injects `X-User-Id` header
+3. Connection is proxied to user-vehicle-service
+4. Service assigns vehicle (if new user) and starts telemetry
+
+**Payload (sent every 5 minutes):**
 ```json
 {
   "vehicleName": "Furari",
@@ -78,6 +86,11 @@ Response 200 OK:
   "timestamp": "2026-01-18T10:30:00Z"
 }
 ```
+
+**Features:**
+- One connection per user (new connection closes existing)
+- Immediate telemetry on connect
+- Automatic cleanup on disconnect
 
 ## Database
 
@@ -101,24 +114,22 @@ Response 200 OK:
 | Property | Default | Description |
 |----------|---------|-------------|
 | `server.port` | 8085 | Service port |
-| `mqtt.broker.host` | localhost | MQTT broker host |
-| `mqtt.broker.port` | 1883 | MQTT broker port |
-| `mqtt.topic.prefix` | nebula/user | MQTT topic prefix |
+| `websocket.endpoint` | /ws/vehicle-telemetry | WebSocket endpoint path |
+| `websocket.telemetry.interval-minutes` | 5 | Telemetry push interval |
 | `vehicle-service.base-url` | http://localhost:8081 | Vehicle service URL |
 
 ## Running the Service
 
 ### Prerequisites
 1. PostgreSQL database running (via Docker)
-2. RabbitMQ with MQTT plugin running (via Docker)
-3. Vehicle Service running on port 8081
-4. Platform Core (Eureka) running on port 8761
+2. Vehicle Service running on port 8081
+3. Platform Core (Eureka) running on port 8761
 
 ### Start Infrastructure (Docker)
 ```bash
 # From project root
 cd docker
-docker-compose up -d postgres rabbitmq
+docker-compose up -d postgres
 ```
 
 ### Run the Service
@@ -176,6 +187,12 @@ curl -X GET http://localhost:8080/api/v1/user-vehicle/info \
   -H "Content-Type: application/json"
 ```
 
+### Test WebSocket Connection
+```bash
+# Using wscat (npm install -g wscat)
+wscat -c "ws://localhost:8085/ws/vehicle-telemetry" -H "X-User-Id: user-123"
+```
+
 ### Health Check
 ```bash
 curl http://localhost:8085/actuator/health
@@ -184,7 +201,5 @@ curl http://localhost:8085/actuator/health
 ## Dependencies
 
 - **Vehicle Service**: REST calls to fetch available vehicles
-- **RabbitMQ**: MQTT broker for real-time updates
 - **PostgreSQL**: Persistent storage for user-vehicle assignments
 - **Eureka**: Service discovery (required)
-

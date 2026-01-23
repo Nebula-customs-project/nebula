@@ -12,7 +12,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import pse.nebula.uservehicleservice.domain.model.UserVehicle;
 import pse.nebula.uservehicleservice.domain.repository.UserVehicleRepository;
-import pse.nebula.uservehicleservice.infrastructure.adapter.outbound.mqtt.VehicleTelemetryPublisher;
 import pse.nebula.uservehicleservice.infrastructure.adapter.outbound.rest.VehicleServiceClient;
 import pse.nebula.uservehicleservice.infrastructure.adapter.outbound.rest.dto.VehicleDto;
 
@@ -26,6 +25,11 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Integration tests for User Vehicle Service.
+ * Note: WebSocket telemetry is tested separately in
+ * VehicleTelemetryWebSocketHandlerTest.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -44,9 +48,6 @@ class UserVehicleIntegrationTest {
     @MockitoBean
     private VehicleServiceClient vehicleServiceClient;
 
-    @MockitoBean
-    private VehicleTelemetryPublisher telemetryPublisher;
-
     @BeforeEach
     void setUp() {
         userVehicleRepository.deleteAll();
@@ -58,14 +59,14 @@ class UserVehicleIntegrationTest {
         // Given
         String userId = "new-user-001";
         List<VehicleDto> availableVehicles = List.of(
-                new VehicleDto(1, "Furari", "SPORTS", 670, new BigDecimal("245000.00"), "furari-hero", "/models/furarri.glb")
-        );
+                new VehicleDto(1, "Furari", "SPORTS", 670, new BigDecimal("245000.00"), "furari-hero",
+                        "/models/furarri.glb"));
         when(vehicleServiceClient.getAllVehicles()).thenReturn(availableVehicles);
 
         // When
         mockMvc.perform(get(USER_VEHICLE_INFO_URL)
-                        .header(USER_ID_HEADER, userId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                .header(USER_ID_HEADER, userId)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.maintenanceDueDate").exists())
                 .andExpect(jsonPath("$.tyrePressures").exists());
@@ -76,9 +77,6 @@ class UserVehicleIntegrationTest {
         assertThat(savedVehicle.getVehicleName()).isEqualTo("Furari");
         assertThat(savedVehicle.getVehicleId()).isEqualTo(1);
         assertThat(savedVehicle.getMaintenanceDueDate()).isEqualTo(LocalDate.now().plusMonths(6));
-
-        // Verify MQTT publishing started
-        verify(telemetryPublisher).startPublishing(userId, "Furari");
     }
 
     @Test
@@ -92,8 +90,8 @@ class UserVehicleIntegrationTest {
 
         // When
         mockMvc.perform(get(USER_VEHICLE_INFO_URL)
-                        .header(USER_ID_HEADER, userId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                .header(USER_ID_HEADER, userId)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.maintenanceDueDate").value("2026-07-18"))
                 .andExpect(jsonPath("$.tyrePressures.frontLeft", greaterThanOrEqualTo(28.0)))
@@ -101,9 +99,6 @@ class UserVehicleIntegrationTest {
 
         // Then - verify vehicle service was NOT called
         verify(vehicleServiceClient, never()).getAllVehicles();
-
-        // Verify MQTT publishing started with correct vehicle name
-        verify(telemetryPublisher).startPublishing(userId, "GTR");
     }
 
     @Test
@@ -117,20 +112,18 @@ class UserVehicleIntegrationTest {
 
         // When - make two requests
         String response1 = mockMvc.perform(get(USER_VEHICLE_INFO_URL)
-                        .header(USER_ID_HEADER, userId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                .header(USER_ID_HEADER, userId)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         String response2 = mockMvc.perform(get(USER_VEHICLE_INFO_URL)
-                        .header(USER_ID_HEADER, userId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                .header(USER_ID_HEADER, userId)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         // Then - responses should have different tyre pressures (high probability)
-        // Note: There's a tiny chance they could be the same, but it's extremely unlikely
-        // This test verifies the random generation is working
         assertThat(response1).isNotBlank();
         assertThat(response2).isNotBlank();
     }
@@ -141,15 +134,15 @@ class UserVehicleIntegrationTest {
         // Given
         String userId = "concurrent-user";
         List<VehicleDto> availableVehicles = List.of(
-                new VehicleDto(1, "Furari", "SPORTS", 670, new BigDecimal("245000.00"), "furari-hero", "/models/furarri.glb")
-        );
+                new VehicleDto(1, "Furari", "SPORTS", 670, new BigDecimal("245000.00"), "furari-hero",
+                        "/models/furarri.glb"));
         when(vehicleServiceClient.getAllVehicles()).thenReturn(availableVehicles);
 
         // When - make multiple requests (simulating concurrent access)
         for (int i = 0; i < 5; i++) {
             mockMvc.perform(get(USER_VEHICLE_INFO_URL)
-                            .header(USER_ID_HEADER, userId)
-                            .contentType(MediaType.APPLICATION_JSON))
+                    .header(USER_ID_HEADER, userId)
+                    .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk());
         }
 
@@ -169,8 +162,8 @@ class UserVehicleIntegrationTest {
 
         // When/Then
         mockMvc.perform(get(USER_VEHICLE_INFO_URL)
-                        .header(USER_ID_HEADER, userId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                .header(USER_ID_HEADER, userId)
+                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.maintenanceDueDate").value("2026-08-15"))
@@ -181,4 +174,3 @@ class UserVehicleIntegrationTest {
                 .andExpect(jsonPath("$.tyrePressures.rearRight").isNumber());
     }
 }
-

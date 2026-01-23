@@ -39,18 +39,11 @@ eureka:
   client:
     enabled: false
 
-# MQTT Configuration (disabled for testing)
-mqtt:
-  enabled: false
-  broker:
-    host: localhost
-    port: 1883
-  client:
-    id: user-vehicle-service-test
-  username: test
-  password: test
-  topic:
-    prefix: nebula/user
+# WebSocket Configuration (for testing)
+websocket:
+  endpoint: /ws/vehicle-telemetry
+  telemetry:
+    interval-minutes: 5
 
 # Vehicle Service Configuration
 vehicle-service:

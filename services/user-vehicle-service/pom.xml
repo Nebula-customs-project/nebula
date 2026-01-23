@@ -77,10 +77,10 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- MQTT Client -->
+        <!-- WebSocket -->
         <dependency>
-            <groupId>com.hivemq</groupId>
-            <artifactId>hivemq-mqtt-client</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
         <!-- OpenAPI / Swagger UI -->
