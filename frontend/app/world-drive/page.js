@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { worldDriveApi } from "./lib/api";
 import { useVideoOverlay } from "./hooks/useVideoOverlay";
@@ -57,12 +57,12 @@ export default function WorldDrivePage() {
   // Adjust these values to match the infotainment screen position in your video
   // Overlay position config (percentages relative to video's native resolution)
   // Adjust these values to match the infotainment screen position in your video
-  const overlayConfig = {
+  const overlayConfig = useMemo(() => ({
     topPercent: 64.9,
     leftPercent: 40.6,
     widthPercent: 27.8,
     heightPercent: 24.9,
-  };
+  }), []);
 
 
 

@@ -33,7 +33,7 @@ export default function RootLayout({ children }) {
           crossOrigin=""
         />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         <Navigation />
         {children}
       </body>

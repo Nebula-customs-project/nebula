@@ -53,10 +53,10 @@ export default function CarConfiguratorPage() {
       vehicles.find((v) => v.vehicleId === currentVehicleId) || vehicles[0];
     return vehicle
       ? {
-          id: vehicle.vehicleId,
-          name: vehicle.carName || vehicle.name,
-          modelPath: vehicle.modelPath,
-        }
+        id: vehicle.vehicleId,
+        name: vehicle.carName || vehicle.name,
+        modelPath: vehicle.modelPath,
+      }
       : null;
   }, [currentVehicleId, vehicles]);
 
@@ -409,7 +409,7 @@ export default function CarConfiguratorPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white pt-16">
       {/* Rendering Effect Overlay */}
       <RenderingEffect
         isRendering={isRendering}
@@ -433,7 +433,7 @@ export default function CarConfiguratorPage() {
               {/* Video Intro Effect - Only plays on FIRST visit, positioned within 3D viewer */}
               <VideoIntroEffect
                 videoSrc="/videos/car-intro.mp4"
-                onComplete={() => {}}
+                onComplete={() => { }}
               />
               {currentVehicle && (
                 <Vehicle3DScene
@@ -450,9 +450,8 @@ export default function CarConfiguratorPage() {
 
               {/* Paint Change Flash Effect */}
               <div
-                className={`absolute inset-0 pointer-events-none transition-opacity duration-200 ${
-                  isPaintChanging ? "opacity-100" : "opacity-0"
-                }`}
+                className={`absolute inset-0 pointer-events-none transition-opacity duration-200 ${isPaintChanging ? "opacity-100" : "opacity-0"
+                  }`}
                 style={{
                   background:
                     "radial-gradient(circle at center, rgba(239, 68, 68, 0.4) 0%, rgba(0, 0, 0, 0.8) 70%)",
@@ -549,9 +548,8 @@ export default function CarConfiguratorPage() {
                     Customization
                   </p>
                   <p
-                    className={`text-base font-bold transition-colors ${
-                      customizationCost > 0 ? "text-red-400" : "text-gray-500"
-                    }`}
+                    className={`text-base font-bold transition-colors ${customizationCost > 0 ? "text-red-400" : "text-gray-500"
+                      }`}
                   >
                     {customizationCost > 0 ? "+" : ""}€
                     {customizationCost.toLocaleString()}
