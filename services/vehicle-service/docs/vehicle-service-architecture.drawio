@@ -1,0 +1,257 @@
+<mxfile host="app.diagrams.net" modified="2026-01-15T12:00:00.000Z" agent="5.0" etag="vehicle-service-arch" version="21.0.0" type="device">
+  <diagram id="vehicle-service-architecture" name="Vehicle Service Architecture">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Infrastructure Layer Box -->
+        <mxCell id="infra-layer" value="Infrastructure Layer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;fontStyle=1;fontSize=14;fontColor=#b45f06;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="720" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- Persistence Adapter (JPA) -->
+        <mxCell id="persistence-adapter" value="&lt;font color=&quot;#b45f06&quot;&gt;« Component »&lt;/font&gt;&lt;br&gt;&lt;b&gt;Persistence Adapter (JPA)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Web Adapter -->
+        <mxCell id="web-adapter" value="&lt;font color=&quot;#b45f06&quot;&gt;« Component »&lt;/font&gt;&lt;br&gt;&lt;b&gt;Web Adapter&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="310" y="80" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Config Adapter -->
+        <mxCell id="config-adapter" value="&lt;font color=&quot;#b45f06&quot;&gt;« Component »&lt;/font&gt;&lt;br&gt;&lt;b&gt;Config Adapter&lt;/b&gt;&lt;br&gt;(DataSeeder)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="560" y="80" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- VehicleUseCase Interface -->
+        <mxCell id="vehicle-usecase" value="&lt;font color=&quot;#1155cc&quot;&gt;«interface»&lt;/font&gt;&lt;br&gt;&lt;b&gt;VehicleUseCase&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="180" y="160" width="140" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ConfigurationUseCase Interface -->
+        <mxCell id="config-usecase" value="&lt;font color=&quot;#1155cc&quot;&gt;«interface»&lt;/font&gt;&lt;br&gt;&lt;b&gt;ConfigurationUseCase&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="430" y="160" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Application Layer Box -->
+        <mxCell id="app-layer" value="Application Layer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;fontStyle=1;fontSize=14;fontColor=#38761d;" vertex="1" parent="1">
+          <mxGeometry x="40" y="240" width="720" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- VehicleService Component -->
+        <mxCell id="vehicle-service" value="&lt;font color=&quot;#38761d&quot;&gt;« Component »&lt;/font&gt;&lt;br&gt;&lt;b&gt;VehicleService&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="100" y="290" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ConfigurationService Component -->
+        <mxCell id="config-service" value="&lt;font color=&quot;#38761d&quot;&gt;« Component »&lt;/font&gt;&lt;br&gt;&lt;b&gt;ConfigurationService&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="290" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- VehicleRepository Interface -->
+        <mxCell id="vehicle-repo" value="&lt;font color=&quot;#1155cc&quot;&gt;«interface»&lt;/font&gt;&lt;br&gt;&lt;b&gt;VehicleRepository&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="60" y="370" width="140" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- PaintRepository Interface -->
+        <mxCell id="paint-repo" value="&lt;font color=&quot;#1155cc&quot;&gt;«interface»&lt;/font&gt;&lt;br&gt;&lt;b&gt;PaintRepository&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="220" y="370" width="130" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- RimRepository Interface -->
+        <mxCell id="rim-repo" value="&lt;font color=&quot;#1155cc&quot;&gt;«interface»&lt;/font&gt;&lt;br&gt;&lt;b&gt;RimRepository&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="370" y="370" width="130" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- InteriorRepository Interface -->
+        <mxCell id="interior-repo" value="&lt;font color=&quot;#1155cc&quot;&gt;«interface»&lt;/font&gt;&lt;br&gt;&lt;b&gt;InteriorRepository&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="520" y="370" width="140" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Domain Layer Box -->
+        <mxCell id="domain-layer" value="Domain Layer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;verticalAlign=top;fontStyle=1;fontSize=14;fontColor=#990000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="460" width="720" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- Vehicle Entity -->
+        <mxCell id="vehicle-entity" value="&lt;b&gt;Vehicle&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="60" y="510" width="100" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- CarType Entity -->
+        <mxCell id="cartype-entity" value="&lt;b&gt;CarType&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="180" y="510" width="100" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Paint Entity -->
+        <mxCell id="paint-entity" value="&lt;b&gt;Paint&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="300" y="510" width="100" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- PaintPrice Entity -->
+        <mxCell id="paintprice-entity" value="&lt;b&gt;PaintPrice&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="300" y="565" width="100" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Rim Entity -->
+        <mxCell id="rim-entity" value="&lt;b&gt;Rim&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="420" y="510" width="100" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- RimPrice Entity -->
+        <mxCell id="rimprice-entity" value="&lt;b&gt;RimPrice&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="420" y="565" width="100" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Interior Entity -->
+        <mxCell id="interior-entity" value="&lt;b&gt;Interior&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="540" y="510" width="100" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- InteriorPrice Entity -->
+        <mxCell id="interiorprice-entity" value="&lt;b&gt;InteriorPrice&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="540" y="565" width="100" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- VehicleNotFoundException -->
+        <mxCell id="vehicle-exception" value="&lt;b&gt;VehicleNotFoundException&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="660" y="510" width="90" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Connection: Web Adapter to VehicleUseCase -->
+        <mxCell id="conn1" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="web-adapter" target="vehicle-usecase">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connection: Web Adapter to ConfigurationUseCase -->
+        <mxCell id="conn2" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="web-adapter" target="config-usecase">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connection: VehicleUseCase to VehicleService -->
+        <mxCell id="conn3" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="vehicle-usecase" target="vehicle-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connection: ConfigurationUseCase to ConfigurationService -->
+        <mxCell id="conn4" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="config-usecase" target="config-service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connection: VehicleService to VehicleRepository -->
+        <mxCell id="conn5" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="vehicle-service" target="vehicle-repo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn5-label" value="Use" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#666666;fontStyle=2;" vertex="1" connectable="0" parent="conn5">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: ConfigurationService to PaintRepository -->
+        <mxCell id="conn6" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="config-service" target="paint-repo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn6-label" value="Use" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#666666;fontStyle=2;" vertex="1" connectable="0" parent="conn6">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: ConfigurationService to RimRepository -->
+        <mxCell id="conn7" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="config-service" target="rim-repo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn7-label" value="Use" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#666666;fontStyle=2;" vertex="1" connectable="0" parent="conn7">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: ConfigurationService to InteriorRepository -->
+        <mxCell id="conn8" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="config-service" target="interior-repo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn8-label" value="Use" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#666666;fontStyle=2;" vertex="1" connectable="0" parent="conn8">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: ConfigurationService to VehicleRepository -->
+        <mxCell id="conn8b" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="config-service" target="vehicle-repo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn8b-label" value="Use" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#666666;fontStyle=2;" vertex="1" connectable="0" parent="conn8b">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: VehicleRepository to Vehicle -->
+        <mxCell id="conn9" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="vehicle-repo" target="vehicle-entity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn9-label" value="Use" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#666666;fontStyle=2;" vertex="1" connectable="0" parent="conn9">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: PaintRepository to Paint -->
+        <mxCell id="conn10" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="paint-repo" target="paint-entity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn10-label" value="Use" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#666666;fontStyle=2;" vertex="1" connectable="0" parent="conn10">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: RimRepository to Rim -->
+        <mxCell id="conn11" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="rim-repo" target="rim-entity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn11-label" value="Use" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#666666;fontStyle=2;" vertex="1" connectable="0" parent="conn11">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: InteriorRepository to Interior -->
+        <mxCell id="conn12" style="endArrow=open;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="interior-repo" target="interior-entity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn12-label" value="Use" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#666666;fontStyle=2;" vertex="1" connectable="0" parent="conn12">
+          <mxGeometry x="-0.2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: Persistence Adapter to VehicleRepository (implements) -->
+        <mxCell id="conn13" style="endArrow=block;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="persistence-adapter" target="vehicle-repo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connection: Persistence Adapter to PaintRepository (implements) -->
+        <mxCell id="conn14" style="endArrow=block;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="persistence-adapter" target="paint-repo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connection: Persistence Adapter to RimRepository (implements) -->
+        <mxCell id="conn15" style="endArrow=block;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="persistence-adapter" target="rim-repo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connection: Persistence Adapter to InteriorRepository (implements) -->
+        <mxCell id="conn16" style="endArrow=block;html=1;strokeColor=#666666;dashed=1;endFill=0;" edge="1" parent="1" source="persistence-adapter" target="interior-repo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+
