@@ -70,7 +70,7 @@ export default function Speedometer({ speed = 0, maxSpeed = 200 }) {
 
             {/* Speed tick marks */}
             <div className="absolute inset-0">
-                {[0, 50, 100, 150, 200].map((tick, i) => {
+                {[50, 100, 150, 200, 0].map((tick, i) => {
                     const angle = -135 + (i / 4) * 270
                     const rad = (angle * Math.PI) / 180
                     const x = 80 + 55 * Math.cos(rad)
