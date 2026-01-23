@@ -1,20 +1,34 @@
-import { useState, useEffect } from 'react';
-import mqtt from 'mqtt';
+"use client";
 
-let client = null;
-let subscribers = new Map();
+import { useState, useEffect, useCallback } from "react";
+import mqtt from "mqtt";
 
-export function useMQTT(topic, defaultValue = null) {
-  const [value, setValue] = useState(defaultValue);
-  const [connected, setConnected] = useState(false);
+/**
+ * Custom hook for subscribing to MQTT topics
+ * @param {string} topic - MQTT topic to subscribe to
+ * @returns {any} - Latest message received on the topic
+ */
+export function useMQTT(topic) {
+  const [data, setData] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Initialize MQTT client if not already connected
-    if (!client) {
-      const mqttUrl = process.env.NEXT_PUBLIC_MQTT_URL || 'ws://localhost:15675/ws';
-      const username = process.env.NEXT_PUBLIC_MQTT_USERNAME || 'nebula';
-      const password = process.env.NEXT_PUBLIC_MQTT_PASSWORD || 'password';
+    // Get MQTT configuration from environment variables only (no hardcoded fallbacks)
+    const mqttUrl = process.env.NEXT_PUBLIC_MQTT_URL;
+    const username = process.env.NEXT_PUBLIC_MQTT_USERNAME;
+    const password = process.env.NEXT_PUBLIC_MQTT_PASSWORD;
 
+    // Don't attempt connection if credentials are missing
+    if (!mqttUrl || !username || !password) {
+      console.warn(
+        "[MQTT] Missing configuration - check environment variables",
+      );
+      return;
+    }
+
+    let client = null;
+
+    try {
       client = mqtt.connect(mqttUrl, {
         username,
         password,
@@ -22,40 +36,15 @@ export function useMQTT(topic, defaultValue = null) {
         connectTimeout: 30000,
       });
 
-      client.on('connect', () => {
-        console.log('MQTT connected');
-        setConnected(true);
-      });
-
-      client.on('error', (err) => {
-        console.error('MQTT error:', err);
-        setConnected(false);
-      });
-
-      client.on('close', () => {
-        console.log('MQTT disconnected');
-        setConnected(false);
-      });
-
-      client.on('message', (receivedTopic, message) => {
-        const callbacks = subscribers.get(receivedTopic);
-        if (callbacks) {
-          const data = message.toString();
-          callbacks.forEach(callback => callback(data));
-        }
-      });
-    }
-
-    // Subscribe to topic
-    if (topic && client) {
-      if (!subscribers.has(topic)) {
-        subscribers.set(topic, new Set());
+      client.on("connect", () => {
+        setIsConnected(true);
+        console.log(`[MQTT] Connected, subscribing to: ${topic}`);
         client.subscribe(topic, (err) => {
           if (err) {
-            console.error(`Failed to subscribe to ${topic}:`, err);
+            console.error(`[MQTT] Subscribe error for ${topic}:`, err);
           }
         });
-      }
+      });
 
       client.on("message", (receivedTopic, message) => {
         if (receivedTopic === topic) {
@@ -63,107 +52,36 @@ export function useMQTT(topic, defaultValue = null) {
             const parsed = JSON.parse(message.toString());
             setData(parsed);
           } catch {
+            // If not JSON, use raw value
+            const rawValue = message.toString();
+            const numValue = parseFloat(rawValue);
+            setData(isNaN(numValue) ? rawValue : numValue);
+          }
+        }
+      });
 
-            import { useState, useEffect } from "react";
-            import mqtt from "mqtt";
+      client.on("error", (err) => {
+        console.error("[MQTT] Connection error:", err);
+        setIsConnected(false);
+      });
 
-            // Shared MQTT client and topic-subscriber map
-            let client = null;
-            let subscribers = new Map();
+      client.on("close", () => {
+        setIsConnected(false);
+      });
+    } catch (err) {
+      console.error("[MQTT] Failed to initialize:", err);
+    }
 
-            export function useMQTT(topic, defaultValue = null) {
-              const [value, setValue] = useState(defaultValue);
-              const [connected, setConnected] = useState(false);
+    // Cleanup on unmount
+    return () => {
+      if (client) {
+        client.unsubscribe(topic);
+        client.end();
+      }
+    };
+  }, [topic]);
 
-              useEffect(() => {
-                // Get MQTT config from env only (no hardcoded fallbacks)
-                const mqttUrl = process.env.NEXT_PUBLIC_MQTT_URL;
-                const username = process.env.NEXT_PUBLIC_MQTT_USERNAME;
-                const password = process.env.NEXT_PUBLIC_MQTT_PASSWORD;
+  return data;
+}
 
-                if (!mqttUrl || !username || !password) {
-                  console.warn("[MQTT] Missing configuration - check environment variables");
-                  return;
-                }
-
-                // Initialize client if not already
-                if (!client) {
-                  client = mqtt.connect(mqttUrl, {
-                    username,
-                    password,
-                    reconnectPeriod: 5000,
-                    connectTimeout: 30000,
-                  });
-
-                  client.on("connect", () => {
-                    setConnected(true);
-                    console.log("[MQTT] Connected");
-                  });
-                  client.on("error", (err) => {
-                    setConnected(false);
-                    console.error("[MQTT] Connection error:", err);
-                  });
-                  client.on("close", () => {
-                    setConnected(false);
-                    console.log("[MQTT] Disconnected");
-                  });
-                  client.on("message", (receivedTopic, message) => {
-                    const callbacks = subscribers.get(receivedTopic);
-                    if (callbacks) {
-                      const data = message.toString();
-                      callbacks.forEach((cb) => {
-                        try {
-                          const parsed = JSON.parse(data);
-                          cb(parsed);
-                        } catch {
-                          // If not JSON, use raw value or number
-                          const numValue = parseFloat(data);
-                          cb(isNaN(numValue) ? data : numValue);
-                        }
-                      });
-                    }
-                  });
-                }
-
-                // Subscribe to topic
-                if (topic && client) {
-                  if (!subscribers.has(topic)) {
-                    subscribers.set(topic, new Set());
-                    client.subscribe(topic, (err) => {
-                      if (err) {
-                        console.error(`[MQTT] Subscribe error for ${topic}:`, err);
-                      }
-                    });
-                  }
-
-                  // Register this hook's callback
-                  const callback = (data) => setValue(data);
-                  subscribers.get(topic).add(callback);
-
-                  // Cleanup
-                  return () => {
-                    const callbacks = subscribers.get(topic);
-                    if (callbacks) {
-                      callbacks.delete(callback);
-                      if (callbacks.size === 0) {
-                        subscribers.delete(topic);
-                        if (client) {
-                          client.unsubscribe(topic);
-                        }
-                      }
-                    }
-                  };
-                }
-              }, [topic]);
-
-              return { value, connected };
-            }
-
-            export function publishMQTT(topic, message) {
-              if (client && client.connected) {
-                const payload = typeof message === "string" ? message : JSON.stringify(message);
-                client.publish(topic, payload);
-                return true;
-              }
-              return false;
-            }
+export default useMQTT;
