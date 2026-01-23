@@ -1,5 +1,6 @@
 'use client'
 
+import { forwardRef } from 'react'
 import dynamic from 'next/dynamic'
 
 const MapViewClient = dynamic(() => import('./MapViewClient'), {
@@ -8,10 +9,10 @@ const MapViewClient = dynamic(() => import('./MapViewClient'), {
     <div className="h-full pt-4 px-16 pb-16 flex flex-col bg-gray-900">
       {/* Title with neon sign effect */}
       <div className="text-center mb-2">
-        <h2 
-          className="text-4xl font-bold tracking-widest uppercase neon-text" 
-          style={{ 
-            fontFamily: '"Roboto", sans-serif', 
+        <h2
+          className="text-4xl font-bold tracking-widest uppercase neon-text"
+          style={{
+            fontFamily: '"Roboto", sans-serif',
             letterSpacing: '0.3em',
             fontWeight: 700,
             color: '#fff',
@@ -34,7 +35,7 @@ const MapViewClient = dynamic(() => import('./MapViewClient'), {
       <div className="flex-1 relative">
         {/* Outer glow */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-pink-500/20 rounded-3xl blur-xl" />
-        
+
         {/* Main frame container */}
         <div className="relative h-full bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 rounded-3xl p-1.5 shadow-2xl">
           {/* Inner frame with bevel effect */}
@@ -53,6 +54,8 @@ const MapViewClient = dynamic(() => import('./MapViewClient'), {
   ),
 })
 
-export default function MapView(props) {
-  return <MapViewClient {...props} />
-}
+const MapView = forwardRef((props, ref) => {
+  return <MapViewClient {...props} ref={ref} />
+})
+
+export default MapView
