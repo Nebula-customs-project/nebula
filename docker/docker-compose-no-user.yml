@@ -1,0 +1,253 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: nebula-postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+  rabbitmq:
+    image: rabbitmq:4.0-management-alpine
+    container_name: nebula-rabbitmq
+    env_file:
+      - .env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+    ports:
+      - "${RABBITMQ_AMQP_PORT}:5672"
+      - "${RABBITMQ_MQTT_PORT}:1883"
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
+      - "${RABBITMQ_WEB_MQTT_PORT}:15675"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+  platform-core:
+    build:
+      context: ..
+      dockerfile: services/platform-core/Dockerfile
+    container_name: nebula-platform-core
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,native
+    expose:
+      - "8761"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+  gateway-service:
+    build:
+      context: ..
+      dockerfile: services/gateway-service/Dockerfile
+    container_name: nebula-gateway-service
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+      VEHICLE_SERVICE_URL: http://vehicle-service:8081
+      WORLD_VIEW_SERVICE_URL: http://world-view:8082
+      USER_SERVICE_URL: http://user-service:8083
+      MERCHANDISE_SERVICE_URL: http://merchandise-service:8084
+    ports:
+      - "8080:8080"
+    depends_on:
+      platform-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+  vehicle-service:
+    build:
+      context: ..
+      dockerfile: services/vehicle-service/Dockerfile
+    container_name: nebula-vehicle-service
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+    expose:
+      - "8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      gateway-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+  world-view:
+    build:
+      context: ..
+      dockerfile: services/world-view/Dockerfile
+    container_name: nebula-world-view
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database,shared-rabbitmq
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      MQTT_HOST: rabbitmq
+      MQTT_PORT: 1883
+      MQTT_USERNAME: ${RABBITMQ_USER}
+      MQTT_PASSWORD: ${RABBITMQ_PASSWORD}
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+    expose:
+      - "8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      gateway-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+  merchandise-service:
+    build:
+      context: ..
+      dockerfile: services/merchandise-service/Dockerfile
+    container_name: nebula-merchandise-service
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+    expose:
+      - "8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      gateway-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_GATEWAY_URL: http://localhost:8080
+        NEXT_PUBLIC_MQTT_URL: ws://localhost:15675/ws
+        NEXT_PUBLIC_MQTT_USERNAME: ${RABBITMQ_USER}
+        NEXT_PUBLIC_MQTT_PASSWORD: ${RABBITMQ_PASSWORD}
+    container_name: nebula-frontend
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      gateway-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+networks:
+  nebula-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
