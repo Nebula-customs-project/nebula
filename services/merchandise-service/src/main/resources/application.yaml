@@ -8,8 +8,13 @@ spring:
     active: shared-database
 
   datasource:
+<<<<<<< HEAD
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5434}/${POSTGRES_DB:nebula_db}
+    username: ${POSTGRES_USER}
+=======
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER:nebula_user}
+>>>>>>> 6235fb9e7810c375e5879470b69e817c55acbccc
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
@@ -51,6 +56,16 @@ logging:
 
     pse.nebula: INFO
 
+<<<<<<< HEAD
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
+# Eureka client configuration
+# Services will register with Eureka when available
+# Startup won't be blocked if Eureka is temporarily unavailable
+=======
+>>>>>>> 6235fb9e7810c375e5879470b69e817c55acbccc
 eureka:
   client:
     service-url:
