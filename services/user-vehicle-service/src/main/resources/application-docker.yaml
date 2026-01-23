@@ -1,0 +1,42 @@
+# =============================================================================
+# User Vehicle Service - Docker Profile Configuration
+# =============================================================================
+# This profile is activated when running in Docker containers.
+# All sensitive values come from environment variables.
+# =============================================================================
+
+spring:
+  config:
+    import: ""
+
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+eureka:
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:false}
+    register-with-eureka: false
+    fetch-registry: false
+
+# Vehicle Service URL in Docker network
+vehicle-service:
+  base-url: ${VEHICLE_SERVICE_URL:http://vehicle-service:8081}
+
+# WebSocket Configuration
+websocket:
+  endpoint: /ws/vehicle-telemetry
+  telemetry:
+    interval-minutes: 5
+
+logging:
+  level:
+    root: INFO
+    pse.nebula.uservehicleservice: INFO
