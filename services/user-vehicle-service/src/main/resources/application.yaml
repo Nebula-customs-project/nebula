@@ -62,18 +62,11 @@ eureka:
     lease-renewal-interval-in-seconds: 30
     lease-expiration-duration-in-seconds: 90
 
-# MQTT Configuration
-mqtt:
-  enabled: ${MQTT_ENABLED:true}
-  broker:
-    host: ${MQTT_HOST:localhost}
-    port: ${MQTT_PORT:1883}
-  client:
-    id: user-vehicle-service
-  username: ${RABBITMQ_USER:nebula}
-  password: ${RABBITMQ_PASSWORD:nebula@2025}
-  topic:
-    prefix: nebula/user
+# WebSocket Configuration
+websocket:
+  endpoint: /ws/vehicle-telemetry
+  telemetry:
+    interval-minutes: 5
 
 # Vehicle Service Configuration (for REST calls)
 vehicle-service:
@@ -87,7 +80,6 @@ logging:
   level:
     root: INFO
     pse.nebula.uservehicleservice: DEBUG
-    pse.nebula.uservehicleservice.infrastructure.adapter.outbound.mqtt: INFO
     # Suppress noisy framework logs
     org.hibernate: WARN
     org.hibernate.SQL: WARN

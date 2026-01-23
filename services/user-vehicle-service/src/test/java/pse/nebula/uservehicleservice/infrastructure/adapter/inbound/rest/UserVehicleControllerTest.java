@@ -10,7 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pse.nebula.uservehicleservice.application.service.UserVehicleAssignmentService;
 import pse.nebula.uservehicleservice.domain.model.UserVehicle;
-import pse.nebula.uservehicleservice.infrastructure.adapter.outbound.mqtt.VehicleTelemetryPublisher;
 import pse.nebula.uservehicleservice.infrastructure.exception.VehicleServiceException;
 
 import java.time.LocalDate;
@@ -21,6 +20,11 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Unit tests for UserVehicleController.
+ * WebSocket telemetry is tested separately in
+ * VehicleTelemetryWebSocketHandlerTest.
+ */
 @WebMvcTest(UserVehicleController.class)
 @DisplayName("UserVehicleController Unit Tests")
 class UserVehicleControllerTest {
@@ -34,9 +38,6 @@ class UserVehicleControllerTest {
 
     @MockitoBean
     private UserVehicleAssignmentService assignmentService;
-
-    @MockitoBean
-    private VehicleTelemetryPublisher telemetryPublisher;
 
     @Nested
     @DisplayName("GET /api/v1/user-vehicle/info")
@@ -52,8 +53,8 @@ class UserVehicleControllerTest {
 
             // When/Then
             mockMvc.perform(get(USER_VEHICLE_INFO_URL)
-                            .header(USER_ID_HEADER, USER_ID)
-                            .contentType(MediaType.APPLICATION_JSON))
+                    .header(USER_ID_HEADER, USER_ID)
+                    .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.maintenanceDueDate").value("2026-07-18"))
                     .andExpect(jsonPath("$.tyrePressures").exists())
@@ -63,7 +64,6 @@ class UserVehicleControllerTest {
                     .andExpect(jsonPath("$.tyrePressures.rearRight").isNumber());
 
             verify(assignmentService).getOrAssignVehicle(USER_ID);
-            verify(telemetryPublisher).startPublishing(USER_ID, "Furari");
         }
 
         @Test
@@ -76,13 +76,17 @@ class UserVehicleControllerTest {
 
             // When/Then
             mockMvc.perform(get(USER_VEHICLE_INFO_URL)
-                            .header(USER_ID_HEADER, USER_ID)
-                            .contentType(MediaType.APPLICATION_JSON))
+                    .header(USER_ID_HEADER, USER_ID)
+                    .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.tyrePressures.frontLeft", allOf(greaterThanOrEqualTo(28.0), lessThanOrEqualTo(35.0))))
-                    .andExpect(jsonPath("$.tyrePressures.frontRight", allOf(greaterThanOrEqualTo(28.0), lessThanOrEqualTo(35.0))))
-                    .andExpect(jsonPath("$.tyrePressures.rearLeft", allOf(greaterThanOrEqualTo(28.0), lessThanOrEqualTo(35.0))))
-                    .andExpect(jsonPath("$.tyrePressures.rearRight", allOf(greaterThanOrEqualTo(28.0), lessThanOrEqualTo(35.0))));
+                    .andExpect(jsonPath("$.tyrePressures.frontLeft",
+                            allOf(greaterThanOrEqualTo(28.0), lessThanOrEqualTo(35.0))))
+                    .andExpect(jsonPath("$.tyrePressures.frontRight",
+                            allOf(greaterThanOrEqualTo(28.0), lessThanOrEqualTo(35.0))))
+                    .andExpect(jsonPath("$.tyrePressures.rearLeft",
+                            allOf(greaterThanOrEqualTo(28.0), lessThanOrEqualTo(35.0))))
+                    .andExpect(jsonPath("$.tyrePressures.rearRight",
+                            allOf(greaterThanOrEqualTo(28.0), lessThanOrEqualTo(35.0))));
         }
 
         @Test
@@ -90,13 +94,12 @@ class UserVehicleControllerTest {
         void shouldReturn400WhenUserIdMissing() throws Exception {
             // When/Then
             mockMvc.perform(get(USER_VEHICLE_INFO_URL)
-                            .contentType(MediaType.APPLICATION_JSON))
+                    .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.status").value(400))
                     .andExpect(jsonPath("$.message").value(containsString("X-User-Id")));
 
             verify(assignmentService, never()).getOrAssignVehicle(anyString());
-            verify(telemetryPublisher, never()).startPublishing(anyString(), anyString());
         }
 
         @Test
@@ -108,32 +111,11 @@ class UserVehicleControllerTest {
 
             // When/Then
             mockMvc.perform(get(USER_VEHICLE_INFO_URL)
-                            .header(USER_ID_HEADER, USER_ID)
-                            .contentType(MediaType.APPLICATION_JSON))
+                    .header(USER_ID_HEADER, USER_ID)
+                    .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isServiceUnavailable())
                     .andExpect(jsonPath("$.status").value(503))
                     .andExpect(jsonPath("$.message").value(containsString("Vehicle service unavailable")));
-
-            verify(telemetryPublisher, never()).startPublishing(anyString(), anyString());
-        }
-
-        @Test
-        @DisplayName("should start MQTT publishing on successful request")
-        void shouldStartMqttPublishing() throws Exception {
-            // Given
-            LocalDate maintenanceDate = LocalDate.of(2026, 7, 18);
-            UserVehicle userVehicle = new UserVehicle(USER_ID, 1, "GTR", maintenanceDate);
-            when(assignmentService.getOrAssignVehicle(USER_ID)).thenReturn(userVehicle);
-
-            // When
-            mockMvc.perform(get(USER_VEHICLE_INFO_URL)
-                            .header(USER_ID_HEADER, USER_ID)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk());
-
-            // Then
-            verify(telemetryPublisher).startPublishing(USER_ID, "GTR");
         }
     }
 }
-
