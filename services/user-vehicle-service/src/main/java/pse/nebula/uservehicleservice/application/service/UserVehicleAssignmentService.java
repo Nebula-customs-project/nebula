@@ -1,6 +1,7 @@
 package pse.nebula.uservehicleservice.application.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pse.nebula.uservehicleservice.domain.model.UserVehicle;
@@ -17,6 +18,9 @@ import java.util.Random;
 /**
  * Service responsible for managing user-vehicle assignments.
  * Handles vehicle assignment and maintenance date calculation.
+ * 
+ * This service is thread-safe and handles concurrent requests for the same user
+ * by catching constraint violations and retrying the lookup.
  */
 @Slf4j
 @Service
@@ -29,7 +33,7 @@ public class UserVehicleAssignmentService {
     private final Random random;
 
     public UserVehicleAssignmentService(UserVehicleRepository userVehicleRepository,
-                                         VehicleServiceClient vehicleServiceClient) {
+            VehicleServiceClient vehicleServiceClient) {
         this.userVehicleRepository = userVehicleRepository;
         this.vehicleServiceClient = vehicleServiceClient;
         this.random = new Random();
@@ -37,7 +41,13 @@ public class UserVehicleAssignmentService {
 
     /**
      * Gets or creates a user-vehicle assignment.
-     * If user doesn't have a vehicle assigned, assigns a random one from vehicle-service.
+     * If user doesn't have a vehicle assigned, assigns a random one from
+     * vehicle-service.
+     * 
+     * This method is resilient to race conditions: if concurrent requests both
+     * attempt
+     * to insert a new assignment, the unique constraint violation is caught and the
+     * existing assignment is returned.
      *
      * @param userId the unique identifier of the user
      * @return the user's vehicle assignment
@@ -54,7 +64,28 @@ public class UserVehicleAssignmentService {
         }
 
         log.info("No existing assignment found. Assigning new vehicle for user: {}", userId);
-        return assignRandomVehicle(userId);
+        return assignRandomVehicleWithRetry(userId);
+    }
+
+    /**
+     * Assigns a random vehicle to the user with retry logic for race conditions.
+     * If a concurrent request already inserted a record for this user, catch the
+     * constraint violation and return the existing assignment.
+     *
+     * @param userId the unique identifier of the user
+     * @return the user-vehicle assignment (newly created or existing from
+     *         concurrent request)
+     */
+    private UserVehicle assignRandomVehicleWithRetry(String userId) {
+        try {
+            return assignRandomVehicle(userId);
+        } catch (DataIntegrityViolationException e) {
+            // Concurrent request already inserted for this user - fetch and return existing
+            log.info("Concurrent assignment detected for user: {}. Fetching existing assignment.", userId);
+            return userVehicleRepository.findByUserId(userId)
+                    .orElseThrow(() -> new VehicleServiceException(
+                            "Failed to assign vehicle due to unexpected state for user: " + userId));
+        }
     }
 
     /**
@@ -72,14 +103,14 @@ public class UserVehicleAssignmentService {
         }
 
         VehicleDto selectedVehicle = vehicles.get(random.nextInt(vehicles.size()));
-        log.info("Selected vehicle for user {}: {} (ID: {})", userId, selectedVehicle.carName(), selectedVehicle.vehicleId());
+        log.info("Selected vehicle for user {}: {} (ID: {})", userId, selectedVehicle.carName(),
+                selectedVehicle.vehicleId());
 
         UserVehicle userVehicle = new UserVehicle(
                 userId,
                 selectedVehicle.vehicleId(),
                 selectedVehicle.carName(),
-                calculateMaintenanceDueDate()
-        );
+                calculateMaintenanceDueDate());
 
         UserVehicle savedAssignment = userVehicleRepository.save(userVehicle);
         log.info("Successfully assigned vehicle {} to user {}. Maintenance due: {}",
@@ -97,4 +128,3 @@ public class UserVehicleAssignmentService {
         return LocalDate.now().plusMonths(MAINTENANCE_MONTHS_AHEAD);
     }
 }
-
