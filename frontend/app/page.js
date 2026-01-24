@@ -146,6 +146,7 @@ export default function Home() {
       </div>
 
       {/* Car Collection Slider */}
+      {/* Car Collection Slider */}
       <div className="py-20 px-4 bg-black">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-5xl font-bold text-center mb-4">Our Collection</h2>
@@ -199,15 +200,15 @@ export default function Home() {
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
                       </div>
                       <div className="p-6">
-                        <h3 className="text-3xl font-bold mb-2">{car.name || car.carName}</h3>
-                        <p className="text-gray-400 mb-4">{car.type || car.carType}</p>
+                        <h3 className="text-3xl font-bold mb-2">{car.carName}</h3>
+                        <p className="text-gray-400 mb-4">{car.carType}</p>
                         <div className="flex justify-between items-center mb-4">
-                          <span className="text-red-500 font-bold text-2xl">{car.price ? `€${car.price}` : ''}</span>
-                          <span className="text-gray-400 text-lg">{car.power || car.horsepower}</span>
+                          <span className="text-red-500 font-bold text-2xl">{car.basePrice ? `€${Number(car.basePrice).toLocaleString()}` : ''}</span>
+                          <span className="text-gray-400 text-lg">{car.horsePower ? `${car.horsePower} HP` : ''}</span>
                         </div>
                         {isCenter && (
                           <Link
-                            href="/car-configurator"
+                            href={`/car-configurator?vehicleId=${car.vehicleId}`}
                             className="block w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-center font-semibold transition transform hover:scale-105"
                           >
                             Configure Now
