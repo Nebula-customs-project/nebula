@@ -3,16 +3,17 @@
 import { Car, Settings, Package, ChevronLeft, ChevronRight, ShoppingCart, Shirt, Watch, Coffee, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube, Linkedin } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 import { fetchAllVehicles } from './lib/vehicleApi'
 import { useRouter } from 'next/navigation'
 
-export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [cart, setCart] = useState([])
   const router = useRouter()
+  const { isAuthenticated } = useAuth();
 
   const [cars, setCars] = useState([])
   const [carsLoading, setCarsLoading] = useState(true)
@@ -81,6 +82,10 @@ export default function Home() {
   }, [])
 
   const addToCart = (product) => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
     const cartItem = {
       productId: product.id,
       name: product.name,
@@ -88,17 +93,14 @@ export default function Home() {
       quantity: 1,
       image: product.imageUrl
     }
-    
     const existingCart = localStorage.getItem('cart')
     const updatedCart = existingCart ? JSON.parse(existingCart) : []
-    
     const existingItem = updatedCart.find(item => item.productId === product.id)
     if (existingItem) {
       existingItem.quantity += 1
     } else {
       updatedCart.push(cartItem)
     }
-    
     localStorage.setItem('cart', JSON.stringify(updatedCart))
     window.dispatchEvent(new Event('cart-updated'))
     setCart(updatedCart)
@@ -316,7 +318,7 @@ export default function Home() {
       </div>
 
       {/* Cart Summary (if items exist) */}
-      {cart.length > 0 && (
+      {isAuthenticated && cart.length > 0 && (
         <div className="fixed bottom-8 right-32 bg-gray-800 rounded-xl shadow-2xl p-6 max-w-sm border-2 border-red-600 z-40">
           <h3 className="text-xl font-bold mb-4">Cart Summary</h3>
           <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
