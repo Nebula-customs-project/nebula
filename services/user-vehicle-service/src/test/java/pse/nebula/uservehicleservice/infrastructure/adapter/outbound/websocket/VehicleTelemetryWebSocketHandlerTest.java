@@ -13,6 +13,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 import pse.nebula.uservehicleservice.application.service.UserVehicleAssignmentService;
 import pse.nebula.uservehicleservice.domain.model.UserVehicle;
+import pse.nebula.uservehicleservice.infrastructure.config.WebSocketProperties;
 
 import java.time.LocalDate;
 
@@ -33,13 +34,20 @@ class VehicleTelemetryWebSocketHandlerTest {
     private WebSocketSession session;
 
     private ObjectMapper objectMapper;
+    private WebSocketProperties webSocketProperties;
     private VehicleTelemetryWebSocketHandler handler;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        handler = new VehicleTelemetryWebSocketHandler(assignmentService, objectMapper);
+
+        webSocketProperties = new WebSocketProperties();
+        webSocketProperties.setEndpoint("/ws/vehicle-telemetry");
+        webSocketProperties.setIntervalMinutes(5);
+        webSocketProperties.setMaxConnectionsPerUser(1);
+
+        handler = new VehicleTelemetryWebSocketHandler(assignmentService, objectMapper, webSocketProperties);
     }
 
     @Test

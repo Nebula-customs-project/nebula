@@ -13,6 +13,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import pse.nebula.uservehicleservice.application.service.UserVehicleAssignmentService;
 import pse.nebula.uservehicleservice.domain.model.UserVehicle;
 import pse.nebula.uservehicleservice.infrastructure.adapter.outbound.websocket.dto.VehicleTelemetryDto;
+import pse.nebula.uservehicleservice.infrastructure.config.WebSocketProperties;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -33,7 +34,6 @@ import java.util.concurrent.*;
 public class VehicleTelemetryWebSocketHandler extends TextWebSocketHandler {
 
     private static final String USER_ID_HEADER = "X-User-Id";
-    private static final long PUBLISH_INTERVAL_MINUTES = 5;
 
     // Fixed location (Stuttgart area)
     private static final double FIXED_LATITUDE = 48.7758;
@@ -44,15 +44,18 @@ public class VehicleTelemetryWebSocketHandler extends TextWebSocketHandler {
 
     private final UserVehicleAssignmentService assignmentService;
     private final ObjectMapper objectMapper;
+    private final WebSocketProperties webSocketProperties;
     private final ScheduledExecutorService scheduler;
     private final Map<String, WebSocketSession> userSessions;
     private final Map<String, ScheduledFuture<?>> activePublishers;
 
     public VehicleTelemetryWebSocketHandler(
             UserVehicleAssignmentService assignmentService,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            WebSocketProperties webSocketProperties) {
         this.assignmentService = assignmentService;
         this.objectMapper = objectMapper;
+        this.webSocketProperties = webSocketProperties;
         this.scheduler = Executors.newScheduledThreadPool(4, r -> {
             Thread thread = new Thread(r, "ws-telemetry-publisher");
             thread.setDaemon(true);
@@ -60,7 +63,7 @@ public class VehicleTelemetryWebSocketHandler extends TextWebSocketHandler {
         });
         this.userSessions = new ConcurrentHashMap<>();
         this.activePublishers = new ConcurrentHashMap<>();
-        log.info("VehicleTelemetryWebSocketHandler initialized");
+        log.info("VehicleTelemetryWebSocketHandler initialized with config: {}", webSocketProperties);
     }
 
     @Override
@@ -99,15 +102,16 @@ public class VehicleTelemetryWebSocketHandler extends TextWebSocketHandler {
         // Send immediate telemetry update
         sendTelemetry(session, userId, vehicleName);
 
-        // Schedule periodic updates every 5 minutes
+        // Schedule periodic updates using configured interval
+        long intervalMinutes = webSocketProperties.getIntervalMinutes();
         ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(
                 () -> sendTelemetry(session, userId, vehicleName),
-                PUBLISH_INTERVAL_MINUTES,
-                PUBLISH_INTERVAL_MINUTES,
+                intervalMinutes,
+                intervalMinutes,
                 TimeUnit.MINUTES);
         activePublishers.put(userId, future);
 
-        log.info("Scheduled telemetry updates for user: {} every {} minutes", userId, PUBLISH_INTERVAL_MINUTES);
+        log.info("Scheduled telemetry updates for user: {} every {} minutes", userId, intervalMinutes);
     }
 
     @Override
