@@ -13,7 +13,7 @@ const createApiError = (type, message, originalError = null) => ({
 
 export async function fetchAllVehicles() {
   try {
-    const res = await fetch(`${VEHICLE_SERVICE_URL}/api/v1/vehicles/?size=100`, {
+    const res = await fetch(`${VEHICLE_SERVICE_URL}/api/v1/vehicles?size=100`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(API_TIMEOUT_MS),
