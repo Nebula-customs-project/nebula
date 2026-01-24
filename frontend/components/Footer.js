@@ -33,7 +33,7 @@ export default function Footer() {
               <span className="text-3xl font-bold">NEBULA</span>
             </div>
             <p className="text-gray-400 mb-6 max-w-md">
-              Engineering excellence and defining performance since 2025.
+              Engineering excellence and defining performance since 2026.
               Creating the ultimate driving experience for automotive
               enthusiasts worldwide.
             </p>
@@ -222,7 +222,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
-          <p>© 2025 Nebula. All rights reserved.</p>
+          <p>© 2026 Nebula. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="/privacy-policy" className="hover:text-red-500 transition">
               Privacy Policy
