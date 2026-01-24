@@ -102,6 +102,7 @@ export default function Home() {
     localStorage.setItem('cart', JSON.stringify(updatedCart))
     window.dispatchEvent(new Event('cart-updated'))
     setCart(updatedCart)
+    router.push('/merchandise')
   }
 
   const nextSlide = () => {
@@ -198,15 +199,15 @@ export default function Home() {
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
                       </div>
                       <div className="p-6">
-                        <h3 className="text-3xl font-bold mb-2">{car.carName}</h3>
-                        <p className="text-gray-400 mb-4">{car.carType}</p>
+                        <h3 className="text-3xl font-bold mb-2">{car.name || car.carName}</h3>
+                        <p className="text-gray-400 mb-4">{car.type || car.carType}</p>
                         <div className="flex justify-between items-center mb-4">
-                          <span className="text-red-500 font-bold text-2xl">{car.basePrice ? `€${Number(car.basePrice).toLocaleString()}` : ''}</span>
-                          <span className="text-gray-400 text-lg">{car.horsePower ? `${car.horsePower} HP` : ''}</span>
+                          <span className="text-red-500 font-bold text-2xl">{car.price ? `€${car.price}` : ''}</span>
+                          <span className="text-gray-400 text-lg">{car.power || car.horsepower}</span>
                         </div>
                         {isCenter && (
                           <Link
-                            href={`/car-configurator?vehicleId=${car.vehicleId}`}
+                            href="/car-configurator"
                             className="block w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-center font-semibold transition transform hover:scale-105"
                           >
                             Configure Now
@@ -262,7 +263,8 @@ export default function Home() {
                 {products.slice(0, 4).map((product) => (
                   <div
                     key={product.id}
-                    className="group bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-xl"
+                    className="group bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-xl cursor-pointer"
+                    onClick={() => router.push('/merchandise')}
                   >
                     <div className="relative h-48 overflow-hidden">
                       <div
@@ -283,7 +285,7 @@ export default function Home() {
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-red-500">€{product.price.toFixed(2)}</span>
                         <button
-                          onClick={() => addToCart(product)}
+                          onClick={(e) => { e.stopPropagation(); addToCart(product); }}
                           className="bg-red-600 hover:bg-red-700 p-2 rounded-lg transition transform hover:scale-110 active:scale-95"
                         >
                           <ShoppingCart className="w-4 h-4" />
@@ -313,33 +315,6 @@ export default function Home() {
 
         </div>
       </div>
-
-      {/* Cart Summary (if items exist) */}
-      {isAuthenticated && cart.length > 0 && (
-        <div className="fixed bottom-8 right-32 bg-gray-800 rounded-xl shadow-2xl p-6 max-w-sm border-2 border-red-600 z-40">
-          <h3 className="text-xl font-bold mb-4">Cart Summary</h3>
-          <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
-            {cart.map((item, idx) => (
-              <div key={idx} className="flex justify-between text-sm">
-                <span className="text-gray-400">{item.name}</span>
-                <span className="font-semibold">€{Number(item.price).toFixed(2)}</span>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-gray-700 pt-4 mb-4">
-            <div className="flex justify-between text-lg font-bold">
-              <span>Total:</span>
-              <span className="text-red-500">€{cart.reduce((sum, item) => sum + (Number(item.price) || 0), 0).toFixed(2)}</span>
-            </div>
-          </div>
-          <button
-            className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition"
-            onClick={() => router.push('/checkout')}
-          >
-            Checkout Now
-          </button>
-        </div>
-      )}
     </div>
   )
 }
