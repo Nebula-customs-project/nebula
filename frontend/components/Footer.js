@@ -38,11 +38,13 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-bold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><a className="text-gray-400 hover:text-red-500 transition" href="/cars">Our Cars</a></li>
+              <li><a className="text-gray-400 hover:text-red-500 transition" href="/">Home</a></li>
+              <li><a className="text-gray-400 hover:text-red-500 transition" href="/cars">Cars</a></li>
               <li><a className="text-gray-400 hover:text-red-500 transition" href="/car-configurator">Car Configurator</a></li>
               <li><a className="text-gray-400 hover:text-red-500 transition" href="/world-drive">World Drive</a></li>
               <li><a className="text-gray-400 hover:text-red-500 transition" href="/merchandise">Merchandise</a></li>
-              <li><a className="text-gray-400 hover:text-red-500 transition" href="/my-car">My Nebula Car</a></li>
+              <li><a className="text-gray-400 hover:text-red-500 transition" href="/wishlist">Wishlist</a></li>
+              <li><a className="text-gray-400 hover:text-red-500 transition" href="/my-car">My Car</a></li>
             </ul>
           </div>
 

@@ -218,12 +218,7 @@ export default function MerchandisePage() {
                       <Heart className={`w-5 h-5 ${favorites.includes(product.id) ? 'fill-current' : ''}`} />
                     </button>
 
-                    {/* Quick View on Hover */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <button className="bg-white text-gray-900 px-6 py-2 rounded-full font-semibold hover:bg-gray-200 transition">
-                        Quick View
-                      </button>
-                    </div>
+                    {/* Quick View removed as requested */}
                   </div>
 
                   {/* Product Info */}
@@ -270,12 +265,33 @@ export default function MerchandisePage() {
         {/* Cart Summary (if items exist) */}
         {cart.length > 0 && (
           <div className="fixed bottom-8 right-8 bg-gray-800 rounded-xl shadow-2xl p-6 max-w-sm border-2 border-red-600">
-            <h3 className="text-xl font-bold mb-4">Cart Summary</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Cart Summary</h3>
+              <button
+                className="text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none"
+                onClick={() => { setCart([]); localStorage.removeItem('cart'); window.dispatchEvent(new Event('cart-updated')); }}
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
             <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
               {cart.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-sm">
+                <div key={idx} className="flex justify-between items-center text-sm gap-2">
                   <span className="text-gray-400">{item.name}</span>
                   <span className="font-semibold">€{item.price}</span>
+                  <button
+                    className="ml-2 text-red-500 hover:text-red-700 text-lg font-bold focus:outline-none"
+                    title="Remove"
+                    onClick={() => {
+                      const updated = cart.filter((_, i) => i !== idx);
+                      setCart(updated);
+                      localStorage.setItem('cart', JSON.stringify(updated));
+                      window.dispatchEvent(new Event('cart-updated'));
+                    }}
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
             </div>
