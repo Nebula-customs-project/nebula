@@ -2,12 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-
+import CreditCardPreview from '@/components/CreditCardPreview'
 
 // PaymentForm component for Credit Card only
-function PaymentForm({ onSuccess, onBack }) {
+function PaymentForm({ onSuccess, onBack, cardholderName }) {
   const [card, setCard] = useState({ number: '', expiry: '', cvc: '' });
   const [error, setError] = useState('');
+
+  const handleExpiryChange = (e) => {
+    let value = e.target.value.replace(/[^\d]/g, ''); // Remove non-digits
+    if (value.length >= 2) {
+      value = value.slice(0, 2) + '/' + value.slice(2, 4);
+    }
+    setCard({ ...card, expiry: value });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -16,7 +24,7 @@ function PaymentForm({ onSuccess, onBack }) {
       setError('Card number must be 16 digits.');
       return;
     }
-    // Expiry format MM/YY and not in the past
+    // Expiry format MM/YY and validation
     if (!/^\d{2}\/\d{2}$/.test(card.expiry)) {
       setError('Expiry must be MM/YY.');
       return;
@@ -25,18 +33,26 @@ function PaymentForm({ onSuccess, onBack }) {
     const month = parseInt(mm, 10);
     const year = parseInt(yy, 10) + 2000;
     const now = new Date();
-    const expiryDate = new Date(year, month - 1, 1);
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
     if (month < 1 || month > 12) {
       setError('Expiry month must be between 01 and 12.');
       return;
     }
-    // Set expiry to end of month
-    expiryDate.setMonth(expiryDate.getMonth() + 1);
-    expiryDate.setDate(0);
-    if (expiryDate < now) {
+
+    // Year must be within 10 years from now
+    if (year < currentYear || year > currentYear + 10) {
+      setError('Invalid card.');
+      return;
+    }
+
+    // Check if card is expired (past month/year)
+    if (year < currentYear || (year === currentYear && month < currentMonth)) {
       setError('Card has expired.');
       return;
     }
+
     if (!/^\d{3,4}$/.test(card.cvc)) {
       setError('CVC must be 3 or 4 digits.');
       return;
@@ -47,10 +63,18 @@ function PaymentForm({ onSuccess, onBack }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8 flex flex-col items-center justify-center">
       <h2 className="text-3xl font-extrabold text-gray-100 tracking-tight mb-2">Credit Card Payment</h2>
+
+      {/* Credit Card Preview */}
+      <CreditCardPreview
+        cardNumber={card.number}
+        cardName={cardholderName || ''}
+        cardExpiry={card.expiry}
+      />
+
       <div className="w-full max-w-xs space-y-4">
         <input type="text" placeholder="Card Number" maxLength={19} value={card.number} onChange={e => setCard({ ...card, number: e.target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim() })} className="w-full px-4 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-400" required />
         <div className="flex gap-2">
-          <input type="text" placeholder="MM/YY" maxLength={5} value={card.expiry} onChange={e => setCard({ ...card, expiry: e.target.value })} className="w-1/2 px-4 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-400" required />
+          <input type="text" placeholder="MM/YY" maxLength={5} value={card.expiry} onChange={handleExpiryChange} className="w-1/2 px-4 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-400" required />
           <input type="text" placeholder="CVC" maxLength={4} value={card.cvc} onChange={e => setCard({ ...card, cvc: e.target.value.replace(/[^\d]/g, '') })} className="w-1/2 px-4 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-400" required />
         </div>
       </div>
@@ -64,6 +88,7 @@ function PaymentForm({ onSuccess, onBack }) {
 export default function CheckoutPage() {
   const [step, setStep] = useState('shipping') // shipping, payment, confirmation
   const [cart, setCart] = useState([])
+  const [cartLoaded, setCartLoaded] = useState(false)
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -81,11 +106,19 @@ export default function CheckoutPage() {
     function syncCart() {
       const saved = typeof window !== 'undefined' ? localStorage.getItem('cart') : null
       setCart(saved ? JSON.parse(saved) : [])
+      setCartLoaded(true)
     }
     syncCart()
     window.addEventListener('cart-updated', syncCart)
     return () => window.removeEventListener('cart-updated', syncCart)
   }, [])
+
+  // Redirect to merchandise if cart is empty (only after cart has loaded)
+  useEffect(() => {
+    if (cartLoaded && cart.length === 0 && step === 'shipping') {
+      router.push('/merchandise')
+    }
+  }, [cart, cartLoaded, step, router])
 
   const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 
@@ -104,30 +137,45 @@ export default function CheckoutPage() {
     // Clear cart
     localStorage.removeItem('cart')
     window.dispatchEvent(new Event('cart-updated'))
-    // Redirect to home after 3 seconds
-    setTimeout(() => {
-      router.push('/')
-    }, 3000)
   }
 
   if (step === 'confirmation') {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-gray-800 rounded-lg shadow-lg p-8 max-w-md text-center border border-gray-700">
-          <div className="text-6xl mb-4 text-green-400">✓</div>
+        <div className="bg-gray-800 rounded-2xl shadow-2xl p-10 max-w-md text-center border border-gray-700 relative">
+          {/* Close Button */}
+          <button
+            onClick={() => router.push('/')}
+            className="absolute top-4 right-4 text-gray-400 hover:text-white hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center transition"
+            title="Close"
+          >
+            ×
+          </button>
+
+          {/* Success Icon */}
+          <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-5xl text-green-400">✓</span>
+          </div>
+
           <h1 className="text-3xl font-bold text-green-400 mb-4">Order Confirmed!</h1>
           <p className="text-gray-300 mb-2">Thank you for your purchase.</p>
-          <p className="text-gray-400 mb-6">Order confirmation has been sent to your email.</p>
-          <p className="text-sm text-gray-500">Redirecting to home...</p>
+          <p className="text-gray-400 mb-8">Order confirmation has been sent to your email.</p>
+
+          <button
+            onClick={() => router.push('/')}
+            className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold transition"
+          >
+            Continue Shopping
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 py-12 px-4 text-gray-100">
+    <div className="min-h-screen bg-gray-900 pt-24 pb-12 px-4 sm:px-6 lg:px-8 text-gray-100">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-12 text-center text-gray-100">Checkout</h1>
+        <h1 className="text-4xl font-bold mb-10 text-center text-gray-100">Checkout</h1>
 
         <div className="grid md:grid-cols-3 gap-8">
           {/* Checkout Form */}
@@ -212,7 +260,11 @@ export default function CheckoutPage() {
                 </form>
               )}
               {step === 'payment' && (
-                <PaymentForm onSuccess={handlePaymentSuccess} onBack={() => setStep('shipping')} />
+                <PaymentForm
+                  onSuccess={handlePaymentSuccess}
+                  onBack={() => setStep('shipping')}
+                  cardholderName={`${formData.firstName} ${formData.lastName}`.trim()}
+                />
               )}
             </div>
           </div>
