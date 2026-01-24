@@ -55,10 +55,16 @@ spring:
           predicates:
             - Path=/api/v1/user-vehicle/**
 
+        # User Vehicle Service WebSocket Route (Vehicle Telemetry)
+        - id: user-vehicle-websocket
+          uri: lb:ws://user-vehicle-service
+          predicates:
+            - Path=/ws/vehicle-telemetry
+
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "*"
+            allowedOrigins: "http://localhost:3000"
             allowedMethods:
               - GET
               - POST
@@ -66,7 +72,7 @@ spring:
               - DELETE
               - OPTIONS
             allowedHeaders: "*"
-            allowCredentials: false
+            allowCredentials: true
 
 server:
   port: 8080
@@ -125,8 +131,6 @@ security:
     - /api/v1/merchandise/**
     - /api/v1/cart/**
 
-    # User-vehicle-service routes - PUBLIC for testing (remove in production)
-    - /api/v1/user-vehicle/**
 
 management:
   endpoints:

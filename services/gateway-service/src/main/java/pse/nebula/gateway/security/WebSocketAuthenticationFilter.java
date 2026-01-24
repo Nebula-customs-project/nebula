@@ -13,19 +13,26 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import pse.nebula.gateway.config.PublicRoutesConfig;
 import reactor.core.publisher.Mono;
 
+/**
+ * WebSocket Authentication Filter
+ * 
+ * Handles JWT authentication for WebSocket upgrade requests.
+ * Extracts JWT token from query parameter (?token=xxx) since browsers
+ * cannot send custom headers on WebSocket connections.
+ * 
+ * After validation, injects X-User-Id header for downstream services.
+ */
 @Component
-public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
+public class WebSocketAuthenticationFilter implements GlobalFilter, Ordered {
 
-    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(WebSocketAuthenticationFilter.class);
+    private static final String TOKEN_QUERY_PARAM = "token";
+    private static final String WEBSOCKET_PATH_PREFIX = "/ws/";
 
     @Autowired
     private JwtValidator jwtValidator;
-
-    @Autowired
-    private PublicRoutesConfig publicRoutesConfig;
 
     @Autowired
     private TokenBlacklistClient tokenBlacklistClient;
@@ -35,43 +42,38 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        log.debug("Processing request: {} {}", request.getMethod(), path);
-
-        // Skip WebSocket paths - handled by WebSocketAuthenticationFilter
-        if (path.startsWith("/ws/")) {
-            log.debug("WebSocket path, delegating to WebSocketAuthenticationFilter: {}", path);
+        // Only process WebSocket paths
+        if (!path.startsWith(WEBSOCKET_PATH_PREFIX)) {
             return chain.filter(exchange);
         }
 
-        // Skip authentication for public routes
-        if (publicRoutesConfig.isPublicRoute(path)) {
-            log.debug("Public route, skipping authentication: {}", path);
+        // Check if this is a WebSocket upgrade request
+        String upgradeHeader = request.getHeaders().getFirst(HttpHeaders.UPGRADE);
+        if (upgradeHeader == null || !upgradeHeader.equalsIgnoreCase("websocket")) {
+            // Not a WebSocket upgrade, let it pass (might be a regular HTTP request to
+            // /ws/)
             return chain.filter(exchange);
         }
 
-        // Extract token from Authorization header
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        log.debug("Processing WebSocket upgrade request: {}", path);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("Missing or invalid Authorization header for: {}", path);
-            return onError(exchange, "Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
+        // Extract token from query parameter
+        String token = request.getQueryParams().getFirst(TOKEN_QUERY_PARAM);
+
+        if (token == null || token.isBlank()) {
+            log.warn("WebSocket connection rejected: missing token query parameter for: {}", path);
+            return onError(exchange, "Missing authentication token", HttpStatus.UNAUTHORIZED);
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer " prefix
-
-        log.debug("Extracted token for path: {}", path);
+        log.debug("Extracted token from query param for WebSocket: {}", path);
 
         // Check if token is blacklisted
         return tokenBlacklistClient.isTokenBlacklisted(token)
                 .flatMap(isBlacklisted -> {
-                    log.debug("Blacklist check result for path {}: {}", path, isBlacklisted);
-
                     if (Boolean.TRUE.equals(isBlacklisted)) {
-                        log.warn("Blocked blacklisted token for path: {}", path);
+                        log.warn("WebSocket connection rejected: blacklisted token for: {}", path);
                         return onError(exchange, "Token has been revoked", HttpStatus.UNAUTHORIZED);
                     }
-
-                    log.debug("Token not blacklisted, proceeding with JWT validation");
 
                     try {
                         // Validate token
@@ -81,6 +83,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                         String userId = jwtValidator.getUserId(claims);
                         String email = jwtValidator.getEmail(claims);
                         String roles = jwtValidator.getRoles(claims);
+
+                        log.info("WebSocket authenticated for user: {} on path: {}", userId, path);
 
                         // Add user info to request headers for downstream services
                         ServerHttpRequest modifiedRequest = request.mutate()
@@ -93,7 +97,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                         return chain.filter(exchange.mutate().request(modifiedRequest).build());
 
                     } catch (Exception e) {
-                        log.error("Token validation failed: {}", e.getMessage());
+                        log.error("WebSocket token validation failed: {}", e.getMessage());
                         return onError(exchange, "Invalid or expired token", HttpStatus.UNAUTHORIZED);
                     }
                 });
@@ -113,11 +117,15 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -100; // Run before other filters
+        // Run before JwtAuthenticationFilter (-100) to handle WebSocket paths first
+        return -200;
     }
 
-    // Package-visible setter used by tests to inject mock TokenBlacklistClient
-    // reliably
+    // Package-visible setter for testing
+    void setJwtValidator(JwtValidator jwtValidator) {
+        this.jwtValidator = jwtValidator;
+    }
+
     void setTokenBlacklistClient(TokenBlacklistClient tokenBlacklistClient) {
         this.tokenBlacklistClient = tokenBlacklistClient;
     }

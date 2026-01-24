@@ -1,0 +1,23 @@
+# =============================================================================
+# Shared WebSocket Configuration for Nebula Services
+# Services import this for WebSocket configuration
+# =============================================================================
+# Usage: Add to your service's application.yaml:
+#   spring.profiles.include: shared-websocket
+#
+# Required for services that provide WebSocket endpoints
+# =============================================================================
+
+# WebSocket Configuration
+websocket:
+  # Vehicle Telemetry WebSocket settings
+  vehicle-telemetry:
+    endpoint: ${WS_VEHICLE_TELEMETRY_ENDPOINT:/ws/vehicle-telemetry}
+    interval-minutes: ${WS_TELEMETRY_INTERVAL:5}
+    max-connections-per-user: ${WS_MAX_CONNECTIONS_PER_USER:1}
+  
+  # Security settings for WebSocket connections
+  security:
+    require-authentication: ${WS_REQUIRE_AUTH:true}
+    # Allowed origins for WebSocket connections (comma-separated for multiple)
+    allowed-origins: ${WS_ALLOWED_ORIGINS:http://localhost:3000}
