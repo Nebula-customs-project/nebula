@@ -36,7 +36,7 @@ export default function CarsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {cars.map((car, idx) => (
               <div key={idx} className="bg-gray-800 rounded-lg overflow-hidden hover:transform hover:scale-105 transition">
-                <div className="h-48 bg-gray-700 bg-cover bg-center" style={{backgroundImage: `url(${car.img || car.imageUrl})`}}></div>
+                <div className="h-48 bg-gray-700 bg-cover bg-center" style={{ backgroundImage: `url(${car.image || car.imageUrl})` }}></div>
                 <div className="p-6">
                   <h3 className="text-2xl font-bold mb-2">{car.name || car.carName}</h3>
                   <p className="text-gray-400 mb-4">{car.type || car.carType}</p>
