@@ -42,11 +42,14 @@ export default function Home() {
       try {
         setLoading(true)
         const merchandiseUrl = process.env.NEXT_PUBLIC_MERCHANDISE_URL || 'http://localhost:8080'
+        const merchandiseUrl = process.env.NEXT_PUBLIC_MERCHANDISE_URL || 'http://localhost:8080'
         const response = await fetch(`${merchandiseUrl}/api/v1/merchandise/products`)
+
 
         if (!response.ok) {
           throw new Error(`Failed to fetch products: ${response.status}`)
         }
+
 
         const data = await response.json()
         setProducts(data)
@@ -89,12 +92,17 @@ export default function Home() {
       quantity: 1,
       image: product.imageUrl
     }
+
+    const existingCart = localStorage.getItem('cart')
+    const updatedCart = existingCart ? JSON.parse(existingCart) : []
+
     const existingItem = updatedCart.find(item => item.productId === product.id)
     if (existingItem) {
       existingItem.quantity += 1
     } else {
       updatedCart.push(cartItem)
     }
+
     localStorage.setItem('cart', JSON.stringify(updatedCart))
     window.dispatchEvent(new Event('cart-updated'))
     setCart(updatedCart)
@@ -120,6 +128,7 @@ export default function Home() {
   }
 
   const getBadgeColor = (badge) => {
+    switch (badge) {
     switch (badge) {
       case 'BESTSELLER': return 'bg-yellow-500'
       case 'NEW': return 'bg-green-500'
@@ -148,6 +157,7 @@ export default function Home() {
           <h2 className="text-5xl font-bold text-center mb-4">Our Collection</h2>
           <p className="text-center text-gray-400 mb-16">Discover the perfect vehicle for your journey</p>
 
+
           <div className="relative h-[500px] flex items-center justify-center">
             {/* Navigation Buttons */}
             <button
@@ -156,6 +166,7 @@ export default function Home() {
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
+
 
             <button
               onClick={nextSlide}
@@ -184,134 +195,141 @@ export default function Home() {
                         : isLeft
                           ? 'translateX(-120%) scale(0.85) translateZ(0)'
                           : 'translateX(120%) scale(0.85) translateZ(0)',
+                          ? 'translateX(-120%) scale(0.85) translateZ(0)'
+                      : 'translateX(120%) scale(0.85) translateZ(0)',
                       zIndex: isCenter ? 10 : 5,
-                      opacity: isCenter ? 1 : 0.6,
+              opacity: isCenter ? 1 : 0.6,
                     }}
                   >
-                    <div className={`bg-gray-800 rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 ${isCenter ? 'w-96' : 'w-80'}`}>
-                      <div
-                        className="h-64 bg-cover bg-center relative"
-                        style={{ backgroundImage: `url(${car.image || car.imageUrl})` }}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
-                      </div>
-                      <div className="p-6">
-                        <h3 className="text-3xl font-bold mb-2">{car.carName}</h3>
-                        <p className="text-gray-400 mb-4">{car.carType}</p>
-                        <div className="flex justify-between items-center mb-4">
-                          <span className="text-red-500 font-bold text-2xl">{car.basePrice ? `€${Number(car.basePrice).toLocaleString()}` : ''}</span>
-                          <span className="text-gray-400 text-lg">{car.horsePower ? `${car.horsePower} HP` : ''}</span>
-                        </div>
-                        {isCenter && (
-                          <Link
-                            href={`/car-configurator?vehicleId=${car.vehicleId}`}
-                            className="block w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-center font-semibold transition transform hover:scale-105"
-                          >
-                            Configure Now
-                          </Link>
-                        )}
-                      </div>
-                    </div>
+              <div className={`bg-gray-800 rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 ${isCenter ? 'w-96' : 'w-80'}`}>
+                <div
+                  className="h-64 bg-cover bg-center relative"
+                  style={{ backgroundImage: `url(${car.image || car.imageUrl})` }}
+                  style={{ backgroundImage: `url(${car.image || car.imageUrl})` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-3xl font-bold mb-2">{car.carName}</h3>
+                  <p className="text-gray-400 mb-4">{car.carType}</p>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-red-500 font-bold text-2xl">{car.basePrice ? `€${Number(car.basePrice).toLocaleString()}` : ''}</span>
+                    <span className="text-gray-400 text-lg">{car.horsePower ? `${car.horsePower} HP` : ''}</span>
                   </div>
-                )
-              })}
+                  {isCenter && (
+                    <Link
+                      href={`/car-configurator?vehicleId=${car.vehicleId}`}
+                      className="block w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-center font-semibold transition transform hover:scale-105"
+                    >
+                      Configure Now
+                    </Link>
+                  )}
+                </div>
+              </div>
             </div>
+            )
+              })}
           </div>
+        </div>
 
-          {/* Dots Indicator */}
-          <div className="flex justify-center gap-2 mt-12">
-            {cars.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentIndex(idx)}
-                className={`w-3 h-3 rounded-full transition-all ${idx === currentIndex ? 'bg-red-600 w-8' : 'bg-gray-600 hover:bg-gray-500'
-                  }`}
-              />
+        {/* Dots Indicator */}
+        <div className="flex justify-center gap-2 mt-12">
+          {cars.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentIndex(idx)}
+              className={`w-3 h-3 rounded-full transition-all ${idx === currentIndex ? 'bg-red-600 w-8' : 'bg-gray-600 hover:bg-gray-500'
+                }`}
+              className={`w-3 h-3 rounded-full transition-all ${idx === currentIndex ? 'bg-red-600 w-8' : 'bg-gray-600 hover:bg-gray-500'
+                }`}
+            />
+          ))}
+        </div>
+
+
+      </div>
+    </div>
+
+      {/* Merchandise Section */ }
+  <div className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
+    <div className="max-w-7xl mx-auto">
+      <div className="text-center mb-16">
+        <h2 className="text-5xl font-bold mb-4">Nebula Merchandise</h2>
+        <p className="text-gray-400 text-xl">Express your passion with our exclusive collection</p>
+      </div>
+
+      {loading && (
+        <div className="text-center py-12">
+          <p className="text-gray-400 text-lg">Loading products...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="text-center py-12">
+          <p className="text-red-500 text-lg">Failed to load products: {error}</p>
+        </div>
+      )}
+
+      {!loading && !error && products.length > 0 && (
+        <>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {products.slice(0, 4).map((product) => (
+              <div
+                key={product.id}
+                className="group bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-xl cursor-pointer"
+                onClick={() => router.push('/merchandise')}
+              >
+                <div className="relative h-48 overflow-hidden">
+                  <div
+                      <div
+                    className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
+                    style={{ backgroundImage: `url(${product.imageUrl || product.image_url || product.img || ''})` }}
+                  ></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
+
+
+                  {product.badge && (
+                    <div className={`absolute top-2 right-2 ${getBadgeColor(product.badge)} text-white text-xs font-bold px-2 py-1 rounded-full`}>
+                      {product.badge}
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4">
+                  <h3 className="text-sm font-bold mb-1 line-clamp-2">{product.name}</h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-bold text-red-500">€{product.price.toFixed(2)}</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+                      className="bg-red-600 hover:bg-red-700 p-2 rounded-lg transition transform hover:scale-110 active:scale-95"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
 
-
-        </div>
-      </div>
-
-      {/* Merchandise Section */}
-      <div className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold mb-4">Nebula Merchandise</h2>
-            <p className="text-gray-400 text-xl">Express your passion with our exclusive collection</p>
+          <div className="text-center">
+            <Link
+              href="/merchandise"
+              className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-12 rounded-lg transition transform hover:scale-105"
+            >
+              Show More
+            </Link>
           </div>
+        </>
+      )}
 
-          {loading && (
-            <div className="text-center py-12">
-              <p className="text-gray-400 text-lg">Loading products...</p>
-            </div>
-          )}
-
-          {error && (
-            <div className="text-center py-12">
-              <p className="text-red-500 text-lg">Failed to load products: {error}</p>
-            </div>
-          )}
-
-          {!loading && !error && products.length > 0 && (
-            <>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                {products.slice(0, 4).map((product) => (
-                  <div
-                    key={product.id}
-                    className="group bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-xl cursor-pointer"
-                    onClick={() => router.push('/merchandise')}
-                  >
-                    <div className="relative h-48 overflow-hidden">
-                      <div
-                        className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
-                        style={{ backgroundImage: `url(${product.imageUrl || product.image_url || product.img || ''})` }}
-                      ></div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
-
-                      {product.badge && (
-                        <div className={`absolute top-2 right-2 ${getBadgeColor(product.badge)} text-white text-xs font-bold px-2 py-1 rounded-full`}>
-                          {product.badge}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-4">
-                      <h3 className="text-sm font-bold mb-1 line-clamp-2">{product.name}</h3>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-red-500">€{product.price.toFixed(2)}</span>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-                          className="bg-red-600 hover:bg-red-700 p-2 rounded-lg transition transform hover:scale-110 active:scale-95"
-                        >
-                          <ShoppingCart className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="text-center">
-                <Link
-                  href="/merchandise"
-                  className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-12 rounded-lg transition transform hover:scale-105"
-                >
-                  Show More
-                </Link>
-              </div>
-            </>
-          )}
-
-          {!loading && !error && products.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-400 text-lg">No products available</p>
-            </div>
-          )}
-
+      {!loading && !error && products.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-400 text-lg">No products available</p>
         </div>
-      </div>
+      )}
+
     </div>
+  </div>
+    </div >
   )
 }
