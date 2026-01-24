@@ -159,8 +159,20 @@ public class RedisTokenBlacklistService {
         long currentTime = System.currentTimeMillis();
         long ttlMillis = expirationTime - currentTime;
         
+        // If the token is already expired (or expires now), do not store it
+        if (ttlMillis <= 0) {
+            return 0;
+        }
+        
+        long ttlSeconds = ttlMillis / 1000;
+        
+        // Guard against sub-second remaining lifetime resulting in 0 seconds
+        if (ttlSeconds <= 0) {
+            return 0;
+        }
+        
         // Add 60 second buffer to handle clock skew
-        return (ttlMillis / 1000) + 60;
+        return ttlSeconds + 60;
     }
 
     /**
