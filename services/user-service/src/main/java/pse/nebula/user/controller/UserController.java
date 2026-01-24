@@ -3,7 +3,7 @@ package pse.nebula.user.controller;
 import pse.nebula.user.dto.AuthenticationResult;
 import pse.nebula.user.model.User;
 import pse.nebula.user.service.UserService;
-import pse.nebula.user.service.TokenBlacklistService;
+import pse.nebula.user.service.RedisTokenBlacklistService;
 import pse.nebula.user.dto.LoginRequest;
 import pse.nebula.user.dto.LoginResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private TokenBlacklistService tokenBlacklistService;
+    private RedisTokenBlacklistService redisTokenBlacklistService;
 
     /**
      * Register a new user
@@ -82,14 +82,19 @@ public class UserController {
 
             String token = authHeader.substring(7); // Remove "Bearer " prefix
 
-            // Add token to blacklist
-            tokenBlacklistService.blacklistToken(token);
+            // Get user ID from authentication context
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String userId = authentication != null ? authentication.getName() : "UNKNOWN";
+
+            // Add token to Redis blacklist only
+            redisTokenBlacklistService.blacklistToken(token, userId, "LOGOUT");
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "Logged out successfully");
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            log.error("Logout failed", e);
             Map<String, String> error = new HashMap<>();
             error.put("error", "Logout failed: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
@@ -100,11 +105,15 @@ public class UserController {
      * Check if a token is blacklisted
      * GET /users/blacklist/check
      * Header: X-Token-Check (contains the token to check)
+     * 
+     * Checks Redis only for token blacklist
      */
     @GetMapping("/blacklist/check")
     public ResponseEntity<Boolean> checkTokenBlacklist(@RequestHeader("X-Token-Check") String token) {
         try {
-            boolean isBlacklisted = tokenBlacklistService.isBlacklisted(token);
+            // Check Redis for blacklisted token
+            boolean isBlacklisted = redisTokenBlacklistService.isBlacklisted(token);
+            
             return ResponseEntity.ok(isBlacklisted);
         } catch (Exception e) {
             log.error("Error checking token blacklist", e);
