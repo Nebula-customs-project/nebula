@@ -16,8 +16,25 @@ function PaymentForm({ onSuccess, onBack }) {
       setError('Card number must be 16 digits.');
       return;
     }
+    // Expiry format MM/YY and not in the past
     if (!/^\d{2}\/\d{2}$/.test(card.expiry)) {
       setError('Expiry must be MM/YY.');
+      return;
+    }
+    const [mm, yy] = card.expiry.split('/');
+    const month = parseInt(mm, 10);
+    const year = parseInt(yy, 10) + 2000;
+    const now = new Date();
+    const expiryDate = new Date(year, month - 1, 1);
+    if (month < 1 || month > 12) {
+      setError('Expiry month must be between 01 and 12.');
+      return;
+    }
+    // Set expiry to end of month
+    expiryDate.setMonth(expiryDate.getMonth() + 1);
+    expiryDate.setDate(0);
+    if (expiryDate < now) {
+      setError('Card has expired.');
       return;
     }
     if (!/^\d{3,4}$/.test(card.cvc)) {
@@ -204,7 +221,7 @@ export default function CheckoutPage() {
             <div className="bg-gray-800 rounded-lg shadow-md p-8 sticky top-24 border border-gray-700">
               <h3 className="text-xl font-bold mb-6 text-gray-100">Order Summary</h3>
               <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
-                {cart.map(item => (
+                {cart.map((item, idx) => (
                   <div
                     key={item.productId}
                     className="flex items-center gap-3 bg-gray-900 rounded-lg p-2 shadow-sm border border-gray-700"
@@ -225,6 +242,18 @@ export default function CheckoutPage() {
                       <div className="text-xs text-gray-400">Qty: {item.quantity}</div>
                     </div>
                     <div className="font-bold text-gray-200 ml-2">€{(item.price * item.quantity).toFixed(2)}</div>
+                    <button
+                      className="ml-2 text-red-500 hover:text-red-700 text-lg font-bold focus:outline-none"
+                      title="Remove"
+                      onClick={() => {
+                        const updated = cart.filter((_, i) => i !== idx);
+                        setCart(updated);
+                        localStorage.setItem('cart', JSON.stringify(updated));
+                        window.dispatchEvent(new Event('cart-updated'));
+                      }}
+                    >
+                      ×
+                    </button>
                   </div>
                 ))}
               </div>

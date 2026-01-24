@@ -29,6 +29,19 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    // Validation
+    if (!form.username || form.username.length < 3) {
+      setError("Username must be at least 3 characters.");
+      return;
+    }
+    if (!form.email || !/^\S+@\S+\.\S+$/.test(form.email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (!form.password || form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
     setIsLoading(true);
     try {
       await authApi.register(form);
