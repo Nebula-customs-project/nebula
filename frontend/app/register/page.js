@@ -3,11 +3,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../../hooks/useAuth";
 import { authApi } from "../../lib/api";
 import { Mail, Lock, User, Phone, Image, Globe, MapPin } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [form, setForm] = useState({
     username: "",
     firstName: "",
@@ -57,8 +59,40 @@ export default function RegisterPage() {
       const submitForm = { ...form };
       delete submitForm.verifyPassword;
       await authApi.register(submitForm);
-      setSuccess("User registered successfully!");
-      setTimeout(() => router.push("/admin-dashboard"), 1500);
+      
+      // Auto-login after successful registration
+      setSuccess("Registration successful! Logging you in...");
+      
+      const loginResult = await authApi.login(form.email, form.password);
+      if (loginResult && loginResult.token && loginResult.userId) {
+        const token = loginResult.token;
+        const userId = loginResult.userId;
+        
+        // Fetch user profile to get role and full info
+        const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/users/${userId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        let userData = { id: userId, username: loginResult.username, email: loginResult.email };
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          userData = { ...userData, ...profile };
+        }
+        
+        // Store in context and localStorage
+        login(userData, token);
+        
+        // Redirect based on role
+        if (userData.role === 'ADMIN') {
+          router.push('/admin-dashboard');
+        } else {
+          router.push('/user-dashboard');
+        }
+      } else {
+        // Fallback: if auto-login fails, redirect to login page
+        setSuccess("Registration successful! Please log in.");
+        setTimeout(() => router.push("/login"), 1500);
+      }
     } catch (err) {
       setError(err.message || "Registration failed.");
     } finally {
