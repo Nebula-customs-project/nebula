@@ -121,6 +121,7 @@ services:
       WORLD_VIEW_SERVICE_URL: http://world-view:8082
       USER_SERVICE_URL: http://user-service:8083
       MERCHANDISE_SERVICE_URL: http://merchandise-service:8084
+      USER_VEHICLE_SERVICE_URL: http://user-vehicle-service:8085
     ports:
       - "8080:8080"
     depends_on:
@@ -279,6 +280,45 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-network
+
+  # ---------------------------------------------------------------------------
+  # User Vehicle Service
+  # ---------------------------------------------------------------------------
+  user-vehicle-service:
+    build:
+      context: ..
+      dockerfile: services/user-vehicle-service/Dockerfile
+    container_name: nebula-user-vehicle-service
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      VEHICLE_SERVICE_URL: http://vehicle-service:8081
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+    expose:
+      - "8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vehicle-service:
+        condition: service_healthy
+      gateway-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
