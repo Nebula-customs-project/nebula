@@ -45,6 +45,17 @@ spring:
           uri: http://merchandise-service:8084
           predicates:
             - Path=/api/v1/cart/**
+        # User Vehicle Service Routes
+        - id: user-vehicle-service
+          uri: http://user-vehicle-service:8085
+          predicates:
+            - Path=/api/v1/user-vehicle/**
+
+        # User Vehicle Service WebSocket Route (Vehicle Telemetry)
+        - id: user-vehicle-websocket
+          uri: ws://user-vehicle-service:8085
+          predicates:
+            - Path=/ws/vehicle-telemetry
 
 eureka:
   client:
