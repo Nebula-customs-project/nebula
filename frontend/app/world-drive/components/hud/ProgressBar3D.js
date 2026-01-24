@@ -4,22 +4,22 @@ export default function ProgressBar3D({ progress = 0, routeName = "Automotive De
     return (
         <div className={`absolute z-20 transition-all duration-700 ease-in-out pointer-events-none ${isFullscreen ? 'inset-0' : 'top-20 left-6'
             }`}>
-            <div className={`relative ${isFullscreen ? 'w-full h-full' : 'flex flex-col gap-4'}`}>
+            <div className={`relative ${isFullscreen ? 'w-full h-full' : 'flex flex-col gap-4 w-max'}`}>
 
-                {/* Title Section */}
-                <div className={`pointer-events-auto transition-all duration-700 ease-in-out ${isFullscreen ? 'absolute top-[2%] left-8' : ''
+                {/* Title Section - in fullscreen: top-left below navbar */}
+                <div className={`pointer-events-auto transition-all duration-700 ease-in-out ${isFullscreen ? 'absolute top-20 left-6' : ''
                     }`}>
                     <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-0.5 block">
                         {routeName}
                     </span>
-                    <h1 className="font-bold text-white tracking-wide drop-shadow-md text-2xl md:text-3xl uppercase">
+                    <h1 className={`font-bold tracking-wide drop-shadow-md text-2xl md:text-3xl uppercase ${isFullscreen ? 'text-blue-500' : 'text-white'}`}>
                         WORLD DRIVE VIEW
                     </h1>
                 </div>
 
-                {/* 3D Progress Bar */}
+                {/* 3D Progress Bar - in fullscreen: bottom center */}
                 <div
-                    className={`pointer-events-auto w-80 md:w-96 transition-all duration-700 ease-in-out ${isFullscreen ? 'absolute top-[5%] left-1/2 -translate-x-1/2' : ''
+                    className={`pointer-events-auto transition-all duration-700 ease-in-out ${isFullscreen ? 'absolute bottom-8 left-1/2 -translate-x-1/2 w-80 md:w-[500px] lg:w-[600px]' : 'w-full'
                         }`}
                     style={{ perspective: '800px' }}
                 >
