@@ -1,6 +1,8 @@
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Navigation from '@/components/Navigation'
+import Footer from '@/components/Footer'
+import ClientLayout from './client-layout'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -33,9 +35,12 @@ export default function RootLayout({ children }) {
           crossOrigin=""
         />
       </head>
-      <body className={inter.className} suppressHydrationWarning>
-        <Navigation />
-        {children}
+      <body className={inter.className}>
+        <ClientLayout>
+          <Navigation />
+          {children}
+          <Footer />
+        </ClientLayout>
       </body>
     </html>
   )
