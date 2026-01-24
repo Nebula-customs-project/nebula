@@ -27,11 +27,11 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center active:scale-95 transition-transform duration-200">
             <Image
-              src="/assets/nebula-logo.png"
+              src="/assets/nebula-logo-final.png"
               alt="Nebula"
               width={400}
               height={100}
-              className="h-36 w-auto object-contain translate-y-[2px]"
+              className="h-56 w-auto object-contain translate-y-[2px] -translate-x-[100px]"
               priority
             />
           </Link>
