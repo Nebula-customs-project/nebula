@@ -3,7 +3,6 @@
 import { Car, Settings, Package, ChevronLeft, ChevronRight, ShoppingCart, Shirt, Watch, Coffee, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube, Linkedin } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/useAuth'
 import { fetchAllVehicles } from './lib/vehicleApi'
 import { useRouter } from 'next/navigation'
 
