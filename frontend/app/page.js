@@ -73,25 +73,12 @@ import { useRouter } from 'next/navigation'
       quantity: 1,
       image: product.imageUrl
     }
-<<<<<<< HEAD
-    const existingCart = localStorage.getItem('cart')
-    const updatedCart = existingCart ? JSON.parse(existingCart) : []
-=======
-
-    const existingCart = localStorage.getItem('cart')
-    const updatedCart = existingCart ? JSON.parse(existingCart) : []
-
->>>>>>> 52cfafad010553455f3eb38d7edad45ad8a2fc00
     const existingItem = updatedCart.find(item => item.productId === product.id)
     if (existingItem) {
       existingItem.quantity += 1
     } else {
       updatedCart.push(cartItem)
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> 52cfafad010553455f3eb38d7edad45ad8a2fc00
     localStorage.setItem('cart', JSON.stringify(updatedCart))
     window.dispatchEvent(new Event('cart-updated'))
     setCart(updatedCart)
