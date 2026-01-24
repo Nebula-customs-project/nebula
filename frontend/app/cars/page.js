@@ -36,15 +36,15 @@ export default function CarsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {cars.map((car, idx) => (
               <div key={idx} className="bg-gray-800 rounded-lg overflow-hidden hover:transform hover:scale-105 transition">
-                <div className="h-48 bg-gray-700 bg-cover bg-center" style={{ backgroundImage: `url(${car.image || car.imageUrl})` }}></div>
+                <div className="h-48 bg-gray-700 bg-cover bg-center" style={{ backgroundImage: `url(${car.image})` }}></div>
                 <div className="p-6">
-                  <h3 className="text-2xl font-bold mb-2">{car.name || car.carName}</h3>
-                  <p className="text-gray-400 mb-4">{car.type || car.carType}</p>
+                  <h3 className="text-2xl font-bold mb-2">{car.carName}</h3>
+                  <p className="text-gray-400 mb-4">{car.carType}</p>
                   <div className="flex justify-between items-center">
-                    <span className="text-red-500 font-bold text-xl">{car.price ? `€${car.price}` : ''}</span>
-                    <span className="text-gray-400">{car.power || car.horsepower}</span>
+                    <span className="text-red-500 font-bold text-xl">{car.basePrice ? `€${Number(car.basePrice).toLocaleString()}` : ''}</span>
+                    <span className="text-gray-400">{car.horsePower ? `${car.horsePower} HP` : ''}</span>
                   </div>
-                  <Link href="/car-configurator" className="block w-full mt-4 bg-red-600 hover:bg-red-700 py-2 rounded transition text-center">
+                  <Link href={`/car-configurator?vehicleId=${car.vehicleId}`} className="block w-full mt-4 bg-red-600 hover:bg-red-700 py-2 rounded transition text-center">
                     Configure
                   </Link>
                 </div>

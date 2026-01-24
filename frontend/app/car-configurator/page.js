@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Vehicle3DScene from "../../components/Vehicle3DScene";
 import CustomizationPanel from "../../components/CustomizationPanel";
 import CarSelector from "../../components/CarSelector";
@@ -28,6 +29,9 @@ import { vehicleServiceApi } from "./lib/api";
 import { useAudioManager } from "../../hooks/useAudioManager";
 
 export default function CarConfiguratorPage() {
+  // URL params
+  const searchParams = useSearchParams();
+
   // API State
   const [vehicles, setVehicles] = useState([]);
   const [vehicleConfig, setVehicleConfig] = useState(null);
@@ -108,9 +112,11 @@ export default function CarConfiguratorPage() {
         setServiceStatus("connected");
         setServiceMessage("");
 
-        // Set first vehicle as default
+        // Set vehicle from URL param or default to first vehicle
         if (fetchedVehicles.length > 0 && !currentVehicleId) {
-          setCurrentVehicleId(fetchedVehicles[0].vehicleId);
+          const urlVehicleId = parseInt(searchParams.get('vehicleId'), 10);
+          const validVehicle = fetchedVehicles.find(v => v.vehicleId === urlVehicleId);
+          setCurrentVehicleId(validVehicle ? urlVehicleId : fetchedVehicles[0].vehicleId);
         }
 
         // Clear retry interval on success
