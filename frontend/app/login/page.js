@@ -93,7 +93,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@nebula.com"
+                  placeholder="Email address"
                   className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition text-white placeholder:text-white/40 backdrop-blur-sm"
                   required
                 />
@@ -109,7 +109,7 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Password"
                   className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition text-white placeholder:text-white/40 backdrop-blur-sm"
                   required
                 />
@@ -131,15 +131,16 @@ export default function LoginPage() {
                 'Sign In'
               )}
             </button>
-          </form>
 
-          {/* ...existing code... */}
+          {/* Register prompt */}
+          <div className="mt-6 text-center">
+            <span className="text-gray-300 text-sm">Don't have an account?</span>
+            <a href="/register" className="ml-2 text-red-400 hover:text-red-500 font-semibold transition">Register</a>
+          </div>
+        </form>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-gray-400 text-xs mt-8">
-          © 2024 Nebula Platform. All rights reserved.
-        </p>
+        {/* Footer removed for cleaner design */}
       </div>
     </div>
   );

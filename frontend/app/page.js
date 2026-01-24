@@ -3,6 +3,7 @@
 import { Car, Settings, Package, ChevronLeft, ChevronRight, ShoppingCart, Shirt, Watch, Coffee, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube, Linkedin } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { fetchAllVehicles } from './lib/vehicleApi'
 import { useRouter } from 'next/navigation'
 
 export default function Home() {
@@ -13,14 +14,25 @@ export default function Home() {
   const [cart, setCart] = useState([])
   const router = useRouter()
 
-  const cars = [
-    { name: 'Nebula Velocity', type: 'Sport', price: '€89,900', power: '450 HP', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600' },
-    { name: 'Nebula Elite', type: 'Luxury Sedan', price: '€125,000', power: '380 HP', img: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600' },
-    { name: 'Nebula Apex', type: 'Supercar', price: '€245,000', power: '720 HP', img: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600' },
-    { name: 'Nebula Urban', type: 'SUV', price: '€68,500', power: '310 HP', img: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600' },
-    { name: 'Nebula Thunder', type: 'Electric', price: '€95,000', power: '500 HP', img: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600' },
-    { name: 'Nebula Prestige', type: 'Luxury Coupe', price: '€175,000', power: '550 HP', img: 'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=600' }
-  ]
+  const [cars, setCars] = useState([])
+  const [carsLoading, setCarsLoading] = useState(true)
+  const [carsError, setCarsError] = useState(null)
+
+  useEffect(() => {
+    const fetchCars = async () => {
+      setCarsLoading(true)
+      const result = await fetchAllVehicles()
+      if (result.error) {
+        setCarsError(result.message)
+        setCars([])
+      } else {
+        setCars(result.vehicles)
+        setCarsError(null)
+      }
+      setCarsLoading(false)
+    }
+    fetchCars()
+  }, [])
 
   // Fetch products from merchandise API
   useEffect(() => {
@@ -93,14 +105,15 @@ export default function Home() {
   }
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % cars.length)
+    setCurrentIndex((prev) => (cars.length ? (prev + 1) % cars.length : 0))
   }
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + cars.length) % cars.length)
+    setCurrentIndex((prev) => (cars.length ? (prev - 1 + cars.length) % cars.length : 0))
   }
 
   const getVisibleCars = () => {
+    if (!cars.length) return []
     const visible = []
     for (let i = -1; i <= 1; i++) {
       const index = (currentIndex + i + cars.length) % cars.length
@@ -130,27 +143,6 @@ export default function Home() {
           <p className="text-2xl mb-8 text-gray-300">Engineering Excellence, Defining Performance</p>
         </div>
       </div>
-      
-      {/* Features Section */}
-      <div className="py-20 px-4">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
-          <div className="bg-gray-800 p-8 rounded-lg text-center hover:bg-gray-750 transition">
-            <Car className="w-16 h-16 mx-auto mb-4 text-red-500" />
-            <h3 className="text-xl font-bold mb-2">Innovation</h3>
-            <p className="text-gray-400">Cutting-edge technology in every vehicle</p>
-          </div>
-          <div className="bg-gray-800 p-8 rounded-lg text-center hover:bg-gray-750 transition">
-            <Settings className="w-16 h-16 mx-auto mb-4 text-red-500" />
-            <h3 className="text-xl font-bold mb-2">Performance</h3>
-            <p className="text-gray-400">Unmatched power and precision</p>
-          </div>
-          <div className="bg-gray-800 p-8 rounded-lg text-center hover:bg-gray-750 transition">
-            <Package className="w-16 h-16 mx-auto mb-4 text-red-500" />
-            <h3 className="text-xl font-bold mb-2">Luxury</h3>
-            <p className="text-gray-400">Premium craftsmanship and comfort</p>
-          </div>
-        </div>
-      </div>
 
       {/* Car Collection Slider */}
       <div className="py-20 px-4 bg-black">
@@ -176,11 +168,14 @@ export default function Home() {
 
             {/* Car Cards */}
             <div className="relative w-full h-full flex items-center justify-center">
-              {getVisibleCars().map((car, idx) => {
+              {carsLoading ? (
+                <div className="text-center w-full text-gray-400">Loading vehicles...</div>
+              ) : carsError ? (
+                <div className="text-center w-full text-red-500">{carsError}</div>
+              ) : getVisibleCars().map((car, idx) => {
                 const isCenter = car.position === 0
                 const isLeft = car.position === -1
                 const isRight = car.position === 1
-
                 return (
                   <div
                     key={idx}
@@ -198,16 +193,16 @@ export default function Home() {
                     <div className={`bg-gray-800 rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 ${isCenter ? 'w-96' : 'w-80'}`}>
                       <div
                         className="h-64 bg-cover bg-center relative"
-                        style={{ backgroundImage: `url(${car.img})` }}
+                        style={{ backgroundImage: `url(${car.img || car.imageUrl})` }}
                       >
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
                       </div>
                       <div className="p-6">
-                        <h3 className="text-3xl font-bold mb-2">{car.name}</h3>
-                        <p className="text-gray-400 mb-4">{car.type}</p>
+                        <h3 className="text-3xl font-bold mb-2">{car.name || car.carName}</h3>
+                        <p className="text-gray-400 mb-4">{car.type || car.carType}</p>
                         <div className="flex justify-between items-center mb-4">
-                          <span className="text-red-500 font-bold text-2xl">{car.price}</span>
-                          <span className="text-gray-400 text-lg">{car.power}</span>
+                          <span className="text-red-500 font-bold text-2xl">{car.price ? `€${car.price}` : ''}</span>
+                          <span className="text-gray-400 text-lg">{car.power || car.horsepower}</span>
                         </div>
                         {isCenter && (
                           <Link

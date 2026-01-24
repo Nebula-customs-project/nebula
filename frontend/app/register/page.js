@@ -42,17 +42,17 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 pt-24 pb-12">
       <form
         onSubmit={handleSubmit}
-        className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md"
+        className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md mb-8"
       >
         <h2 className="text-2xl font-bold mb-6 text-gray-100">Register New User</h2>
         {error && <div className="text-red-500 mb-4">{error}</div>}
         {success && <div className="text-green-500 mb-4">{success}</div>}
         <input name="username" placeholder="Username" required className="input" value={form.username} onChange={handleChange} />
-        <input name="firstName" placeholder="First Name" required className="input" value={form.firstName} onChange={handleChange} />
-        <input name="lastName" placeholder="Last Name" required className="input" value={form.lastName} onChange={handleChange} />
+        <input name="firstName" placeholder="First Name" className="input" value={form.firstName} onChange={handleChange} />
+        <input name="lastName" placeholder="Last Name" className="input" value={form.lastName} onChange={handleChange} />
         <input name="email" type="email" placeholder="Email" required className="input" value={form.email} onChange={handleChange} />
         <input name="password" type="password" placeholder="Password" required className="input" value={form.password} onChange={handleChange} />
         <input name="phoneNumber" placeholder="Phone Number (optional)" className="input" value={form.phoneNumber} onChange={handleChange} />

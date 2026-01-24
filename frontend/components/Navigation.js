@@ -61,7 +61,7 @@ export default function Navigation() {
             ) : (
               <Link
                 href="/login"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition text-white font-semibold"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${pathname === '/login' ? 'bg-red-600' : 'hover:bg-gray-800'}`}
               >
                 <LogOut className="w-4 h-4" />
                 <span className="hidden md:inline">Login</span>
