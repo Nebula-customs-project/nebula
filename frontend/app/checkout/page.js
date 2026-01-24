@@ -1,29 +1,47 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { QRCode } from 'qrcode.react'
 import { useRouter } from 'next/navigation'
 
-// PaymentQR component for QR code and auto-redirect
-function PaymentQR({ onSuccess, onBack }) {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onSuccess()
-    }, 60000) // 1 minute
-    return () => clearTimeout(timer)
-  }, [onSuccess])
+
+// PaymentForm component for Credit Card only
+function PaymentForm({ onSuccess, onBack }) {
+  const [card, setCard] = useState({ number: '', expiry: '', cvc: '' });
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError('');
+    if (!/^\d{16}$/.test(card.number.replace(/\s/g, ''))) {
+      setError('Card number must be 16 digits.');
+      return;
+    }
+    if (!/^\d{2}\/\d{2}$/.test(card.expiry)) {
+      setError('Expiry must be MM/YY.');
+      return;
+    }
+    if (!/^\d{3,4}$/.test(card.cvc)) {
+      setError('CVC must be 3 or 4 digits.');
+      return;
+    }
+    onSuccess();
+  };
 
   return (
-    <div className="space-y-8 flex flex-col items-center justify-center">
-      <h2 className="text-3xl font-extrabold text-gray-100 tracking-tight mb-2">Scan to Pay</h2>
-      <div className="bg-gray-900 p-5 rounded-2xl shadow-2xl border-4 border-gray-700 flex flex-col items-center">
-        <div className="bg-white rounded-xl p-2 shadow-inner">
-          <QRCode value="Gotcha!!!" size={176} />
+    <form onSubmit={handleSubmit} className="space-y-8 flex flex-col items-center justify-center">
+      <h2 className="text-3xl font-extrabold text-gray-100 tracking-tight mb-2">Credit Card Payment</h2>
+      <div className="w-full max-w-xs space-y-4">
+        <input type="text" placeholder="Card Number" maxLength={19} value={card.number} onChange={e => setCard({ ...card, number: e.target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim() })} className="w-full px-4 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-400" required />
+        <div className="flex gap-2">
+          <input type="text" placeholder="MM/YY" maxLength={5} value={card.expiry} onChange={e => setCard({ ...card, expiry: e.target.value })} className="w-1/2 px-4 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-400" required />
+          <input type="text" placeholder="CVC" maxLength={4} value={card.cvc} onChange={e => setCard({ ...card, cvc: e.target.value.replace(/[^\d]/g, '') })} className="w-1/2 px-4 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-400" required />
         </div>
-        <div className="mt-4 text-lg font-semibold text-gray-200 text-center">Please scan the QR code</div>
       </div>
-    </div>
-  )
+      {error && <div className="text-red-400 text-sm">{error}</div>}
+      <button type="submit" className="w-full max-w-xs bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold transition">Pay Now</button>
+      <button type="button" onClick={onBack} className="text-gray-400 hover:text-red-400 mt-2">Back to Shipping</button>
+    </form>
+  );
 }
 
 export default function CheckoutPage() {
@@ -177,7 +195,7 @@ export default function CheckoutPage() {
                 </form>
               )}
               {step === 'payment' && (
-                <PaymentQR onSuccess={handlePaymentSuccess} onBack={() => setStep('shipping')} />
+                <PaymentForm onSuccess={handlePaymentSuccess} onBack={() => setStep('shipping')} />
               )}
             </div>
           </div>

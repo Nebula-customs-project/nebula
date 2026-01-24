@@ -50,7 +50,6 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-bold mb-4">Dashboards</h3>
             <ul className="space-y-2">
-              <li><a className="text-gray-400 hover:text-red-500 transition" href="/user-dashboard">User Dashboard</a></li>
               <li><a className="text-gray-400 hover:text-red-500 transition" href="/admin-dashboard">Admin Dashboard</a></li>
             </ul>
           </div>

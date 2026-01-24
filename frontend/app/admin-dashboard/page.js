@@ -119,12 +119,6 @@ export default function AdminDashboard() {
                   <span className="font-bold text-lg text-green-600">+$4.2K</span>
                 </div>
               </div>
-              <button
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition mt-4"
-                onClick={() => router.push('/register')}
-              >
-                Register New User
-              </button>
             </div>
 
             {/* Recent Activity */}

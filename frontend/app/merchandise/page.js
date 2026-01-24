@@ -1,9 +1,14 @@
 'use client'
 
+
 import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { ShoppingCart, Heart, Star, Filter } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function MerchandisePage() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const [cart, setCart] = useState([])
   const [favorites, setFavorites] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('All')
@@ -43,6 +48,12 @@ export default function MerchandisePage() {
     }
   }, [])
 
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('favorites') : null;
+    setFavorites(saved ? JSON.parse(saved) : []);
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController()
     fetchProducts(controller.signal)
@@ -80,11 +91,18 @@ export default function MerchandisePage() {
   }
 
   const toggleFavorite = (productId) => {
-    if (favorites.includes(productId)) {
-      setFavorites(favorites.filter(id => id !== productId))
-    } else {
-      setFavorites([...favorites, productId])
+    if (!isAuthenticated) {
+      alert('Please log in to use the wishlist.');
+      return;
     }
+    let updated;
+    if (favorites.includes(productId)) {
+      updated = favorites.filter(id => id !== productId);
+    } else {
+      updated = [...favorites, productId];
+    }
+    setFavorites(updated);
+    localStorage.setItem('favorites', JSON.stringify(updated));
   }
 
   const getBadgeColor = (badge) => {
@@ -267,7 +285,10 @@ export default function MerchandisePage() {
                 <span className="text-red-500">€{cart.reduce((sum, item) => sum + item.price, 0)}</span>
               </div>
             </div>
-            <button className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition">
+            <button
+              className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition"
+              onClick={() => router.push('/checkout')}
+            >
               Checkout Now
             </button>
           </div>
