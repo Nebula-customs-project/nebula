@@ -17,7 +17,7 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="bg-black text-white sticky top-0 z-50 shadow-lg">
+    <nav className="bg-black/90 backdrop-blur-md text-white fixed top-0 left-0 right-0 z-[100] shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
@@ -32,9 +32,8 @@ export default function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                    isActive ? "bg-red-600" : "hover:bg-gray-800"
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${isActive ? "bg-red-600" : "hover:bg-gray-800"
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   <span className="hidden md:inline">{item.label}</span>
