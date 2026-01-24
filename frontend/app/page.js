@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { fetchAllVehicles } from './lib/vehicleApi'
 import { useRouter } from 'next/navigation'
 
+export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -54,6 +55,13 @@ import { useRouter } from 'next/navigation'
         console.error('Error fetching products:', err)
         setError(err.message)
         setProducts([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProducts()
+  }, [])
+
   useEffect(() => {
     const savedCart = localStorage.getItem('cart')
     if (savedCart) {
@@ -62,10 +70,22 @@ import { useRouter } from 'next/navigation'
 
     // Listen for cart updates from other tabs/components
     const handleCartUpdate = () => {
+      const updatedCart = localStorage.getItem('cart')
+      if (updatedCart) {
+        setCart(JSON.parse(updatedCart))
+      }
+    }
+
+    window.addEventListener('cart-updated', handleCartUpdate)
+    return () => window.removeEventListener('cart-updated', handleCartUpdate)
+  }, [])
+
+  const addToCart = (product) => {
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
+    const updatedCart = [...cart]
     const cartItem = {
       productId: product.id,
       name: product.name,
