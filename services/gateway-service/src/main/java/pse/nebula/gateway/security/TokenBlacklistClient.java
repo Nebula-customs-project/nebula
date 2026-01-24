@@ -2,6 +2,7 @@ package pse.nebula.gateway.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactorLoadBalancerExchangeFilterFunction;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,21 +12,32 @@ import java.time.Duration;
 
 /**
  * Client for checking token blacklist status from user-service
- * Uses Spring Cloud LoadBalancer for service discovery
+ * Supports both Spring Cloud LoadBalancer (Eureka) and direct URL configuration
+ * (Docker)
  */
 @Component
 public class TokenBlacklistClient {
 
     private static final Logger log = LoggerFactory.getLogger(TokenBlacklistClient.class);
-    private static final String USER_SERVICE_LB_URL = "http://user-service";
 
     private final WebClient webClient;
+    private final String userServiceUrl;
 
-    public TokenBlacklistClient(WebClient.Builder webClientBuilder,
-                                ReactorLoadBalancerExchangeFilterFunction lbFunction) {
-        this.webClient = webClientBuilder
-                .filter(lbFunction)
-                .build();
+    public TokenBlacklistClient(
+            WebClient.Builder webClientBuilder,
+            ReactorLoadBalancerExchangeFilterFunction lbFunction,
+            @Value("${USER_SERVICE_URL:}") String directUrl) {
+
+        // Use direct URL if provided (Docker), otherwise use load-balanced URL (Eureka)
+        if (directUrl != null && !directUrl.isBlank()) {
+            this.userServiceUrl = directUrl;
+            this.webClient = webClientBuilder.build();
+            log.info("TokenBlacklistClient configured with direct URL: {}", directUrl);
+        } else {
+            this.userServiceUrl = "http://user-service";
+            this.webClient = webClientBuilder.filter(lbFunction).build();
+            log.info("TokenBlacklistClient configured with load-balanced URL: {}", this.userServiceUrl);
+        }
     }
 
     /**
@@ -35,10 +47,10 @@ public class TokenBlacklistClient {
      * @return Mono<Boolean> true if blacklisted, false otherwise
      */
     public Mono<Boolean> isTokenBlacklisted(String token) {
-        log.debug("Checking if token is blacklisted");
+        log.debug("Checking if token is blacklisted via {}", userServiceUrl);
 
         return webClient.get()
-                .uri(USER_SERVICE_LB_URL + "/api/users/blacklist/check")
+                .uri(userServiceUrl + "/api/users/blacklist/check")
                 .header("X-Token-Check", token)
                 .retrieve()
                 .bodyToMono(Boolean.class)
@@ -50,8 +62,8 @@ public class TokenBlacklistClient {
                         log.debug("Token is not blacklisted");
                     }
                 })
-                .doOnError(error -> log.error("Failed to check token blacklist: {}", error.getMessage()))
+                .doOnError(error -> log.error("Failed to check token blacklist at {}: {}", userServiceUrl,
+                        error.getMessage()))
                 .onErrorReturn(false); // On error, assume not blacklisted to avoid blocking legitimate requests
     }
 }
-

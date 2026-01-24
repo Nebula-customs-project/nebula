@@ -67,4 +67,6 @@ logging:
   level:
     root: INFO
     pse.nebula: INFO
+    pse.nebula.gateway.security: DEBUG
     org.springframework.cloud.gateway: DEBUG
+    org.springframework.web.reactive.function.client: DEBUG
