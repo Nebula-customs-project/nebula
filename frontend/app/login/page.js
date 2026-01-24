@@ -22,30 +22,22 @@ export default function LoginPage() {
     try {
       const result = await authApi.login(email, password);
       if (result && result.token && result.userId) {
-        // Store token and user info
-        localStorage.setItem('authToken', result.token);
-        localStorage.setItem('userId', result.userId);
-        localStorage.setItem('username', result.username);
-        localStorage.setItem('email', result.email);
-
-        // Optionally update auth context if needed
-        login(result.username, password);
-
-        // Fetch user profile to get role
+        // Fetch user profile to get role and full info
         const token = result.token;
         const userId = result.userId;
         const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/users/${userId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
+        let userData = { id: userId, username: result.username, email: result.email };
         if (profileRes.ok) {
           const profile = await profileRes.json();
-          if (profile.role === 'ADMIN') {
-            router.push('/admin-dashboard');
-          } else {
-            router.push('/user-dashboard');
-          }
+          userData = { ...userData, ...profile };
+        }
+        // Store in context and localStorage
+        login(userData, token);
+        if (userData.role === 'ADMIN') {
+          router.push('/admin-dashboard');
         } else {
-          // Fallback: just go to user dashboard
           router.push('/user-dashboard');
         }
       } else {

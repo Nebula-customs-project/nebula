@@ -40,13 +40,13 @@ import { useRouter } from 'next/navigation'
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        const merchandiseUrl = process.env.NEXT_PUBLIC_MERCHANDISE_URL || 'http://localhost:8084'
+        const merchandiseUrl = process.env.NEXT_PUBLIC_MERCHANDISE_URL || 'http://localhost:8080'
         const response = await fetch(`${merchandiseUrl}/api/v1/merchandise/products`)
-        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch products: ${response.status}`)
         }
-        
+
         const data = await response.json()
         setProducts(data)
         setError(null)
@@ -54,15 +54,6 @@ import { useRouter } from 'next/navigation'
         console.error('Error fetching products:', err)
         setError(err.message)
         setProducts([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchProducts()
-  }, [])
-
-  // Load cart from localStorage
   useEffect(() => {
     const savedCart = localStorage.getItem('cart')
     if (savedCart) {
@@ -71,17 +62,6 @@ import { useRouter } from 'next/navigation'
 
     // Listen for cart updates from other tabs/components
     const handleCartUpdate = () => {
-      const updatedCart = localStorage.getItem('cart')
-      if (updatedCart) {
-        setCart(JSON.parse(updatedCart))
-      }
-    }
-
-    window.addEventListener('cart-updated', handleCartUpdate)
-    return () => window.removeEventListener('cart-updated', handleCartUpdate)
-  }, [])
-
-  const addToCart = (product) => {
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -93,14 +73,25 @@ import { useRouter } from 'next/navigation'
       quantity: 1,
       image: product.imageUrl
     }
+<<<<<<< HEAD
     const existingCart = localStorage.getItem('cart')
     const updatedCart = existingCart ? JSON.parse(existingCart) : []
+=======
+
+    const existingCart = localStorage.getItem('cart')
+    const updatedCart = existingCart ? JSON.parse(existingCart) : []
+
+>>>>>>> 52cfafad010553455f3eb38d7edad45ad8a2fc00
     const existingItem = updatedCart.find(item => item.productId === product.id)
     if (existingItem) {
       existingItem.quantity += 1
     } else {
       updatedCart.push(cartItem)
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 52cfafad010553455f3eb38d7edad45ad8a2fc00
     localStorage.setItem('cart', JSON.stringify(updatedCart))
     window.dispatchEvent(new Event('cart-updated'))
     setCart(updatedCart)
@@ -125,7 +116,7 @@ import { useRouter } from 'next/navigation'
   }
 
   const getBadgeColor = (badge) => {
-    switch(badge) {
+    switch (badge) {
       case 'BESTSELLER': return 'bg-yellow-500'
       case 'NEW': return 'bg-green-500'
       case 'LIMITED': return 'bg-purple-500'
@@ -151,7 +142,7 @@ import { useRouter } from 'next/navigation'
         <div className="max-w-7xl mx-auto">
           <h2 className="text-5xl font-bold text-center mb-4">Our Collection</h2>
           <p className="text-center text-gray-400 mb-16">Discover the perfect vehicle for your journey</p>
-          
+
           <div className="relative h-[500px] flex items-center justify-center">
             {/* Navigation Buttons */}
             <button
@@ -160,7 +151,7 @@ import { useRouter } from 'next/navigation'
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
-            
+
             <button
               onClick={nextSlide}
               className="absolute right-0 z-20 bg-red-600 hover:bg-red-700 p-4 rounded-full transition transform hover:scale-110"
@@ -186,8 +177,8 @@ import { useRouter } from 'next/navigation'
                       transform: isCenter
                         ? 'translateX(0) scale(1.2) translateZ(0)'
                         : isLeft
-                        ? 'translateX(-120%) scale(0.85) translateZ(0)'
-                        : 'translateX(120%) scale(0.85) translateZ(0)',
+                          ? 'translateX(-120%) scale(0.85) translateZ(0)'
+                          : 'translateX(120%) scale(0.85) translateZ(0)',
                       zIndex: isCenter ? 10 : 5,
                       opacity: isCenter ? 1 : 0.6,
                     }}
@@ -195,7 +186,7 @@ import { useRouter } from 'next/navigation'
                     <div className={`bg-gray-800 rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 ${isCenter ? 'w-96' : 'w-80'}`}>
                       <div
                         className="h-64 bg-cover bg-center relative"
-                        style={{ backgroundImage: `url(${car.img || car.imageUrl})` }}
+                        style={{ backgroundImage: `url(${car.image || car.imageUrl})` }}
                       >
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
                       </div>
@@ -228,9 +219,8 @@ import { useRouter } from 'next/navigation'
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
-                className={`w-3 h-3 rounded-full transition-all ${
-                  idx === currentIndex ? 'bg-red-600 w-8' : 'bg-gray-600 hover:bg-gray-500'
-                }`}
+                className={`w-3 h-3 rounded-full transition-all ${idx === currentIndex ? 'bg-red-600 w-8' : 'bg-gray-600 hover:bg-gray-500'
+                  }`}
               />
             ))}
           </div>
@@ -268,12 +258,12 @@ import { useRouter } from 'next/navigation'
                     className="group bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-xl"
                   >
                     <div className="relative h-48 overflow-hidden">
-                      <div 
+                      <div
                         className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
                         style={{ backgroundImage: `url(${product.imageUrl || product.image_url || product.img || ''})` }}
                       ></div>
                       <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
-                      
+
                       {product.badge && (
                         <div className={`absolute top-2 right-2 ${getBadgeColor(product.badge)} text-white text-xs font-bold px-2 py-1 rounded-full`}>
                           {product.badge}

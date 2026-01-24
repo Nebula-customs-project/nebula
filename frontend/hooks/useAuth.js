@@ -51,22 +51,21 @@ export function useAuth() {
     };
   }, []);
 
-  const login = (username, password) => {
-    // Mock login
-    const userData = {
-      id: 1,
-      username,
-      email: `${username}@nebula.com`,
-      role: username === 'admin' ? 'ADMIN' : 'USER',
-    };
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('authToken', 'mock-token-' + Date.now());
-    setUser(userData);
-    
-    // Trigger auth change event for other components
+  // Accepts userData and token from backend
+  const login = (userData, token) => {
+    if (userData && token) {
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('authToken', token);
+      setUser(userData);
+      window.dispatchEvent(new Event('auth-change'));
+      return userData;
+    }
+    // fallback: clear user if missing data
+    localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
+    setUser(null);
     window.dispatchEvent(new Event('auth-change'));
-    
-    return userData;
+    return null;
   };
 
   const logout = () => {
