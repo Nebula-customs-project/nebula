@@ -2,7 +2,6 @@ package pse.nebula.user.service;
 
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -12,14 +11,21 @@ import java.util.Date;
 import java.util.Optional;
 
 /**
- * Redis-based token blacklist service
- * Stores blacklisted tokens in Redis with automatic TTL expiration
+ * Redis-based token blacklist service using JTI (JWT ID) approach.
+ * 
+ * Instead of storing the full token or its hash, we store only the JTI (UUID)
+ * which is a 36-character unique identifier embedded in each JWT token.
+ * 
+ * Benefits of JTI approach:
+ * - Smaller storage: 36 chars (JTI) vs 64 chars (hash) vs 500+ chars (full token)
+ * - No hashing needed: JTI is already unique and non-sensitive
+ * - Automatic TTL: Redis auto-expires entries when token would have expired
  */
 @Service
 @Slf4j
 public class RedisTokenBlacklistService {
 
-    private static final String BLACKLIST_KEY_PREFIX = "blacklist:";
+    private static final String BLACKLIST_KEY_PREFIX = "blacklist:jti:";
     
     private final RedisTemplate<String, String> redisTemplate;
     private final JwtUtil jwtUtil;
@@ -30,7 +36,7 @@ public class RedisTokenBlacklistService {
     }
 
     /**
-     * Blacklist a token with automatic TTL expiration
+     * Blacklist a token using its JTI (JWT ID) with automatic TTL expiration.
      * 
      * @param token JWT token to blacklist
      * @param userId User ID who owns the token
@@ -38,9 +44,15 @@ public class RedisTokenBlacklistService {
      */
     public void blacklistToken(String token, String userId, String reason) {
         try {
-            // Parse token to get expiration
+            // Parse token to get JTI and expiration
             Claims claims = jwtUtil.parseToken(token);
+            String jti = claims.getId();
             Date expiration = claims.getExpiration();
+            
+            if (jti == null || jti.isBlank()) {
+                log.error("Token has no JTI claim, cannot blacklist");
+                throw new IllegalArgumentException("Token missing JTI claim");
+            }
             
             // Calculate TTL in seconds
             long ttlSeconds = calculateTTL(expiration);
@@ -50,9 +62,8 @@ public class RedisTokenBlacklistService {
                 return;
             }
             
-            // Hash the token for security
-            String tokenHash = hashToken(token);
-            String redisKey = BLACKLIST_KEY_PREFIX + tokenHash;
+            // Use JTI directly as the key (no hashing needed - JTI is already a UUID)
+            String redisKey = BLACKLIST_KEY_PREFIX + jti;
             
             // Create simple string value: userId:reason:timestamp
             String value = String.format("%s:%s:%s", 
@@ -68,7 +79,10 @@ public class RedisTokenBlacklistService {
                 Duration.ofSeconds(ttlSeconds)
             );
             
-            log.info("Token blacklisted for user: {}, reason: {}, TTL: {}s", userId, reason, ttlSeconds);
+            log.info("Token blacklisted - JTI: {}, user: {}, reason: {}, TTL: {}s", 
+                     jti, userId, reason, ttlSeconds);
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error blacklisting token", e);
             throw new IllegalStateException("Failed to blacklist token", e);
@@ -76,15 +90,22 @@ public class RedisTokenBlacklistService {
     }
 
     /**
-     * Check if a token is blacklisted
+     * Check if a token is blacklisted by looking up its JTI.
      * 
      * @param token JWT token to check
      * @return true if blacklisted, false otherwise
      */
     public boolean isBlacklisted(String token) {
         try {
-            String tokenHash = hashToken(token);
-            String redisKey = BLACKLIST_KEY_PREFIX + tokenHash;
+            // Extract JTI from token
+            String jti = jwtUtil.getTokenId(token);
+            
+            if (jti == null || jti.isBlank()) {
+                log.warn("Token has no JTI claim, cannot check blacklist");
+                return false;
+            }
+            
+            String redisKey = BLACKLIST_KEY_PREFIX + jti;
             
             // Check if key exists in Redis
             Boolean exists = redisTemplate.hasKey(redisKey);
@@ -104,9 +125,13 @@ public class RedisTokenBlacklistService {
      */
     public Optional<BlacklistInfo> getBlacklistDetails(String token) {
         try {
-            String tokenHash = hashToken(token);
-            String redisKey = BLACKLIST_KEY_PREFIX + tokenHash;
+            String jti = jwtUtil.getTokenId(token);
             
+            if (jti == null || jti.isBlank()) {
+                return Optional.empty();
+            }
+            
+            String redisKey = BLACKLIST_KEY_PREFIX + jti;
             String value = redisTemplate.opsForValue().get(redisKey);
             
             if (value == null) {
@@ -116,7 +141,7 @@ public class RedisTokenBlacklistService {
             // Parse simple string: userId:reason:timestamp
             String[] parts = value.split(":", 3);
             if (parts.length == 3) {
-                return Optional.of(new BlacklistInfo(parts[0], parts[1], parts[2]));
+                return Optional.of(new BlacklistInfo(jti, parts[0], parts[1], parts[2]));
             }
             
             return Optional.empty();
@@ -139,15 +164,7 @@ public class RedisTokenBlacklistService {
     }
 
     /**
-     * Hash token using SHA-256 for security
-     * Prevents storing raw JWT tokens in Redis
+     * Data class for blacklist information
      */
-    private String hashToken(String token) {
-        return DigestUtils.sha256Hex(token);
-    }
-
-    /**
-     * Simple data class for blacklist information
-     */
-    public record BlacklistInfo(String userId, String reason, String timestamp) {}
+    public record BlacklistInfo(String jti, String userId, String reason, String timestamp) {}
 }
