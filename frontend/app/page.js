@@ -92,17 +92,12 @@ export default function Home() {
       quantity: 1,
       image: product.imageUrl
     }
-
-    const existingCart = localStorage.getItem('cart')
-    const updatedCart = existingCart ? JSON.parse(existingCart) : []
-
     const existingItem = updatedCart.find(item => item.productId === product.id)
     if (existingItem) {
       existingItem.quantity += 1
     } else {
       updatedCart.push(cartItem)
     }
-
     localStorage.setItem('cart', JSON.stringify(updatedCart))
     window.dispatchEvent(new Event('cart-updated'))
     setCart(updatedCart)
