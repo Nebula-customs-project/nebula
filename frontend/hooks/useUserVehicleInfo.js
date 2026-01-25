@@ -16,7 +16,7 @@ export function useUserVehicleInfo() {
     }
     setLoading(true)
     apiClient
-      .request('/user-vehicle/info', {
+      .request('/v1/user-vehicle/info', {
         headers: { 'X-User-Id': user.id },
       })
       .then(setVehicleInfo)
