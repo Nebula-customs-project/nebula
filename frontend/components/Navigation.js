@@ -51,7 +51,7 @@ export default function Navigation() {
                       }`}
                   >
                     {Icon && <Icon className="w-4 h-4" />}
-                    <span className="hidden md:inline font-medium">{item.label}</span>
+                    <span className="hidden md:inline font-medium whitespace-nowrap">{item.label}</span>
                   </Link>
                 );
               })}
