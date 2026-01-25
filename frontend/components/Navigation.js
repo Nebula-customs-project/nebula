@@ -127,12 +127,12 @@ export default function Navigation() {
                     </div>
                     <div className="py-1">
                       <Link
-                        href={getDashboardLink()}
+                        href="/my-nebula-car"
                         onClick={() => setIsDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-colors"
                       >
-                        <LayoutDashboard className="w-4 h-4" />
-                        Dashboard
+                        <Car className="w-4 h-4" />
+                        My Nebula Car
                       </Link>
                       <button
                         onClick={handleLogout}

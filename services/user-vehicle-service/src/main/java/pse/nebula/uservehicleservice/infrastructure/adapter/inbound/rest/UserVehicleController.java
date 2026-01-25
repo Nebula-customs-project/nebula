@@ -17,6 +17,7 @@ import pse.nebula.uservehicleservice.application.service.UserVehicleAssignmentSe
 import pse.nebula.uservehicleservice.domain.model.UserVehicle;
 import pse.nebula.uservehicleservice.infrastructure.adapter.inbound.rest.dto.ErrorResponse;
 import pse.nebula.uservehicleservice.infrastructure.adapter.inbound.rest.dto.UserVehicleInfoResponse;
+import pse.nebula.uservehicleservice.infrastructure.adapter.outbound.rest.VehicleServiceClient;
 
 /**
  * REST controller for user vehicle operations.
@@ -32,23 +33,28 @@ public class UserVehicleController {
         private static final String USER_ID_HEADER = "X-User-Id";
 
         private final UserVehicleAssignmentService assignmentService;
+        private final VehicleServiceClient vehicleServiceClient;
 
-        public UserVehicleController(UserVehicleAssignmentService assignmentService) {
+        public UserVehicleController(UserVehicleAssignmentService assignmentService,
+                        VehicleServiceClient vehicleServiceClient) {
                 this.assignmentService = assignmentService;
+                this.vehicleServiceClient = vehicleServiceClient;
         }
 
         /**
-         * Gets user's vehicle information including maintenance date and tyre
+         * Gets user's vehicle information including vehicle name, image, maintenance
+         * date and tyre
          * pressures.
          * On first call, assigns a random vehicle to the user.
          * For real-time telemetry updates, connect via WebSocket at
          * /ws/vehicle-telemetry.
          *
          * @param userId the user ID from request header (validated by gateway)
-         * @return user's vehicle maintenance and tyre pressure information
+         * @return user's vehicle information including name, image, maintenance and
+         *         tyre pressures
          */
         @GetMapping("/info")
-        @Operation(summary = "Get user vehicle info", description = "Returns maintenance date and tyre pressures for user's vehicle. "
+        @Operation(summary = "Get user vehicle info", description = "Returns vehicle name, image, maintenance date and tyre pressures for user's vehicle. "
                         +
                         "Assigns a random vehicle on first call. " +
                         "For real-time telemetry, connect via WebSocket at /ws/vehicle-telemetry.")
@@ -65,11 +71,16 @@ public class UserVehicleController {
                 // Get or assign vehicle for the user
                 UserVehicle userVehicle = assignmentService.getOrAssignVehicle(userId);
 
-                // Build and return response
-                UserVehicleInfoResponse response = UserVehicleInfoResponse.fromEntity(userVehicle);
+                // Fetch vehicle image from vehicle-service
+                String vehicleImage = vehicleServiceClient.getVehicleById(userVehicle.getVehicleId())
+                                .map(vehicle -> vehicle.image())
+                                .orElse(null);
 
-                log.info("Returning vehicle info for user: {}. MaintenanceDue: {}, Vehicle: {}",
-                                userId, response.maintenanceDueDate(), userVehicle.getVehicleName());
+                // Build and return response with vehicle image
+                UserVehicleInfoResponse response = UserVehicleInfoResponse.fromEntity(userVehicle, vehicleImage);
+
+                log.info("Returning vehicle info for user: {}. Vehicle: {}, MaintenanceDue: {}",
+                                userId, response.vehicleName(), response.maintenanceDueDate());
 
                 return ResponseEntity.ok(response);
         }

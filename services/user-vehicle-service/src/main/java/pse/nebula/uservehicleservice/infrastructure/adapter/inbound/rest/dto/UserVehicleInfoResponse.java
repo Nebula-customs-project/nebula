@@ -11,9 +11,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * Response DTO for user vehicle info endpoint.
- * Contains maintenance date and tyre pressure information.
+ * Contains vehicle details, maintenance date and tyre pressure information.
  */
 public record UserVehicleInfoResponse(
+                String vehicleName,
+                String vehicleImage,
                 @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd") LocalDate maintenanceDueDate,
                 TyrePressures tyrePressures) {
         private static final double MIN_TYRE_PRESSURE = 28.0;
@@ -31,20 +33,34 @@ public record UserVehicleInfoResponse(
         }
 
         /**
-         * Creates a response DTO from a UserVehicle entity.
+         * Creates a response DTO from a UserVehicle entity with vehicle image.
          * Tyre pressures are generated randomly on each call.
          *
-         * @param userVehicle the user vehicle entity
+         * @param userVehicle  the user vehicle entity
+         * @param vehicleImage the vehicle image URL from vehicle-service
          * @return the response DTO
          */
-        public static UserVehicleInfoResponse fromEntity(UserVehicle userVehicle) {
+        public static UserVehicleInfoResponse fromEntity(UserVehicle userVehicle, String vehicleImage) {
                 return new UserVehicleInfoResponse(
+                                userVehicle.getVehicleName(),
+                                vehicleImage,
                                 userVehicle.getMaintenanceDueDate(),
                                 new TyrePressures(
                                                 generateRandomTyrePressure(),
                                                 generateRandomTyrePressure(),
                                                 generateRandomTyrePressure(),
                                                 generateRandomTyrePressure()));
+        }
+
+        /**
+         * Creates a response DTO from a UserVehicle entity without vehicle image.
+         * Used as fallback when vehicle-service is unavailable.
+         *
+         * @param userVehicle the user vehicle entity
+         * @return the response DTO
+         */
+        public static UserVehicleInfoResponse fromEntity(UserVehicle userVehicle) {
+                return fromEntity(userVehicle, null);
         }
 
         /**
