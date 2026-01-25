@@ -50,7 +50,7 @@ export default function LoginPage() {
         if (userData.role === 'ADMIN') {
           router.push('/admin-dashboard');
         } else {
-          router.push('/user-dashboard');
+          router.push('/my-nebula-car');
         }
       } else {
         setError('Login failed. Please try again.');
