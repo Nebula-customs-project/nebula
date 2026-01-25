@@ -42,7 +42,6 @@ export default function Home() {
       try {
         setLoading(true)
         const merchandiseUrl = process.env.NEXT_PUBLIC_MERCHANDISE_URL || 'http://localhost:8080'
-        const merchandiseUrl = process.env.NEXT_PUBLIC_MERCHANDISE_URL || 'http://localhost:8080'
         const response = await fetch(`${merchandiseUrl}/api/v1/merchandise/products`)
 
 
@@ -125,7 +124,6 @@ export default function Home() {
   }
 
   const getBadgeColor = (badge) => {
-    switch (badge) {
     switch (badge) {
       case 'BESTSELLER': return 'bg-yellow-500'
       case 'NEW': return 'bg-green-500'
