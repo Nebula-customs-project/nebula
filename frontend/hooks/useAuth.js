@@ -1,38 +1,117 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
 
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const pathname = usePathname();
 
+  // Clear all browser storage (localStorage and sessionStorage)
+  const clearAllStorage = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
+    sessionStorage.clear();
+  };
+
+  // Check if token is blacklisted by calling user-service's blacklist endpoint
+  const isTokenBlacklisted = async (token) => {
+    try {
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+
+      const response = await fetch(`${API_BASE_URL}/users/blacklist/check`, {
+        method: "GET",
+        headers: {
+          "X-Token-Check": token,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const isBlacklisted = await response.json();
+        return isBlacklisted === true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  // Validate token with backend
+  const validateTokenWithBackend = async (token, userId) => {
+    try {
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+
+      // First check if token is blacklisted
+      const blacklisted = await isTokenBlacklisted(token);
+      if (blacklisted) {
+        return false;
+      }
+
+      // Then validate the token is still valid
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
+
+  // Validate on initial mount and route changes
   useEffect(() => {
-    // Check if user is logged in (from localStorage or session)
-    const checkAuth = () => {
+    let isMounted = true;
+
+    const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        const userData = localStorage.getItem('user');
+        const token = localStorage.getItem("authToken");
+        const userData = localStorage.getItem("user");
 
         if (token && userData) {
           const parsedUser = JSON.parse(userData);
-          setUser(parsedUser);
+
+          // Validate token with backend
+          const isValid = await validateTokenWithBackend(token, parsedUser.id);
+
+          if (isMounted) {
+            if (isValid) {
+              setUser(parsedUser);
+            } else {
+              // Token is invalid or blacklisted - clear storage and logout
+              clearAllStorage();
+              setUser(null);
+            }
+          }
         } else {
-          // No user logged in
+          if (isMounted) {
+            setUser(null);
+          }
+        }
+      } catch {
+        if (isMounted) {
+          clearAllStorage();
           setUser(null);
         }
-      } catch (err) {
-        console.error('Auth check error:', err);
-        setUser(null);
       }
-      setIsLoading(false);
+      if (isMounted) {
+        setIsLoading(false);
+      }
     };
 
+    // Run validation
     checkAuth();
 
-    // Listen for storage changes (login/logout from other tabs or components)
+    // Listen for storage changes (login/logout from other tabs)
     const handleStorageChange = (e) => {
-      if (e.key === 'user' || e.key === 'authToken') {
+      if (e.key === "user" || e.key === "authToken") {
         checkAuth();
       }
     };
@@ -42,78 +121,60 @@ export function useAuth() {
       checkAuth();
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('auth-change', handleAuthChange);
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("auth-change", handleAuthChange);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('auth-change', handleAuthChange);
+      isMounted = false;
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("auth-change", handleAuthChange);
     };
-  }, []);
+  }, [pathname]); // Re-run on route changes
 
-  const login = (userDataOrUsername, tokenOrPassword) => {
-    let userData;
-    let token;
-
-    // Check if first argument is an object (new API) or string (legacy mock login)
-    if (typeof userDataOrUsername === 'object' && userDataOrUsername !== null) {
-      // New API: login(userData, token)
-      userData = userDataOrUsername;
-      token = tokenOrPassword;
-    } else {
-      // Legacy mock login: login(username, password)
-      userData = {
-        id: 1,
-        username: userDataOrUsername,
-        email: `${userDataOrUsername}@nebula.com`,
-        role: userDataOrUsername === 'admin' ? 'ADMIN' : 'USER',
-      };
-      token = 'mock-token-' + Date.now();
+  // Store user data and token after successful backend authentication
+  const login = useCallback((userData, token) => {
+    if (!userData || !token) {
+      throw new Error("Invalid login: userData and token are required");
     }
 
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('authToken', token);
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("authToken", token);
     setUser(userData);
 
-    // Trigger auth change event for other components
-    window.dispatchEvent(new Event('auth-change'));
+    window.dispatchEvent(new Event("auth-change"));
 
     return userData;
-  };
+  }, []);
 
-  const logout = async () => {
-    const token = localStorage.getItem('authToken');
+  const logout = useCallback(async () => {
+    const token = localStorage.getItem("authToken");
 
-    // Call backend logout API to invalidate token
     if (token) {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+        const API_BASE_URL =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
         await fetch(`${API_BASE_URL}/users/logout`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ token })
+          body: JSON.stringify({ token }),
         });
-      } catch (error) {
-        console.debug('Logout API call failed:', error.message);
+      } catch {
         // Continue with local logout even if API call fails
       }
     }
 
-    localStorage.removeItem('user');
-    localStorage.removeItem('authToken');
+    clearAllStorage();
     setUser(null);
 
-    // Trigger auth change event for other components
-    window.dispatchEvent(new Event('auth-change'));
-  };
+    window.dispatchEvent(new Event("auth-change"));
+  }, []);
 
   return {
     user,
     isLoading,
-    error,
     login,
     logout,
     isAuthenticated: !!user,
