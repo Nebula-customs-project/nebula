@@ -36,25 +36,14 @@ export default function Navigation() {
   }, []);
 
   const navigation = [
-    { href: "/", label: "Home", icon: null },
-    { href: "/cars", label: "Cars", icon: Car },
-    { href: "/car-configurator", label: "Car Configurator", icon: Settings },
-    { href: "/world-drive", label: "World Drive", icon: MapPin },
-    { href: "/merchandise", label: "Merchandise", icon: ShoppingCart },
+    { href: '/', label: 'Home', icon: Car },
+    { href: '/cars', label: 'Cars', icon: Car },
+    { href: '/car-configurator', label: 'Car Configurator', icon: Settings },
+    { href: '/world-drive', label: 'World Drive', icon: MapPin },
+    { href: '/merchandise', label: 'Merchandise', icon: ShoppingCart },
+    { href: '/wishlist', label: 'Wishlist', icon: User },
+    { href: '/my-nebula-car', label: 'My Nebula Car', icon: User },
   ];
-
-  const handleLogout = async () => {
-    await logout();
-    setIsDropdownOpen(false);
-    router.push("/");
-  };
-
-  const getDisplayName = () => {
-    if (user?.username) {
-      return user.username;
-    }
-    return "User";
-  };
 
   const getDashboardLink = () => {
     return user?.role === "ADMIN" ? "/admin-dashboard" : "/user-dashboard";
@@ -77,28 +66,24 @@ export default function Navigation() {
               priority
             />
           </Link>
-          <div className="flex items-center gap-4">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 backdrop-blur-md border ${isActive
-                    ? "bg-red-600/90 border-red-500/50 shadow-[0_0_20px_rgba(220,38,38,0.4)]"
-                    : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-                    }`}
-                >
-                  {Icon && <Icon className="w-4 h-4" />}
-                  <span className="hidden md:inline font-medium whitespace-nowrap">
-                    {item.label}
-                  </span>
-                </Link>
-              );
-            })}
-
-            {/* User Menu - Authenticated */}
+          <div className="flex gap-1">
+            {navigation
+              .filter(item => item.href !== '/my-nebula-car' || isAuthenticated)
+              .map(item => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${isActive ? 'bg-red-600' : 'hover:bg-gray-800'
+                      }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="hidden md:inline">{item.label}</span>
+                  </Link>
+                );
+              })}
             {isAuthenticated ? (
               <div className="relative" ref={dropdownRef}>
                 <button

@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
 export const apiClient = {
   async request(endpoint, options = {}) {
     const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
-    
+
     const headers = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -120,5 +120,14 @@ export const merchandiseApi = {
   getProduct: (id) =>
     apiClient.get(`/merchandise/${id}`).catch(() => ({
       product: null,
+    })),
+};
+
+// User Vehicle API
+export const userVehicleApi = {
+  getInfo: () =>
+    apiClient.get('/v1/user-vehicle/info').catch(() => ({
+      maintenanceDueDate: null,
+      tyrePressures: null,
     })),
 };

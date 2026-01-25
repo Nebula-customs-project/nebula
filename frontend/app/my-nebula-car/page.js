@@ -1,43 +1,43 @@
 'use client'
 
 import { Car, Fuel, Navigation, MapPin } from 'lucide-react'
-import { useMQTT } from '@/hooks/useMQTT'
+import { useVehicleTelemetry } from '@/hooks/useVehicleTelemetry'
 import { useUserVehicleInfo } from '@/hooks/useUserVehicleInfo'
 import { useAuth } from '@/hooks/useAuth'
 
-export default function MyCarPage() {
+export default function MyNebulaCarPage() {
   const { user } = useAuth()
-  // MQTT topic: nebula/user/{userId}/vehicle/info
-  const vehicleInfoMqtt = useMQTT(user?.id ? `nebula/user/${user.id}/vehicle/info` : null)
-  // REST fallback/API
+  // WebSocket: Real-time telemetry (vehicleName, location, fuel)
+  const { telemetry, isConnected } = useVehicleTelemetry()
+  // REST: Static vehicle info (maintenanceDueDate, tyrePressures)
   const { vehicleInfo, loading } = useUserVehicleInfo()
 
-  // Prefer MQTT if available, else fallback to REST
-  const info = vehicleInfoMqtt || vehicleInfo
-  // Extract car location if available
-  const carLocation = info?.carLocation || null
+  // Extract data from telemetry (WebSocket) and vehicleInfo (REST)
+  const vehicleName = telemetry?.vehicleName || 'My Nebula Car'
+  const carLocation = telemetry?.carLocation || null
+  const fuelLevel = telemetry?.fuelLevel || null
 
   return (
     <div className="min-h-screen bg-gray-900 text-white py-16 px-4">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-5xl font-bold mb-12 text-center">My Nebula Car</h1>
-        
+
         <div className="grid md:grid-cols-2 gap-8">
           <div className="bg-gray-800 rounded-lg p-8">
-            <h2 className="text-2xl font-bold mb-6">My Nebula Velocity</h2>
+            <h2 className="text-2xl font-bold mb-6">{vehicleName}</h2>
             <div className="aspect-video bg-gray-700 rounded-lg mb-6 flex items-center justify-center">
               <Car className="w-32 h-32 text-red-500" />
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-400">Maintenance Due</span>
-                <span className="font-semibold">{info?.maintenanceDueDate ? info.maintenanceDueDate : 'Loading...'}</span>
+                <span className="font-semibold">{vehicleInfo?.maintenanceDueDate ? vehicleInfo.maintenanceDueDate : 'Loading...'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-400">Tyre Pressures</span>
                 <span className="font-mono text-sm">
-                  {info?.tyrePressures
-                    ? `FL: ${info.tyrePressures.frontLeft} | FR: ${info.tyrePressures.frontRight} | RL: ${info.tyrePressures.rearLeft} | RR: ${info.tyrePressures.rearRight}`
+                  {vehicleInfo?.tyrePressures
+                    ? `FL: ${vehicleInfo.tyrePressures.frontLeft} | FR: ${vehicleInfo.tyrePressures.frontRight} | RL: ${vehicleInfo.tyrePressures.rearLeft} | RR: ${vehicleInfo.tyrePressures.rearRight}`
                     : 'Loading...'}
                 </span>
               </div>
@@ -53,13 +53,15 @@ export default function MyCarPage() {
               <div className="relative pt-1">
                 <div className="flex mb-2 items-center justify-between">
                   <div className="text-3xl font-bold">
-                    {info?.fuelLevel ? `${info.fuelLevel.toFixed(1)}%` : 'Loading...'}
+                    {fuelLevel !== null ? `${fuelLevel.toFixed(1)}%` : 'Loading...'}
                   </div>
-                  <span className="text-sm text-gray-400">Live Data</span>
+                  <span className="text-sm text-gray-400">
+                    {isConnected ? 'Live Data' : 'Connecting...'}
+                  </span>
                 </div>
                 <div className="overflow-hidden h-4 mb-4 text-xs flex rounded-full bg-gray-700">
                   <div
-                    style={{ width: `${info?.fuelLevel || 0}%` }}
+                    style={{ width: `${fuelLevel || 0}%` }}
                     className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-red-600 to-red-400 transition-all duration-1000"
                   ></div>
                 </div>
@@ -82,7 +84,9 @@ export default function MyCarPage() {
                 <p className="font-mono text-lg">
                   {carLocation ? `${carLocation.lat.toFixed(4)}°N, ${carLocation.lng.toFixed(4)}°E` : 'Loading...'}
                 </p>
-                <p className="text-sm text-green-500 mt-2">● Live Tracking Active</p>
+                <p className={`text-sm mt-2 ${isConnected ? 'text-green-500' : 'text-yellow-500'}`}>
+                  {isConnected ? '● Live Tracking Active' : '○ Connecting...'}
+                </p>
               </div>
             </div>
           </div>

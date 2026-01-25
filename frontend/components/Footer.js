@@ -126,9 +126,9 @@ export default function Footer() {
               <li>
                 <a
                   className="text-gray-400 hover:text-red-500 transition"
-                  href="/my-car"
+                  href="/my-nebula-car"
                 >
-                  My Car
+                  My Nebula Car
                 </a>
               </li>
             </ul>
