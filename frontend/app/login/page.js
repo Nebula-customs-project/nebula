@@ -1,40 +1,42 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../../hooks/useAuth';
-import { authApi } from '../../lib/api';
-import { LogIn, Mail, Lock } from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../hooks/useAuth";
+import { authApi } from "../../lib/api";
+import { LogIn, Mail, Lock } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       const result = await authApi.login(email, password);
       if (result && result.token && result.userId) {
-        console.log(result);
         const token = result.token;
         const userId = result.userId;
 
         // Fetch user profile to get role and full user info
-        const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/users/${userId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const profileRes = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api"}/users/${userId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
 
         let userData = {
           id: userId,
           username: result.username,
-          email: result.email
+          email: result.email,
         };
 
         if (profileRes.ok) {
@@ -47,18 +49,36 @@ export default function LoginPage() {
         login(userData, token);
 
         // Redirect based on role
-        if (userData.role === 'ADMIN') {
-          router.push('/admin-dashboard');
+        if (userData.role === "ADMIN") {
+          router.push("/admin-dashboard");
         } else {
-          router.push('/user-dashboard');
+          router.push("/user-dashboard");
         }
       } else {
-        setError('Login failed. Please try again.');
+        setError("Login failed. Please try again.");
       }
     } catch (err) {
-      const errorMessage = err.message || 'Login failed. Please try again.';
+      // Parse error message for user-friendly display
+      let errorMessage = "Login failed. Please try again.";
+
+      if (err.message) {
+        if (
+          err.message.includes("401") ||
+          err.message.includes("Unauthorized")
+        ) {
+          errorMessage = "Invalid email or password. Please try again.";
+        } else if (err.message.includes("404")) {
+          errorMessage =
+            "Account not found. Please check your email or register.";
+        } else if (
+          err.message.includes("Network") ||
+          err.message.includes("fetch")
+        ) {
+          errorMessage = "Unable to connect to server. Please try again later.";
+        }
+      }
+
       setError(errorMessage);
-      console.debug('Login error (expected in dev):', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +96,9 @@ export default function LoginPage() {
         {/* Login Card */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/20">
           <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
-          <p className="text-gray-300 text-sm mb-6">Sign in to access your dashboard</p>
+          <p className="text-gray-300 text-sm mb-6">
+            Sign in to access your dashboard
+          </p>
 
           {error && (
             <div className="mb-6 p-4 bg-red-500/20 border border-red-400/50 text-red-200 rounded-lg text-sm backdrop-blur-sm">
@@ -90,9 +112,14 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-200 mb-2">Email Address</label>
+              <label className="block text-sm font-medium text-gray-200 mb-2">
+                Email Address
+              </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300/50" size={18} />
+                <Mail
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300/50"
+                  size={18}
+                />
                 <input
                   type="email"
                   value={email}
@@ -106,9 +133,14 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-200 mb-2">Password</label>
+              <label className="block text-sm font-medium text-gray-200 mb-2">
+                Password
+              </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300/50" size={18} />
+                <Lock
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300/50"
+                  size={18}
+                />
                 <input
                   type="password"
                   value={password}
@@ -132,14 +164,21 @@ export default function LoginPage() {
                   Logging in...
                 </span>
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </button>
 
             {/* Register prompt */}
             <div className="mt-6 text-center">
-              <span className="text-gray-300 text-sm">Don't have an account?</span>
-              <a href="/register" className="ml-2 text-red-400 hover:text-red-500 font-semibold transition">Register</a>
+              <span className="text-gray-300 text-sm">
+                Don't have an account?
+              </span>
+              <a
+                href="/register"
+                className="ml-2 text-red-400 hover:text-red-500 font-semibold transition"
+              >
+                Register
+              </a>
             </div>
           </form>
         </div>

@@ -63,7 +63,7 @@ spring:
 
       globalcors:
         corsConfigurations:
-          '[/**]':
+          "[/**]":
             allowedOrigins: "http://localhost:3000"
             allowedMethods:
               - GET
@@ -107,7 +107,6 @@ eureka:
 jwt:
   secret: ${JWT_SECRET:nebula-jwt-secret-key-change-in-production-minimum-32-characters-required}
 
-
 # Security Configuration
 security:
   public-routes:
@@ -130,7 +129,6 @@ security:
     # Merchandise-service routes - PUBLIC for testing (remove in production)
     - /api/v1/merchandise/**
     - /api/v1/cart/**
-
 
 management:
   endpoints:

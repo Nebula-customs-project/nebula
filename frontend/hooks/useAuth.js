@@ -1,57 +1,37 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const pathname = usePathname();
+  const router = useRouter();
 
   // Clear all browser storage (localStorage and sessionStorage)
-  const clearAllStorage = () => {
+  const clearAllStorage = useCallback(() => {
     localStorage.removeItem("user");
     localStorage.removeItem("authToken");
     sessionStorage.clear();
-  };
+  }, []);
 
-  // Check if token is blacklisted by calling user-service's blacklist endpoint
-  const isTokenBlacklisted = async (token) => {
+  // Force logout and redirect to login page
+  const forceLogout = useCallback(() => {
+    clearAllStorage();
+    setUser(null);
+    setIsLoading(false);
+    router.push("/login");
+  }, [clearAllStorage, router]);
+
+  // Validate token with backend - single call to /users/{id}
+  // Gateway checks: 1) Token signature 2) Token expiry 3) Token blacklist
+  // Returns 401/403 if any check fails
+  const validateTokenWithBackend = useCallback(async (token, userId) => {
     try {
       const API_BASE_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
-      const response = await fetch(`${API_BASE_URL}/users/blacklist/check`, {
-        method: "GET",
-        headers: {
-          "X-Token-Check": token,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const isBlacklisted = await response.json();
-        return isBlacklisted === true;
-      }
-      return false;
-    } catch {
-      return false;
-    }
-  };
-
-  // Validate token with backend
-  const validateTokenWithBackend = async (token, userId) => {
-    try {
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
-
-      // First check if token is blacklisted
-      const blacklisted = await isTokenBlacklisted(token);
-      if (blacklisted) {
-        return false;
-      }
-
-      // Then validate the token is still valid
       const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: "GET",
         headers: {
@@ -60,63 +40,62 @@ export function useAuth() {
         },
       });
 
+      // Gateway returns 401/403 for invalid, expired, or blacklisted tokens
       return response.ok;
     } catch {
+      // Network error - cannot validate
       return false;
     }
-  };
+  }, []);
 
-  // Validate on initial mount and route changes
+  // Validate on mount and route changes
   useEffect(() => {
     let isMounted = true;
 
     const checkAuth = async () => {
+      const token = localStorage.getItem("authToken");
+      const userData = localStorage.getItem("user");
+
+      if (!token || !userData) {
+        if (isMounted) {
+          setUser(null);
+          setIsLoading(false);
+        }
+        return;
+      }
+
       try {
-        const token = localStorage.getItem("authToken");
-        const userData = localStorage.getItem("user");
+        const parsedUser = JSON.parse(userData);
+        const isValid = await validateTokenWithBackend(token, parsedUser.id);
 
-        if (token && userData) {
-          const parsedUser = JSON.parse(userData);
+        if (!isMounted) return;
 
-          // Validate token with backend
-          const isValid = await validateTokenWithBackend(token, parsedUser.id);
-
-          if (isMounted) {
-            if (isValid) {
-              setUser(parsedUser);
-            } else {
-              // Token is invalid or blacklisted - clear storage and logout
-              clearAllStorage();
-              setUser(null);
-            }
-          }
+        if (isValid) {
+          setUser(parsedUser);
         } else {
-          if (isMounted) {
-            setUser(null);
-          }
+          forceLogout();
+          return;
         }
       } catch {
         if (isMounted) {
-          clearAllStorage();
-          setUser(null);
+          forceLogout();
+          return;
         }
       }
+
       if (isMounted) {
         setIsLoading(false);
       }
     };
 
-    // Run validation
     checkAuth();
 
-    // Listen for storage changes (login/logout from other tabs)
     const handleStorageChange = (e) => {
       if (e.key === "user" || e.key === "authToken") {
         checkAuth();
       }
     };
 
-    // Listen for custom auth events
     const handleAuthChange = () => {
       checkAuth();
     };
@@ -129,9 +108,8 @@ export function useAuth() {
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("auth-change", handleAuthChange);
     };
-  }, [pathname]); // Re-run on route changes
+  }, [pathname, validateTokenWithBackend, forceLogout]);
 
-  // Store user data and token after successful backend authentication
   const login = useCallback((userData, token) => {
     if (!userData || !token) {
       throw new Error("Invalid login: userData and token are required");
@@ -170,7 +148,7 @@ export function useAuth() {
     setUser(null);
 
     window.dispatchEvent(new Event("auth-change"));
-  }, []);
+  }, [clearAllStorage]);
 
   return {
     user,
