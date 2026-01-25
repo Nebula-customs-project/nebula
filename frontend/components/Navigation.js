@@ -43,16 +43,13 @@ export default function Navigation() {
     { href: "/merchandise", label: "Merchandise", icon: ShoppingCart },
   ];
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setIsDropdownOpen(false);
     router.push("/");
   };
 
   const getDisplayName = () => {
-    if (user?.firstName) {
-      return user.firstName;
-    }
     if (user?.username) {
       return user.username;
     }
@@ -89,8 +86,8 @@ export default function Navigation() {
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 backdrop-blur-md border ${isActive
-                      ? "bg-red-600/90 border-red-500/50 shadow-[0_0_20px_rgba(220,38,38,0.4)]"
-                      : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                    ? "bg-red-600/90 border-red-500/50 shadow-[0_0_20px_rgba(220,38,38,0.4)]"
+                    : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
                     }`}
                 >
                   {Icon && <Icon className="w-4 h-4" />}
@@ -153,8 +150,8 @@ export default function Navigation() {
               <Link
                 href="/login"
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 backdrop-blur-md border ${pathname === "/login"
-                    ? "bg-red-600/90 border-red-500/50 shadow-[0_0_20px_rgba(220,38,38,0.4)]"
-                    : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                  ? "bg-red-600/90 border-red-500/50 shadow-[0_0_20px_rgba(220,38,38,0.4)]"
+                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
                   }`}
               >
                 <User className="w-4 h-4" />

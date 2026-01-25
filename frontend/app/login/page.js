@@ -22,30 +22,34 @@ export default function LoginPage() {
     try {
       const result = await authApi.login(email, password);
       if (result && result.token && result.userId) {
-        // Store token and user info
-        localStorage.setItem('authToken', result.token);
-        localStorage.setItem('userId', result.userId);
-        localStorage.setItem('username', result.username);
-        localStorage.setItem('email', result.email);
-
-        // Optionally update auth context if needed
-        login(result.username, password);
-
-        // Fetch user profile to get role
+        console.log(result);
         const token = result.token;
         const userId = result.userId;
+
+        // Fetch user profile to get role and full user info
         const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/users/${userId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
+
+        let userData = {
+          id: userId,
+          username: result.username,
+          email: result.email
+        };
+
         if (profileRes.ok) {
           const profile = await profileRes.json();
-          if (profile.role === 'ADMIN') {
-            router.push('/admin-dashboard');
-          } else {
-            router.push('/user-dashboard');
-          }
+          userData = { ...userData, ...profile };
+        }
+
+        // Update auth context with real user data and token
+        // This stores both in localStorage properly
+        login(userData, token);
+
+        // Redirect based on role
+        if (userData.role === 'ADMIN') {
+          router.push('/admin-dashboard');
         } else {
-          // Fallback: just go to user dashboard
           router.push('/user-dashboard');
         }
       } else {
@@ -132,12 +136,12 @@ export default function LoginPage() {
               )}
             </button>
 
-          {/* Register prompt */}
-          <div className="mt-6 text-center">
-            <span className="text-gray-300 text-sm">Don't have an account?</span>
-            <a href="/register" className="ml-2 text-red-400 hover:text-red-500 font-semibold transition">Register</a>
-          </div>
-        </form>
+            {/* Register prompt */}
+            <div className="mt-6 text-center">
+              <span className="text-gray-300 text-sm">Don't have an account?</span>
+              <a href="/register" className="ml-2 text-red-400 hover:text-red-500 font-semibold transition">Register</a>
+            </div>
+          </form>
         </div>
 
         {/* Footer removed for cleaner design */}

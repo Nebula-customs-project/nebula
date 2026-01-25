@@ -16,10 +16,7 @@ export default function RegisterPage() {
     lastName: "",
     email: "",
     password: "",
-    verifyPassword: "",
-    phoneNumber: "",
-    city: "",
-    country: "",
+    verifyPassword: ""
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -59,29 +56,29 @@ export default function RegisterPage() {
       const submitForm = { ...form };
       delete submitForm.verifyPassword;
       await authApi.register(submitForm);
-      
+
       // Auto-login after successful registration
       setSuccess("Registration successful! Logging you in...");
-      
+
       const loginResult = await authApi.login(form.email, form.password);
       if (loginResult && loginResult.token && loginResult.userId) {
         const token = loginResult.token;
         const userId = loginResult.userId;
-        
+
         // Fetch user profile to get role and full info
         const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/users/${userId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         let userData = { id: userId, username: loginResult.username, email: loginResult.email };
         if (profileRes.ok) {
           const profile = await profileRes.json();
           userData = { ...userData, ...profile };
         }
-        
+
         // Store in context and localStorage
         login(userData, token);
-        
+
         // Redirect based on role
         if (userData.role === 'ADMIN') {
           router.push('/admin-dashboard');
