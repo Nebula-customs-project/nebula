@@ -7,10 +7,10 @@ This document details the individual contributions of the team members towards t
 | Name | Primary Role | Key Focus Areas |
 | :--- | :--- | :--- |
 | **Syed** | Full Stack & Architect | UI (3D), Backend Services, Infrastructure |
-| **Divyansh** | Full Stack & Architect | UI, Backend Services, Infrastructure |
-| **Akshika** | Full stack & Architect | Backend Services, UI, Infrastructure |
+| **Divyansh Sahu** | Full Stack & Architect | UI, Backend Services, Infrastructure |
+| **Akshika Baghla** | Full stack & Architect | Backend Services, UI, Infrastructure |
 | **Pankaj** | FE-BE & Architect | Backend Services, UI |
-| **Gaytri** | Frontend | UI |
+| **Gayathri** | Frontend | UI |
 | **Manik** | Backend | Backend Services |
 
 ---
@@ -105,4 +105,4 @@ This document details the individual contributions of the team members towards t
 
 ## 📊 Project Statistics
 * **Total Contributors:** 6
-* **Tech Stack:** Next.js, React Three Fiber, MQTT, Docker, [Add others]
+* **Tech Stack:** Java, Spring Boot, Next.js, React Three Fiber, MQTT, Docker, Websocket, PostgreSQL, RabbitMQ, Redis
