@@ -28,7 +28,7 @@ This document details the individual contributions of the team members towards t
     * Designed the **Telemetry Simulator Service** using **Hexagonal Architecture** to ensure domain logic isolation.
     * Implemented **REST APIs** for service control and **MQTT** integration for streaming live car location data.
 * **Infrastructure & Architecture:**
-    *   **Co-worked with Syed and Akshika on Infrastructure:**
+    *   **Co-worked with Divyansh and Akshika on Infrastructure:**
     * Defined the overall microservices architecture & hexagonal architecture for world-view.
     * Set up and configured **Docker Compose** for container orchestration across the development environment.
 * **Integrations:**
@@ -49,7 +49,7 @@ This document details the individual contributions of the team members towards t
     *   **User Service:** Implemented robust security features, specifically responsible for **JWT Token singing and generation**.
 
 * **Infrastructure and Architecture:**
-    *   **Co-worked with Divyansh and Akshika on Infrastructure:**
+    *   **Co-worked with Syed and Akshika on Infrastructure:**
     *   **Docker:** Orchestrated the complete containerization of the application stack using Docker.
     *   **Platform Stack:** Set up and configured essential infrastructure components including **PostgreSQL**, **RabbitMQ**, and **WebSockets** within the platform-core. 
     *   **Composition Architecture:** Implemented Composition Architecture for the Platform Core Service and Gateway Service to ensure domain logic isolation.
