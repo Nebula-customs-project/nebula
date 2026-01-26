@@ -15,30 +15,39 @@ import pse.nebula.user.filter.JwtAuthenticationFilter;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        // Allow public endpoints
-                        .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                        .requestMatchers("/api/users/.well-known/jwks.json").permitAll() // Allow gateway to fetch public key
-                        .requestMatchers("/api/users/blacklist/check").permitAll() // Allow gateway to check blacklist
-                        .requestMatchers("/actuator/**").permitAll()
-                        
-                        // Admin endpoints require ADMIN role
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        
-                        // All other requests must be authenticated
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(csrf -> csrf.disable())
+                                .authorizeHttpRequests(auth -> auth
+                                                // Allow public endpoints
+                                                .requestMatchers("/api/users/register", "/api/users/login").permitAll()
+                                                .requestMatchers("/api/users/.well-known/jwks.json").permitAll() // Allow
+                                                                                                                 // gateway
+                                                                                                                 // to
+                                                                                                                 // fetch
+                                                                                                                 // public
+                                                                                                                 // key
+                                                .requestMatchers("/api/users/blacklist/check").permitAll() // Allow
+                                                                                                           // gateway to
+                                                                                                           // check
+                                                                                                           // blacklist
+                                                .requestMatchers("/api/users/auth/refresh").permitAll() // Allow token
+                                                                                                        // refresh
+                                                                                                        // without auth
+                                                .requestMatchers("/actuator/**").permitAll()
 
-        return http.build();
-    }
+                                                // Admin endpoints require ADMIN role
+                                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                                                // All other requests must be authenticated
+                                                .anyRequest().authenticated())
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+                return http.build();
+        }
 }

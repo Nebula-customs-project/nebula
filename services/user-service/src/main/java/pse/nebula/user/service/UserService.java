@@ -3,7 +3,6 @@ package pse.nebula.user.service;
 import pse.nebula.user.dto.AuthenticationResult;
 import pse.nebula.user.model.User;
 import pse.nebula.user.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +15,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
-    public UserService(UserRepository userRepository, JwtUtil jwtUtil, BCryptPasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, JwtUtil jwtUtil,
+            BCryptPasswordEncoder passwordEncoder, RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
+        this.refreshTokenService = refreshTokenService;
     }
 
     public List<User> getAllUsers() {
@@ -51,7 +53,7 @@ public class UserService {
         }
         User existingUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User with id " + user.getId() + " not found"));
-        
+
         // Handle password updates securely
         String newPassword = user.getPassword();
         if (newPassword != null && !newPassword.isBlank()) {
@@ -61,7 +63,7 @@ public class UserService {
             // No new password provided; retain existing hashed password
             user.setPassword(existingUser.getPassword());
         }
-        
+
         return userRepository.save(user);
     }
 
@@ -70,7 +72,8 @@ public class UserService {
     }
 
     /**
-     * Authenticate user and return JWT token with user object
+     * Authenticate user and return JWT access token + refresh token with user
+     * object.
      */
     public AuthenticationResult authenticateUser(String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(email);
@@ -86,10 +89,28 @@ public class UserService {
             throw new RuntimeException("Invalid password");
         }
 
-        // Generate JWT token with user role
-        String token = jwtUtil.generateToken(user.getId().toString(), user.getEmail(), user.getRole().name());
-        
-        return new AuthenticationResult(token, user);
+        String userId = user.getId().toString();
+        String role = user.getRole().name();
+
+        // Generate JWT access token
+        String accessToken = jwtUtil.generateToken(userId, user.getEmail(), role);
+
+        // Generate refresh token
+        RefreshTokenService.RefreshTokenData refreshData = refreshTokenService.generateRefreshToken(userId,
+                user.getEmail(), role);
+
+        return new AuthenticationResult(
+                accessToken,
+                refreshData.token(),
+                jwtUtil.getAccessTokenTtlSeconds(),
+                refreshData.ttlSeconds(),
+                user);
     }
 
+    /**
+     * Revoke all refresh tokens for a user (used during logout).
+     */
+    public void revokeUserRefreshTokens(String userId) {
+        refreshTokenService.revokeAllForUser(userId);
+    }
 }

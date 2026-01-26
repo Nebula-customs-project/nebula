@@ -25,7 +25,8 @@ import java.util.UUID;
 public class JwtUtil {
 
     private static final int MIN_SECRET_LENGTH = 32;
-    private static final long ACCESS_TOKEN_TTL_SECONDS = 3600; // 1 hour
+    // TODO (Production): Change to 900-1800 seconds (15-30 minutes)
+    private static final long ACCESS_TOKEN_TTL_SECONDS = 120; // 2 minutes for testing
 
     @Value("${jwt.secret:default-secret-key-change-in-production-must-be-at-least-32-chars}")
     private String jwtSecret;
@@ -36,8 +37,8 @@ public class JwtUtil {
      * Generates a JWT access token for the given user.
      *
      * @param userId User's unique identifier
-     * @param email User's email address
-     * @param role User's role
+     * @param email  User's email address
+     * @param role   User's role
      * @return JWT access token
      */
     public String generateToken(String userId, String email, String role) {
@@ -102,6 +103,15 @@ public class JwtUtil {
     }
 
     /**
+     * Gets the access token TTL in seconds.
+     *
+     * @return TTL in seconds
+     */
+    public long getAccessTokenTtlSeconds() {
+        return ACCESS_TOKEN_TTL_SECONDS;
+    }
+
+    /**
      * Gets or creates the signing key from the configured secret.
      * Uses double-checked locking for thread-safe lazy initialization.
      *
@@ -134,8 +144,7 @@ public class JwtUtil {
         if (secret == null || secret.length() < MIN_SECRET_LENGTH) {
             throw new IllegalArgumentException(
                     String.format("JWT secret must be at least %d characters, got %d",
-                            MIN_SECRET_LENGTH, secret != null ? secret.length() : 0)
-            );
+                            MIN_SECRET_LENGTH, secret != null ? secret.length() : 0));
         }
     }
 }

@@ -1,15 +1,19 @@
 package pse.nebula.user.controller;
 
 import pse.nebula.user.dto.AuthenticationResult;
+import pse.nebula.user.dto.RefreshTokenRequest;
+import pse.nebula.user.dto.TokenResponse;
 import pse.nebula.user.model.User;
 import pse.nebula.user.service.UserService;
 import pse.nebula.user.service.RedisTokenBlacklistService;
+import pse.nebula.user.service.RefreshTokenService;
+import pse.nebula.user.service.RefreshTokenService.RefreshTokenException;
 import pse.nebula.user.dto.LoginRequest;
-import pse.nebula.user.dto.LoginResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,11 +28,18 @@ import java.util.Map;
 @RequestMapping("/api/users")
 public class UserController {
 
+    // Cookie names
+    private static final String ACCESS_TOKEN_COOKIE = "access_token";
+    private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
+
     @Autowired
     private UserService userService;
 
     @Autowired
     private RedisTokenBlacklistService redisTokenBlacklistService;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     /**
      * Register a new user
@@ -45,33 +56,101 @@ public class UserController {
     }
 
     /**
-     * Login user and get JWT token
+     * Login user and get JWT tokens (access + refresh)
+     * Returns tokens in both response body AND HttpOnly cookies.
      * POST /users/login
      */
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<TokenResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
-            AuthenticationResult authResult = userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
+            AuthenticationResult authResult = userService.authenticateUser(
+                    loginRequest.getEmail(), loginRequest.getPassword());
             User user = authResult.getUser();
 
-            LoginResponse response = new LoginResponse();
-            response.setUserId(user.getId());
-            response.setEmail(user.getEmail());
-            response.setUsername(user.getUsername());
-            response.setToken(authResult.getToken());
+            TokenResponse response = TokenResponse.forLogin(
+                    authResult.getToken(),
+                    authResult.getRefreshToken(),
+                    authResult.getAccessTokenTtl(),
+                    authResult.getRefreshTokenTtl(),
+                    new TokenResponse.UserInfo(
+                            user.getId(),
+                            user.getEmail(),
+                            user.getUsername(),
+                            user.getRole().name()));
 
-            return ResponseEntity.ok(response);
+            // Set HttpOnly cookies for secure token storage
+            ResponseCookie accessCookie = createAccessTokenCookie(
+                    authResult.getToken(), authResult.getAccessTokenTtl());
+            ResponseCookie refreshCookie = createRefreshTokenCookie(
+                    authResult.getRefreshToken(), authResult.getRefreshTokenTtl());
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .body(response);
+
         } catch (RuntimeException e) {
+            log.warn("Login failed for email: {}", loginRequest.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
     /**
-     * Logout user and blacklist token
+     * Refresh access token using refresh token.
+     * Returns new tokens in both response body AND HttpOnly cookies.
+     * If Authorization header with old access token is provided, it will be
+     * blacklisted.
+     * POST /users/auth/refresh
+     */
+    @PostMapping("/auth/refresh")
+    public ResponseEntity<?> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest request,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) {
+        try {
+            // Extract old access token if provided (for blacklisting)
+            String oldAccessToken = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                oldAccessToken = authHeader.substring(7);
+            }
+
+            RefreshTokenService.TokenPair tokenPair = refreshTokenService.validateAndRotate(
+                    request.refreshToken(), oldAccessToken);
+
+            TokenResponse response = TokenResponse.forRefresh(
+                    tokenPair.accessToken(),
+                    tokenPair.refreshToken(),
+                    tokenPair.accessTtl(),
+                    tokenPair.refreshTtl());
+
+            // Set new HttpOnly cookies
+            ResponseCookie accessCookie = createAccessTokenCookie(
+                    tokenPair.accessToken(), tokenPair.accessTtl());
+            ResponseCookie refreshCookie = createRefreshTokenCookie(
+                    tokenPair.refreshToken(), tokenPair.refreshTtl());
+
+            log.info("Token refreshed successfully");
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .body(response);
+
+        } catch (RefreshTokenException e) {
+            log.warn("Refresh token validation failed: {}", e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
+    }
+
+    /**
+     * Logout user: blacklist access token + revoke refresh token family.
+     * Clears HttpOnly cookies.
      * POST /users/logout
      */
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logoutUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+    public ResponseEntity<Map<String, String>> logoutUser(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
         try {
             // Extract token from "Bearer <token>" header
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -86,12 +165,23 @@ public class UserController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userId = authentication != null ? authentication.getName() : "UNKNOWN";
 
-            // Add token to Redis blacklist only
+            // Blacklist access token in Redis
             redisTokenBlacklistService.blacklistToken(token, userId, "LOGOUT");
+
+            // Revoke all refresh tokens for this user
+            userService.revokeUserRefreshTokens(userId);
+
+            // Clear cookies
+            ResponseCookie clearAccess = clearCookie(ACCESS_TOKEN_COOKIE, "/api");
+            ResponseCookie clearRefresh = clearCookie(REFRESH_TOKEN_COOKIE, "/api/users/auth");
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "Logged out successfully");
-            return ResponseEntity.ok(response);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, clearAccess.toString())
+                    .header(HttpHeaders.SET_COOKIE, clearRefresh.toString())
+                    .body(response);
 
         } catch (Exception e) {
             log.error("Logout failed", e);
@@ -104,20 +194,14 @@ public class UserController {
     /**
      * Check if a token is blacklisted
      * GET /users/blacklist/check
-     * Header: X-Token-Check (contains the token to check)
-     * 
-     * Checks Redis only for token blacklist
      */
     @GetMapping("/blacklist/check")
     public ResponseEntity<Boolean> checkTokenBlacklist(@RequestHeader("X-Token-Check") String token) {
         try {
-            // Check Redis for blacklisted token
             boolean isBlacklisted = redisTokenBlacklistService.isBlacklisted(token);
-            
             return ResponseEntity.ok(isBlacklisted);
         } catch (Exception e) {
             log.error("Error checking token blacklist", e);
-            // Return false on error to avoid blocking legitimate requests
             return ResponseEntity.ok(false);
         }
     }
@@ -138,31 +222,27 @@ public class UserController {
 
     /**
      * Update user profile
-     * Users can only update their own profile unless they are admins
      */
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
-        // Get authenticated user ID from SecurityContext
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getPrincipal() == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        
-        // The principal is set as String userId in JwtAuthenticationFilter
+
         Object principal = authentication.getPrincipal();
         if (!(principal instanceof String)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        
+
         String authenticatedUserId = (String) principal;
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        
-        // Check if user is trying to update their own profile or is an admin
+
         if (!authenticatedUserId.equals(id.toString()) && !isAdmin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        
+
         if (!userService.getUserById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -170,4 +250,34 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(user));
     }
 
+    // --- Cookie Helper Methods ---
+
+    private ResponseCookie createAccessTokenCookie(String token, long ttlSeconds) {
+        return ResponseCookie.from(ACCESS_TOKEN_COOKIE, token)
+                .httpOnly(true)
+                .secure(false) // TODO (Production): Set to true for HTTPS
+                .path("/api")
+                .maxAge(ttlSeconds)
+                .sameSite("Lax")
+                .build();
+    }
+
+    private ResponseCookie createRefreshTokenCookie(String token, long ttlSeconds) {
+        return ResponseCookie.from(REFRESH_TOKEN_COOKIE, token)
+                .httpOnly(true)
+                .secure(false) // TODO (Production): Set to true for HTTPS
+                .path("/api/users/auth")
+                .maxAge(ttlSeconds)
+                .sameSite("Strict")
+                .build();
+    }
+
+    private ResponseCookie clearCookie(String name, String path) {
+        return ResponseCookie.from(name, "")
+                .httpOnly(true)
+                .secure(false)
+                .path(path)
+                .maxAge(0)
+                .build();
+    }
 }

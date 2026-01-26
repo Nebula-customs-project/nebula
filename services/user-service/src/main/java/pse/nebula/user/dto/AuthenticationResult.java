@@ -8,5 +8,8 @@ import pse.nebula.user.model.User;
 @AllArgsConstructor
 public class AuthenticationResult {
     private String token;
+    private String refreshToken;
+    private long accessTokenTtl;
+    private long refreshTokenTtl;
     private User user;
 }
