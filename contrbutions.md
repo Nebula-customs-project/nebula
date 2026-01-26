@@ -9,7 +9,7 @@ This document details the individual contributions of the team members towards t
 | **Syed** | Full Stack & Architect | UI (3D), Backend Services, Infrastructure |
 | **Divyansh Sahu** | Full Stack & Architect | UI, Backend Services, Infrastructure |
 | **Akshika Baghla** | Full stack & Architect | Backend Services, UI, Infrastructure |
-| **Pankaj** | FE-BE & Architect | Backend Services, UI |
+| **Pankaj Sain** | Full Stack | Merchandise Service, UI |
 | **Gayathri** | Frontend | UI |
 | **Manik** | Backend | Backend Services |
 
@@ -89,9 +89,29 @@ This document details the individual contributions of the team members towards t
     *  **Integration of gateway service and user-vehicle service:** Integration of gateway service and user-vehicle service to enable routing of requests to user-vehicle service.
 
 
-### 👨‍💻 Pankaj
-* [Contribution 1]
-* [Contribution 2]
+### 👨‍💻 Pankaj Sain
+**Core Responsibility:** Merchandise service development, frontend integration, and commerce-related frontend implementation.
+
+* **Backend:**
+    * Implemented the Merchandise Service scaffold and core domain structure.
+    * Implemented product and cart domains, including controllers, services, repositories, DTOs, and entities.
+    * Implemented REST endpoints for product creation, retrieval, update, deletion, and cart operations.
+    * Implemented cart persistence using PostgreSQL.
+    * Implemented data seeding for merchandise products.
+    * Added unit, integration, and controller tests for merchandise and cart functionality.
+
+* **Integration:**
+    * Integrated the Merchandise Service with the API Gateway.
+    * Implemented frontend-to-backend communication for merchandise and cart APIs.
+    * Implemented Next.js proxy routing for merchandise-related backend requests.
+    * Connected frontend product, cart, checkout, and wishlist flows with backend APIs.
+
+* **Frontend:**
+    * Updated the merchandise listing page with improved UI, wishlist filtering, and toast notifications.
+    * Updated cart page UI and client-side handling logic for a better user experience.
+    * Updated checkout and payment page UI, including the implementation of the credit card preview component.
+    * Updated navigation bar UI, including logo positioning, cart indicator, and navigation behavior.
+
 
 ### 👩‍💻 Gaytri
 * [Contribution 1]
