@@ -268,7 +268,7 @@ public class UserController {
                 .secure(false) // TODO (Production): Set to true for HTTPS
                 .path("/api/users/auth")
                 .maxAge(ttlSeconds)
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
     }
 

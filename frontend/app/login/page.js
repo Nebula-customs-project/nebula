@@ -20,33 +20,12 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      // authApi.login now returns { accessToken, refreshToken, expiresIn, refreshExpiresIn, user }
       const result = await authApi.login(email, password);
-      if (result && result.token && result.userId) {
-        const token = result.token;
-        const userId = result.userId;
 
-        // Fetch user profile to get role and full user info
-        const profileRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api"}/users/${userId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-
-        let userData = {
-          id: userId,
-          username: result.username,
-          email: result.email,
-        };
-
-        if (profileRes.ok) {
-          const profile = await profileRes.json();
-          userData = { ...userData, ...profile };
-        }
-
-        // Update auth context with real user data and token
-        // This stores both in localStorage properly
-        login(userData, token);
+      if (result && result.accessToken && result.user) {
+        // Login hook handles storing user data and setting auth state
+        const userData = login(result);
 
         // Redirect based on role
         if (userData.role === "ADMIN") {

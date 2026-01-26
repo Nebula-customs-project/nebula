@@ -49,15 +49,26 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
 
-        // Extract token from Authorization header
+        // Extract token from Authorization header or Cookie
+        String extractedToken = null;
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("Missing or invalid Authorization header for: {}", path);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            extractedToken = authHeader.substring(7);
+        } else {
+            // Try to get from cookie
+            var cookie = request.getCookies().getFirst("access_token");
+            if (cookie != null) {
+                extractedToken = cookie.getValue();
+            }
+        }
+
+        if (extractedToken == null) {
+            log.warn("Missing or invalid Authorization header/cookie for: {}", path);
             return onError(exchange, "Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer " prefix
+        final String token = extractedToken;
 
         log.debug("Extracted token for path: {}", path);
 

@@ -72,6 +72,8 @@ spring:
               - DELETE
               - OPTIONS
             allowedHeaders: "*"
+            exposedHeaders:
+              - Set-Cookie
             allowCredentials: true
 
 server:

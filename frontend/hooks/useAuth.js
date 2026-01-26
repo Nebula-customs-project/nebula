@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { authApi, setAuthState, isRefreshTokenValid, apiClient } from "../lib/api";
 
 export function useAuth() {
   const [user, setUser] = useState(null);
@@ -9,54 +10,41 @@ export function useAuth() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Clear all browser storage (localStorage and sessionStorage)
-  const clearAllStorage = useCallback(() => {
+  // Clear user data from localStorage (tokens are in HttpOnly cookies)
+  const clearUserData = useCallback(() => {
     localStorage.removeItem("user");
-    localStorage.removeItem("authToken");
     sessionStorage.clear();
   }, []);
 
   // Force logout and redirect to login page
   const forceLogout = useCallback(() => {
-    clearAllStorage();
+    clearUserData();
     setUser(null);
     setIsLoading(false);
     router.push("/login");
-  }, [clearAllStorage, router]);
+  }, [clearUserData, router]);
 
-  // Validate token with backend - single call to /users/{id}
-  // Gateway checks: 1) Token signature 2) Token expiry 3) Token blacklist
-  // Returns 401/403 if any check fails
-  const validateTokenWithBackend = useCallback(async (token, userId) => {
+  // Validate session by checking if we have user data and can make API calls
+  // The actual token validation happens via cookies sent automatically
+  const validateSession = useCallback(async (userData) => {
     try {
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
-
-      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      // Gateway returns 401/403 for invalid, expired, or blacklisted tokens
-      return response.ok;
+      // Use apiClient to take advantage of auto-refresh logic
+      // If access token is expired (401), apiClient will try to refresh it automatically
+      await apiClient.get(`/users/${userData.id}`);
+      return true;
     } catch {
-      // Network error - cannot validate
       return false;
     }
   }, []);
 
-  // Validate on mount and route changes
+  // Check auth on mount and route changes
   useEffect(() => {
     let isMounted = true;
 
     const checkAuth = async () => {
-      const token = localStorage.getItem("authToken");
       const userData = localStorage.getItem("user");
 
-      if (!token || !userData) {
+      if (!userData) {
         if (isMounted) {
           setUser(null);
           setIsLoading(false);
@@ -66,13 +54,16 @@ export function useAuth() {
 
       try {
         const parsedUser = JSON.parse(userData);
-        const isValid = await validateTokenWithBackend(token, parsedUser.id);
+
+        // Validate session with backend (cookies will be sent automatically)
+        const isValid = await validateSession(parsedUser);
 
         if (!isMounted) return;
 
         if (isValid) {
           setUser(parsedUser);
         } else {
+          // Session invalid - clear and redirect
           forceLogout();
           return;
         }
@@ -90,65 +81,56 @@ export function useAuth() {
 
     checkAuth();
 
-    const handleStorageChange = (e) => {
-      if (e.key === "user" || e.key === "authToken") {
-        checkAuth();
-      }
-    };
-
+    // Listen for auth changes from other tabs/components
     const handleAuthChange = () => {
       checkAuth();
     };
 
-    window.addEventListener("storage", handleStorageChange);
     window.addEventListener("auth-change", handleAuthChange);
+    window.addEventListener("storage", (e) => {
+      if (e.key === "user") {
+        handleAuthChange();
+      }
+    });
 
     return () => {
       isMounted = false;
-      window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("auth-change", handleAuthChange);
     };
-  }, [pathname, validateTokenWithBackend, forceLogout]);
+  }, [pathname, validateSession, forceLogout]);
 
-  const login = useCallback((userData, token) => {
-    if (!userData || !token) {
-      throw new Error("Invalid login: userData and token are required");
+  // Login with new response format
+  const login = useCallback((loginResponse) => {
+    if (!loginResponse || !loginResponse.user) {
+      throw new Error("Invalid login response");
     }
 
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("authToken", token);
-    setUser(userData);
+    const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = loginResponse;
 
+    // Store user data in localStorage (for display purposes only)
+    localStorage.setItem("user", JSON.stringify(userData));
+
+    // Update auth state in api.js (for proactive refresh)
+    setAuthState(accessToken, refreshToken, expiresIn, refreshExpiresIn);
+
+    setUser(userData);
     window.dispatchEvent(new Event("auth-change"));
 
     return userData;
   }, []);
 
+  // Logout - calls backend to revoke tokens
   const logout = useCallback(async () => {
-    const token = localStorage.getItem("authToken");
-
-    if (token) {
-      try {
-        const API_BASE_URL =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
-        await fetch(`${API_BASE_URL}/users/logout`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ token }),
-        });
-      } catch {
-        // Continue with local logout even if API call fails
-      }
+    try {
+      await authApi.logout();
+    } catch {
+      // Continue with local logout even if API fails
     }
 
-    clearAllStorage();
+    clearUserData();
     setUser(null);
-
     window.dispatchEvent(new Event("auth-change"));
-  }, [clearAllStorage]);
+  }, [clearUserData]);
 
   return {
     user,
@@ -158,3 +140,4 @@ export function useAuth() {
     isAuthenticated: !!user,
   };
 }
+
