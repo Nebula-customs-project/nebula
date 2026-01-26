@@ -57,7 +57,7 @@ export default function Navigation() {
   };
 
   const getDashboardLink = () => {
-    return user?.role === "ADMIN" ? "/admin-dashboard" : "/user-dashboard";
+    return user?.role === "ADMIN" ? "/admin-dashboard" : "/my-nebula-cars";
   };
 
   return (

@@ -83,7 +83,7 @@ export default function RegisterPage() {
         if (userData.role === 'ADMIN') {
           router.push('/admin-dashboard');
         } else {
-          router.push('/user-dashboard');
+          router.push('/my-nebula-car');
         }
       } else {
         // Fallback: if auto-login fails, redirect to login page

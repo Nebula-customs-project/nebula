@@ -32,7 +32,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         String endpoint = webSocketProperties.getEndpoint();
-        registry.addHandler(telemetryHandler, endpoint);
+        registry.addHandler(telemetryHandler, endpoint)
+                .setAllowedOrigins("*");
         log.info("Registered WebSocket handler at endpoint: {}", endpoint);
     }
 }
