@@ -9,7 +9,7 @@ This document details the individual contributions of the team members towards t
 | **Syed** | Full Stack & Architect | UI (3D), Backend Services, Infrastructure |
 | **Divyansh Sahu** | Full Stack & Architect | UI, Backend Services, Infrastructure |
 | **Akshika Baghla** | Full stack & Architect | Backend Services, UI, Infrastructure |
-| **Pankaj Sain** | Full Stack | Merchandise Service, UI |
+| **Pankaj Sain** | Full Stack & Architect | Merchandise Service, UI |
 | **Gayathri** | Frontend | UI |
 | **Manik** | Backend | Backend Services |
 
