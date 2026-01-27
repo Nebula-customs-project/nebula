@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.*;
 
 /**
@@ -35,12 +36,15 @@ public class VehicleTelemetryWebSocketHandler extends TextWebSocketHandler {
 
     private static final String USER_ID_HEADER = "X-User-Id";
 
-    // Fixed location (Stuttgart area)
-    private static final double FIXED_LATITUDE = 48.7758;
-    private static final double FIXED_LONGITUDE = 9.1829;
+    // Location bounds for random generation (Europe area)
+    private static final double MIN_LATITUDE = 47.16; // Southern Europe
+    private static final double MAX_LATITUDE = 55.04; // Northern Europe
+    private static final double MIN_LONGITUDE = 5.52; // Western Europe
+    private static final double MAX_LONGITUDE = 15.2; // Eastern Europe
 
-    // Fixed fuel level
-    private static final BigDecimal FIXED_FUEL = BigDecimal.valueOf(75.0);
+    // Fuel level bounds (percentage)
+    private static final double MIN_FUEL = 20.0;
+    private static final double MAX_FUEL = 95.0;
 
     private final UserVehicleAssignmentService assignmentService;
     private final ObjectMapper objectMapper;
@@ -148,16 +152,26 @@ public class VehicleTelemetryWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
+        // Generate deterministic random location and fuel based on userId
+        Random userRandom = new Random(userId.hashCode());
+        double latitude = MIN_LATITUDE + (MAX_LATITUDE - MIN_LATITUDE) * userRandom.nextDouble();
+        double longitude = MIN_LONGITUDE + (MAX_LONGITUDE - MIN_LONGITUDE) * userRandom.nextDouble();
+        double fuelLevel = MIN_FUEL + (MAX_FUEL - MIN_FUEL) * userRandom.nextDouble();
+
         VehicleTelemetryDto telemetry = new VehicleTelemetryDto(
                 vehicleName,
-                new VehicleTelemetryDto.LocationDto(FIXED_LATITUDE, FIXED_LONGITUDE),
-                FIXED_FUEL,
+                new VehicleTelemetryDto.LocationDto(latitude, longitude),
+                BigDecimal.valueOf(fuelLevel),
                 Instant.now());
 
         try {
             String payload = objectMapper.writeValueAsString(telemetry);
             session.sendMessage(new TextMessage(payload));
-            log.debug("Sent telemetry to user {}: {}", userId, payload);
+            log.debug("Sent telemetry to user {}: location=({}, {}), fuel={}%",
+                    userId,
+                    String.format("%.4f", latitude),
+                    String.format("%.4f", longitude),
+                    String.format("%.1f", fuelLevel));
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize telemetry for user {}: {}", userId, e.getMessage());
         } catch (IOException e) {
