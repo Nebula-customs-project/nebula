@@ -61,26 +61,12 @@ export default function RegisterPage() {
       setSuccess("Registration successful! Logging you in...");
 
       const loginResult = await authApi.login(form.email, form.password);
-      if (loginResult && loginResult.token && loginResult.userId) {
-        const token = loginResult.token;
-        const userId = loginResult.userId;
-
-        // Fetch user profile to get role and full info
-        const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/users/${userId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        let userData = { id: userId, username: loginResult.username, email: loginResult.email };
-        if (profileRes.ok) {
-          const profile = await profileRes.json();
-          userData = { ...userData, ...profile };
-        }
-
-        // Store in context and localStorage
-        login(userData, token);
+      if (loginResult && loginResult.user) {
+        // Auto-login success: store user in context/localStorage
+        login(loginResult);
 
         // Redirect based on role
-        if (userData.role === 'ADMIN') {
+        if (loginResult.user.role === 'ADMIN') {
           router.push('/admin-dashboard');
         } else {
           router.push('/my-nebula-car');

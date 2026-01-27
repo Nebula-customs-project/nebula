@@ -1,30 +1,17 @@
 // API configuration and utilities
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+  process.env.NEXT_PUBLIC_API_URL || "/api";
 
-// In-memory storage for refresh token and expiry tracking
-// (Actual tokens are in HttpOnly cookies, this is just for proactive refresh and WebSocket)
-let authState = {
-  accessToken: null,
-  refreshToken: null,
-  accessExpiresAt: null,
-  refreshExpiresAt: null,
-  isRefreshing: false,
-  refreshPromise: null,
-};
+// In-memory tracking of auth status (tokens are in HttpOnly cookies)
+let isRefreshing = false;
+let refreshPromise = null;
 
 // Helper to clear session on authentication failure
 const clearSessionOnAuthError = () => {
-  authState = {
-    accessToken: null,
-    refreshToken: null,
-    accessExpiresAt: null,
-    refreshExpiresAt: null,
-    isRefreshing: false,
-    refreshPromise: null,
-  };
   if (typeof window !== "undefined") {
+    // Only clear user data, tokens are cleared by the backend's Set-Cookie header on logout/failure usually
+    // But we should clean up local state
     localStorage.removeItem("user");
     sessionStorage.clear();
     window.dispatchEvent(new Event("auth-change"));
@@ -32,55 +19,34 @@ const clearSessionOnAuthError = () => {
 };
 
 // Set auth state after login/refresh
-export const setAuthState = (accessToken, refreshToken, expiresIn, refreshExpiresIn) => {
-  const now = Date.now();
-  authState = {
-    accessToken,
-    refreshToken,
-    accessExpiresAt: now + expiresIn * 1000,
-    refreshExpiresAt: now + refreshExpiresIn * 1000,
-    isRefreshing: false,
-    refreshPromise: null,
-  };
+// We no longer store tokens in memory
+export const setAuthState = () => {
+  // No-op for tokens as they are in cookies
+  // We could track expiration time if provided in response for UI logic, but logic shouldn't rely on it for security
 };
 
-// Get access token (needed for WebSocket)
-export const getAccessToken = () => authState.accessToken;
+// Get access token (No longer possible/needed as it's HttpOnly)
+export const getAccessToken = () => null;
 
-// Get refresh token for refresh request
-export const getRefreshToken = () => authState.refreshToken;
+// Get refresh token (No longer possible/needed as it's HttpOnly)
+export const getRefreshToken = () => null;
 
-// Check if access token needs refresh (30 seconds before expiry)
-export const shouldRefreshToken = () => {
-  if (!authState.accessExpiresAt) return false;
-  return Date.now() >= authState.accessExpiresAt - 30000;
-};
-
-// Check if refresh token is still valid
-export const isRefreshTokenValid = () => {
-  if (!authState.refreshExpiresAt) return false;
-  return Date.now() < authState.refreshExpiresAt;
-};
-
-// Try to refresh the token
+// Try to refresh the token using HttpOnly cookie
 const tryRefreshToken = async () => {
   // If already refreshing, wait for that to complete
-  if (authState.isRefreshing && authState.refreshPromise) {
-    return authState.refreshPromise;
+  if (isRefreshing && refreshPromise) {
+    return refreshPromise;
   }
 
-  // Check if we have a refresh token and it's still valid
-  if (!authState.refreshToken || !isRefreshTokenValid()) {
-    return false;
-  }
-
-  authState.isRefreshing = true;
-  authState.refreshPromise = (async () => {
+  isRefreshing = true;
+  refreshPromise = (async () => {
     try {
+      // Call refresh endpoint with credentials (cookies)
+      // Body is empty or minimal, backend checks cookie
       const response = await fetch(`${API_BASE_URL}/users/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken: authState.refreshToken }),
+        body: "{}", // Empty JSON object allowed by backend
         credentials: "include",
       });
 
@@ -88,28 +54,25 @@ const tryRefreshToken = async () => {
         throw new Error("Refresh failed");
       }
 
-      const data = await response.json();
-      setAuthState(data.accessToken, data.refreshToken, data.expiresIn, data.refreshExpiresIn);
+      // Backend sets new cookies automatically
       return true;
     } catch (error) {
       console.error("Token refresh failed:", error);
       clearSessionOnAuthError();
       return false;
     } finally {
-      authState.isRefreshing = false;
-      authState.refreshPromise = null;
+      isRefreshing = false;
+      refreshPromise = null;
     }
   })();
 
-  return authState.refreshPromise;
+  return refreshPromise;
 };
 
 export const apiClient = {
   async request(endpoint, options = {}, retryCount = 0) {
-    // Proactive refresh: if token is about to expire, refresh first
-    if (shouldRefreshToken() && !options.skipRefresh) {
-      await tryRefreshToken();
-    }
+    // Proactive refresh removed as we cannot check expiry of HttpOnly cookies client-side
+    // We rely on 401 interception below
 
     const headers = {
       "Content-Type": "application/json",
@@ -185,8 +148,8 @@ export const authApi = {
     }
 
     const data = await response.json();
-    // Store refresh token and expiry info in memory
-    setAuthState(data.refreshToken, data.expiresIn, data.refreshExpiresIn);
+    // Tokens are set in HttpOnly cookies by the backend
+    setAuthState();
     return data;
   },
 

@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import CreditCardPreview from '@/components/CreditCardPreview'
 
+import { useAuth } from '@/hooks/useAuth'
+import { apiClient } from '@/lib/api'
+
+// PaymentForm component for Credit Card only
 // PaymentForm component for Credit Card only
 function PaymentForm({ onSuccess, onBack, cardholderName }) {
   const [card, setCard] = useState({ number: '', expiry: '', cvc: '' });
@@ -99,6 +103,8 @@ export default function CheckoutPage() {
     country: ''
   })
 
+  // Get current user to prefill data
+  const { user } = useAuth()
   const router = useRouter()
 
   // Load cart from localStorage on mount and on cart-updated event
@@ -113,6 +119,22 @@ export default function CheckoutPage() {
     return () => window.removeEventListener('cart-updated', syncCart)
   }, [])
 
+  // Prefill user data if logged in
+  useEffect(() => {
+    if (user?.username) {
+      apiClient.get(`/users/by-username/${user.username}`)
+        .then(userData => {
+          setFormData(prev => ({
+            ...prev,
+            firstName: userData.firstName || prev.firstName,
+            lastName: userData.lastName || prev.lastName,
+            email: userData.email || prev.email
+          }))
+        })
+        .catch(err => console.error("Failed to fetch user details for checkout", err))
+    }
+  }, [user])
+
   // Redirect to merchandise if cart is empty (only after cart has loaded)
   useEffect(() => {
     if (cartLoaded && cart.length === 0 && step === 'shipping') {
@@ -124,7 +146,13 @@ export default function CheckoutPage() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    if (name === 'zipCode') {
+      // Allow only numbers
+      const numericValue = value.replace(/[^0-9]/g, '')
+      setFormData(prev => ({ ...prev, [name]: numericValue }))
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }))
+    }
   }
 
   const handleShippingSubmit = (e) => {
@@ -237,6 +265,8 @@ export default function CheckoutPage() {
                       name="zipCode"
                       placeholder="Zip Code"
                       required
+                      maxLength={6}
+                      inputMode="numeric"
                       value={formData.zipCode}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-700 bg-gray-900 text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-400"

@@ -60,15 +60,24 @@ public class WebSocketAuthenticationFilter implements GlobalFilter, Ordered {
         // Extract token from query parameter
         String token = request.getQueryParams().getFirst(TOKEN_QUERY_PARAM);
 
+        // Fallback: Check for access_token cookie if query param is missing
         if (token == null || token.isBlank()) {
-            log.warn("WebSocket connection rejected: missing token query parameter for: {}", path);
+            var cookie = request.getCookies().getFirst("access_token");
+            if (cookie != null) {
+                token = cookie.getValue();
+                log.debug("Extracted token from cookie for WebSocket: {}", path);
+            }
+        }
+
+        if (token == null || token.isBlank()) {
+            log.warn("WebSocket connection rejected: missing token query parameter or cookie for: {}", path);
             return onError(exchange, "Missing authentication token", HttpStatus.UNAUTHORIZED);
         }
 
-        log.debug("Extracted token from query param for WebSocket: {}", path);
+        final String finalToken = token;
 
         // Check if token is blacklisted
-        return tokenBlacklistClient.isTokenBlacklisted(token)
+        return tokenBlacklistClient.isTokenBlacklisted(finalToken)
                 .flatMap(isBlacklisted -> {
                     if (Boolean.TRUE.equals(isBlacklisted)) {
                         log.warn("WebSocket connection rejected: blacklisted token for: {}", path);
@@ -77,7 +86,7 @@ public class WebSocketAuthenticationFilter implements GlobalFilter, Ordered {
 
                     try {
                         // Validate token
-                        Claims claims = jwtValidator.validateToken(token);
+                        Claims claims = jwtValidator.validateToken(finalToken);
 
                         // Extract user information
                         String userId = jwtValidator.getUserId(claims);

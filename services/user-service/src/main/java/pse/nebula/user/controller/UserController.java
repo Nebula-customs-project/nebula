@@ -104,7 +104,8 @@ public class UserController {
      */
     @PostMapping("/auth/refresh")
     public ResponseEntity<?> refreshToken(
-            @Valid @RequestBody RefreshTokenRequest request,
+            @RequestBody(required = false) RefreshTokenRequest request,
+            @CookieValue(name = REFRESH_TOKEN_COOKIE, required = false) String refreshTokenCookie,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) {
         try {
             // Extract old access token if provided (for blacklisting)
@@ -113,8 +114,21 @@ public class UserController {
                 oldAccessToken = authHeader.substring(7);
             }
 
+            // Determine which refresh token to use
+            String refreshTokenToUse = null;
+            if (request != null && request.refreshToken() != null && !request.refreshToken().isEmpty()) {
+                refreshTokenToUse = request.refreshToken();
+            } else if (refreshTokenCookie != null && !refreshTokenCookie.isEmpty()) {
+                refreshTokenToUse = refreshTokenCookie;
+            }
+
+            if (refreshTokenToUse == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "Refresh token is missing (neither in body nor cookie)"));
+            }
+
             RefreshTokenService.TokenPair tokenPair = refreshTokenService.validateAndRotate(
-                    request.refreshToken(), oldAccessToken);
+                    refreshTokenToUse, oldAccessToken);
 
             TokenResponse response = TokenResponse.forRefresh(
                     tokenPair.accessToken(),
@@ -171,9 +185,9 @@ public class UserController {
             // Revoke all refresh tokens for this user
             userService.revokeUserRefreshTokens(userId);
 
-            // Clear cookies
-            ResponseCookie clearAccess = clearCookie(ACCESS_TOKEN_COOKIE, "/api");
-            ResponseCookie clearRefresh = clearCookie(REFRESH_TOKEN_COOKIE, "/api/users/auth");
+            // Clear cookies (Path must match the creation path "/")
+            ResponseCookie clearAccess = clearCookie(ACCESS_TOKEN_COOKIE, "/");
+            ResponseCookie clearRefresh = clearCookie(REFRESH_TOKEN_COOKIE, "/");
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "Logged out successfully");
@@ -255,8 +269,8 @@ public class UserController {
     private ResponseCookie createAccessTokenCookie(String token, long ttlSeconds) {
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE, token)
                 .httpOnly(true)
-                .secure(false) // TODO (Production): Set to true for HTTPS
-                .path("/api")
+                .secure(false) // Set to false for local development (HTTP), true for Production (HTTPS)
+                .path("/")
                 .maxAge(ttlSeconds)
                 .sameSite("Lax")
                 .build();
@@ -265,8 +279,8 @@ public class UserController {
     private ResponseCookie createRefreshTokenCookie(String token, long ttlSeconds) {
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, token)
                 .httpOnly(true)
-                .secure(false) // TODO (Production): Set to true for HTTPS
-                .path("/api/users/auth")
+                .secure(false) // Set to false for local development (HTTP), true for Production (HTTPS)
+                .path("/")
                 .maxAge(ttlSeconds)
                 .sameSite("Lax")
                 .build();

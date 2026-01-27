@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "./useAuth";
-import { getAccessToken } from "../lib/api";
+
 
 /**
  * Custom hook for connecting to the vehicle telemetry WebSocket.
@@ -36,25 +36,9 @@ export function useVehicleTelemetry() {
             }
 
             try {
-                // Get JWT token from in-memory auth state
-                // WebSocket requires token in query param because it can't rely on cookies for cross-origin
-                const authToken = getAccessToken();
-
-                if (!authToken) {
-                    // Try to wait? Or just fail?
-                    // If we just logged in, it should be there.
-                    // If we refreshed page, we might not have it yet...
-                    // ERROR: If page refresh, validateSession runs but might not populate accessToken if it just does apiClient.get()
-                    // apiClient.get will trigger refresh if needed, setting accessToken.
-                    console.warn("[WebSocket] No auth token available, cannot connect");
-                    setError(new Error("Authentication required"));
-                    return;
-                }
-
-                // Create WebSocket connection with token in query param
-                // Gateway will validate JWT and inject X-User-Id header for downstream service
-                const wsUrlWithToken = `${wsUrl}?token=${encodeURIComponent(authToken)}`;
-                const ws = new WebSocket(wsUrlWithToken);
+                // Create WebSocket connection
+                // Browser automatically sends cookies (path must be set to / or include /ws)
+                const ws = new WebSocket(wsUrl);
                 wsRef.current = ws;
 
                 ws.onopen = () => {

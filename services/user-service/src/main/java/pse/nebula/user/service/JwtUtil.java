@@ -25,8 +25,7 @@ import java.util.UUID;
 public class JwtUtil {
 
     private static final int MIN_SECRET_LENGTH = 32;
-    // TODO (Production): Change to 900-1800 seconds (15-30 minutes)
-    private static final long ACCESS_TOKEN_TTL_SECONDS = 120; // 2 minutes for testing
+    private static final long ACCESS_TOKEN_TTL_SECONDS = 1800; // 30 minutes for testing
 
     @Value("${jwt.secret:default-secret-key-change-in-production-must-be-at-least-32-chars}")
     private String jwtSecret;

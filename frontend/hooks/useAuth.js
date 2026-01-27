@@ -105,15 +105,15 @@ export function useAuth() {
       throw new Error("Invalid login response");
     }
 
-    const { user: userData, accessToken, refreshToken, expiresIn, refreshExpiresIn } = loginResponse;
+    const { user: userData } = loginResponse;
+    // Tokens are handled by HttpOnly cookies
+    setAuthState();
 
-    // Store user data in localStorage (for display purposes only)
+    // Store user in localStorage solely for persistence across reloads (until validation runs)
     localStorage.setItem("user", JSON.stringify(userData));
-
-    // Update auth state in api.js (for proactive refresh)
-    setAuthState(accessToken, refreshToken, expiresIn, refreshExpiresIn);
-
     setUser(userData);
+
+    // Notify other components
     window.dispatchEvent(new Event("auth-change"));
 
     return userData;

@@ -16,11 +16,15 @@ export function useUserVehicleInfo() {
     }
     setLoading(true)
     apiClient
-      .request('/v1/user-vehicle/info', {
-        headers: { 'X-User-Id': user.id },
-      })
+      .get('/v1/user-vehicle/info')
       .then(setVehicleInfo)
-      .catch(setError)
+      .catch((err) => {
+        // Suppress 403/401 errors during initial load to prevent noise
+        if (err.message && (err.message.includes('403') || err.message.includes('401'))) {
+          return;
+        }
+        setError(err);
+      })
       .finally(() => setLoading(false))
   }, [user?.id])
 

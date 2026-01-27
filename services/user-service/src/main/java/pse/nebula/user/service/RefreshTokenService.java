@@ -31,8 +31,7 @@ import java.util.UUID;
 @Slf4j
 public class RefreshTokenService {
 
-    // TODO (Production): Change to 604800 seconds (7 days)
-    private static final long REFRESH_TOKEN_TTL_SECONDS = 300; // 5 minutes for testing
+    private static final long REFRESH_TOKEN_TTL_SECONDS = 604800; // 7 days for testing
 
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
     private static final String REFRESH_FAMILY_PREFIX = "refresh_family:";

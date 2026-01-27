@@ -11,7 +11,7 @@ export default function ServiceCentersPage() {
           <li>Milan, Italy</li>
           <li>Amsterdam, Netherlands</li>
         </ul>
-        <p>Book a service appointment via your <a href="/user-dashboard" className="text-red-500 underline">User Dashboard</a>.</p>
+        <p>Book a service appointment via your <a href="/my-nebula-car" className="text-red-500 underline">User Dashboard</a>.</p>
       </div>
     </main>
   );

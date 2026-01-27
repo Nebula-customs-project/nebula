@@ -23,7 +23,7 @@ export default function LoginPage() {
       // authApi.login now returns { accessToken, refreshToken, expiresIn, refreshExpiresIn, user }
       const result = await authApi.login(email, password);
 
-      if (result && result.accessToken && result.user) {
+      if (result && result.user) {
         // Login hook handles storing user data and setting auth state
         const userData = login(result);
 

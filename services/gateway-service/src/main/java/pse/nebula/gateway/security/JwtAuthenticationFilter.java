@@ -93,12 +93,18 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                         String email = jwtValidator.getEmail(claims);
                         String roles = jwtValidator.getRoles(claims);
 
-                        // Add user info to request headers for downstream services
-                        ServerHttpRequest modifiedRequest = request.mutate()
+                        // Add user info and Authorization header (if missing) for downstream services
+                        ServerHttpRequest.Builder builder = request.mutate()
                                 .header("X-User-Id", userId != null ? userId : "")
                                 .header("X-User-Email", email != null ? email : "")
-                                .header("X-User-Roles", roles != null ? roles : "")
-                                .build();
+                                .header("X-User-Roles", roles != null ? roles : "");
+
+                        // Ensure Authorization header is present for downstream services (like logout)
+                        if (authHeader == null && token != null) {
+                            builder.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+                        }
+
+                        ServerHttpRequest modifiedRequest = builder.build();
 
                         // Continue with modified request
                         return chain.filter(exchange.mutate().request(modifiedRequest).build());
