@@ -39,15 +39,16 @@ This document details the individual contributions of the team members towards t
 
 **Core Responsibility:** Architecture Design, Frontend, Infrastructure, Gateway and Platform service
 
-* **World Drive UI (Frontend):**
+* **UI (Frontend):**
     *   End-to-end development of the World View interface, providing an immersive driving experience.
     *   Integrated real-time vehicle telemetry data into the 3D like world environment and animations.
+	*   Implemented the Browser cookie session management. 
 
 * **Backend Services:**
     *   **Platform Core Service:** Led the development of the core platform service, centralizing shared infrastructure configurations.
     *   **Gateway Service:** Implemented the API Gateway to authenticate, route traffic and integrate various backend microservices.
-    *   **User Service:** Implemented robust security features, specifically responsible for **JWT Token singing and generation**.
-
+    *   **User Service:** * Improved security features, specifically responsible for **JWT Token signing,generation** and implemented **refresh token**.
+                          * Implemented storing and expiration of Refresh Token Family and revocation.
 * **Infrastructure and Architecture:**
     *   **Co-worked with Syed and Akshika on Infrastructure:**
     *   **Docker:** Orchestrated the complete containerization of the application stack using Docker.
@@ -62,16 +63,20 @@ This document details the individual contributions of the team members towards t
 
 **Core Responsibility:** Architecture Design, Frontend, Infrastructure, Vehicle Service and User Vehicle Service
 
-*  **Vehicle Service (Frontend):**
+*  **Vehicle Service and User Vehicle Service(Frontend):**
 	*   **Frontend API Integration**: Integrated the frontend application with the Vehicle Service API to enable dynamic retrieval and display of vehicle inventory, implementing robust error handling and loading states to ensure a reliable user experience.
 	
 	* **UI Implementation**: Developed the "Cars Collection" interface using React and Next.js, featuring a responsive grid layout that showcases high-quality vehicle imagery alongside formatted metadata (pricing and specifications) for optimal product presentation.
 	
 	*  **Navigation & Context Management**: Designed and implemented the navigation logic connecting the vehicle listing to the Car Configurator, utilizing query parameters to maintain vehicle context and streamline the user's customization workflow.
 
+	* **Real-Time Telemetry Integration**: Orchestrated the seamless integration of the User Vehicle Service with the client-side application via WebSocket protocols, enabling the continuous streaming and dynamic visualization of real-time vehicle telemetry data.
+
+    * **State Synchronization**: Implemented the frontend consumption logic for user-specific vehicle data, ensuring the precise synchronization and persistent display of the user's configured vehicle attributes and operational status across the interface.
 
 
-*  **Vehicle and User Vehicle Service (Backend):**
+
+*  **Vehicle Service and User Vehicle Service (Backend):**
 	*  **Backend Architecture & API Design**: Engineered the backend architecture for the Vehicle and User Vehicle Service, implementing RESTful API endpoints and robust data seeding mechanisms to ensure the reliable delivery of complex vehicle specifications and media assets to front-end clients.
 
 	*  **Service Logic & State Management**: Developed the core business logic for the User Vehicle Service to manage vehicle ownership and configuration persistence, ensuring data integrity and seamless synchronization across the distributed microservices environment.
@@ -96,7 +101,6 @@ This document details the individual contributions of the team members towards t
     * Implemented the Merchandise Service scaffold and core domain structure.
     * Implemented product and cart domains, including controllers, services, repositories, DTOs, and entities.
     * Implemented REST endpoints for product creation, retrieval, update, deletion, and cart operations.
-    * Implemented cart persistence using PostgreSQL.
     * Implemented data seeding for merchandise products.
     * Added unit, integration, and controller tests for merchandise and cart functionality.
 
@@ -111,15 +115,39 @@ This document details the individual contributions of the team members towards t
     * Updated cart page UI and client-side handling logic for a better user experience.
     * Updated checkout and payment page UI, including the implementation of the credit card preview component.
     * Updated navigation bar UI, including logo positioning, cart indicator, and navigation behavior.
+	* Implemented cart persistence.
 
 
-### 👩‍💻 Gaytri
-* [Contribution 1]
-* [Contribution 2]
+### 👩‍💻 Gayathri
+**Core Responsibility:** Frontend Development
+
+* **Frontend:**
+    * Created the Neon frontend application structure with React and Next.js as the base for the platform UI.
+    * Implemented user interface components and page layouts for primary platform screens.
+    * Set up and maintained basic project dependencies and lock files for consistent frontend builds.
+    * Established baseline page layout and ensured the groundwork for responsive design and modular UI development.
+    * Supported integration readiness with backend services and other frontend branches by providing a clean, scalable codebase.
 
 ### 👨‍💻 Manik
-* [Contribution 1]
-* [Contribution 2]
+**Core Responsibility:** User Service Development, Authentication & Security
+
+* **User Service (Backend):**
+    * Created the **User Service** from scratch including core architecture, controllers, models, and repositories.
+    * Implemented **JWT Token Generation** and **JwksController** for token verification.
+    * Integrated with **Config Server** for centralized configuration.
+
+* **Authentication & Security:**
+    * Implemented **Role-Based Access Control (RBAC)** with Admin and User roles.
+    * Created **AdminController** and **AdminUserInitializer** for admin management.
+    * Implemented **SecurityConfig** and **JwtAuthenticationFilter** for secure request handling.
+
+* **Token Blacklisting:**
+    * Designed and implemented **Redis-based Token Blacklisting** for secure logout functionality.
+    * Refactored to **JTI (JWT ID)** approach for improved performance and security.
+
+* **Testing & Integration:**
+    * Added comprehensive **unit tests** for UserService.
+    * Configured Gateway routing for User Service endpoints.
 
 ---
 
