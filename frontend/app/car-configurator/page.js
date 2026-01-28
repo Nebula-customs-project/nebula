@@ -14,7 +14,13 @@
  * - API integration with vehicle-service
  */
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  Suspense,
+} from "react";
 import { useSearchParams } from "next/navigation";
 import Vehicle3DScene from "../../components/Vehicle3DScene";
 import CustomizationPanel from "../../components/CustomizationPanel";
@@ -29,7 +35,7 @@ import OrderSuccessPopup from "../../components/OrderSuccessPopup";
 import { vehicleServiceApi } from "./lib/api";
 import { useAudioManager } from "../../hooks/useAudioManager";
 
-export default function CarConfiguratorPage() {
+function CarConfiguratorContent() {
   // URL params
   const searchParams = useSearchParams();
 
@@ -615,5 +621,26 @@ export default function CarConfiguratorPage() {
         onClose={() => setShowOrderSuccess(false)}
       />
     </div>
+  );
+}
+
+export default function CarConfiguratorPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+          <div className="flex flex-1 items-center justify-center">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-400 text-sm">
+                Loading vehicle configuration...
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <CarConfiguratorContent />
+    </Suspense>
   );
 }
