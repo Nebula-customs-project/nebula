@@ -12,7 +12,6 @@ import pse.nebula.worldview.domain.model.DrivingRoute;
 import pse.nebula.worldview.domain.model.JourneyState;
 import pse.nebula.worldview.domain.model.JourneyStatus;
 import pse.nebula.worldview.domain.port.inbound.JourneyUseCase;
-import pse.nebula.worldview.domain.port.inbound.RouteUseCase;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,9 +31,6 @@ class AutoJourneySchedulerServiceTest {
     @Mock
     private JourneyUseCase journeyUseCase;
 
-    @Mock
-    private RouteUseCase routeUseCase;
-
     private AutoJourneySchedulerService schedulerService;
     private DrivingRoute testRoute;
 
@@ -43,8 +39,7 @@ class AutoJourneySchedulerServiceTest {
         List<Coordinate> waypoints = Arrays.asList(
                 new Coordinate(48.8973, 9.1920),
                 new Coordinate(48.8800, 9.1750),
-                new Coordinate(48.8354, 9.1520)
-        );
+                new Coordinate(48.8354, 9.1520));
 
         testRoute = new DrivingRoute(
                 "test-route",
@@ -52,16 +47,14 @@ class AutoJourneySchedulerServiceTest {
                 "A test route",
                 waypoints,
                 10000,
-                600
-        );
+                600);
 
         // Create with short delay for testing
         schedulerService = new AutoJourneySchedulerService(
                 journeyUseCase,
-                routeUseCase,
-                500L,   // updateIntervalMs
-                13.89,  // defaultSpeedMps
-                100L    // delayBetweenJourneysMs (short for testing)
+                500L, // updateIntervalMs
+                13.89, // defaultSpeedMps
+                100L // delayBetweenJourneysMs (short for testing)
         );
     }
 
@@ -76,14 +69,12 @@ class AutoJourneySchedulerServiceTest {
             JourneyState newState = new JourneyState("auto-journey-test", testRoute, 13.89);
             newState.start();
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(newState);
 
             // When
             schedulerService.manageJourneys();
 
             // Then
-            verify(routeUseCase).getRandomRoute();
             verify(journeyUseCase).startNewJourney(argThat(id -> id.startsWith("auto-journey-")), eq(13.89));
             assertTrue(schedulerService.hasActiveJourney());
         }
@@ -95,7 +86,6 @@ class AutoJourneySchedulerServiceTest {
             JourneyState journeyState = new JourneyState("auto-journey-test", testRoute, 13.89);
             journeyState.start();
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(journeyState);
 
             schedulerService.manageJourneys(); // Start journey
@@ -104,7 +94,8 @@ class AutoJourneySchedulerServiceTest {
 
             when(journeyUseCase.journeyExists(journeyId)).thenReturn(true);
             when(journeyUseCase.getJourneyState(journeyId)).thenReturn(journeyState);
-            when(journeyUseCase.advanceJourney(eq(journeyId), anyDouble())).thenReturn(journeyState.getCurrentPosition());
+            when(journeyUseCase.advanceJourney(eq(journeyId), anyDouble()))
+                    .thenReturn(journeyState.getCurrentPosition());
 
             // When
             schedulerService.manageJourneys();
@@ -120,7 +111,6 @@ class AutoJourneySchedulerServiceTest {
             JourneyState journeyState = new JourneyState("auto-journey-test", testRoute, 13.89);
             journeyState.start();
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(journeyState);
 
             schedulerService.manageJourneys(); // Start journey
@@ -145,7 +135,6 @@ class AutoJourneySchedulerServiceTest {
             when(journeyState.getStatus()).thenReturn(JourneyStatus.IN_PROGRESS);
             when(journeyState.getRoute()).thenReturn(testRoute);
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(journeyState);
 
             schedulerService.manageJourneys(); // Start journey
@@ -172,7 +161,6 @@ class AutoJourneySchedulerServiceTest {
             JourneyState journeyState = new JourneyState("auto-journey-test", testRoute, 13.89);
             journeyState.start();
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(journeyState);
 
             schedulerService.manageJourneys(); // Start journey
@@ -193,7 +181,8 @@ class AutoJourneySchedulerServiceTest {
         @DisplayName("Should handle failed journey start")
         void shouldHandleFailedJourneyStart() {
             // Given
-            when(routeUseCase.getRandomRoute()).thenThrow(new RuntimeException("No routes available"));
+            when(journeyUseCase.startNewJourney(anyString(), anyDouble()))
+                    .thenThrow(new RuntimeException("No routes available"));
 
             // When
             schedulerService.manageJourneys();
@@ -221,7 +210,6 @@ class AutoJourneySchedulerServiceTest {
             JourneyState journeyState = new JourneyState("auto-journey-test", testRoute, 13.89);
             journeyState.start();
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(journeyState);
 
             schedulerService.manageJourneys();
@@ -252,7 +240,6 @@ class AutoJourneySchedulerServiceTest {
             JourneyState journeyState = new JourneyState("auto-journey-test", testRoute, 13.89);
             journeyState.start();
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(journeyState);
 
             schedulerService.manageJourneys();
@@ -280,7 +267,6 @@ class AutoJourneySchedulerServiceTest {
             JourneyState journeyState = new JourneyState("auto-journey-test", testRoute, 13.89);
             journeyState.start();
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(journeyState);
 
             schedulerService.manageJourneys();
@@ -302,7 +288,6 @@ class AutoJourneySchedulerServiceTest {
             JourneyState journeyState = new JourneyState("auto-journey-test", testRoute, 13.89);
             journeyState.start();
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(journeyState);
 
             schedulerService.manageJourneys();
@@ -327,14 +312,13 @@ class AutoJourneySchedulerServiceTest {
         void shouldWaitBeforeStartingNewJourneyAfterCompletion() {
             // Given - Create scheduler with longer delay
             AutoJourneySchedulerService longDelayScheduler = new AutoJourneySchedulerService(
-                    journeyUseCase, routeUseCase, 500L, 13.89, 1000L // 1-second delay
+                    journeyUseCase, 500L, 13.89, 1000L // 1-second delay
             );
 
             JourneyState journeyState = mock(JourneyState.class);
             when(journeyState.getStatus()).thenReturn(JourneyStatus.IN_PROGRESS);
             when(journeyState.getRoute()).thenReturn(testRoute);
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(journeyState);
 
             // Start first journey
@@ -349,13 +333,13 @@ class AutoJourneySchedulerServiceTest {
             longDelayScheduler.manageJourneys(); // This should complete the journey
 
             // Reset mocks for new journey attempt
-            reset(journeyUseCase, routeUseCase);
+            reset(journeyUseCase);
 
             // When - Try to start new journey immediately
             longDelayScheduler.manageJourneys();
 
             // Then - Should not start new journey yet (delay not elapsed)
-            verify(routeUseCase, never()).getRandomRoute();
+            verify(journeyUseCase, never()).startNewJourney(anyString(), anyDouble());
         }
     }
 
@@ -371,7 +355,6 @@ class AutoJourneySchedulerServiceTest {
             when(journeyState.getStatus()).thenReturn(JourneyStatus.IN_PROGRESS);
             when(journeyState.getRoute()).thenReturn(testRoute);
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(journeyState);
 
             schedulerService.manageJourneys(); // Start journey
@@ -396,12 +379,11 @@ class AutoJourneySchedulerServiceTest {
             // Given
             JourneyState journeyState = mock(JourneyState.class);
             when(journeyState.getStatus())
-                    .thenReturn(JourneyStatus.IN_PROGRESS)  // First call (start check)
-                    .thenReturn(JourneyStatus.IN_PROGRESS)  // Second call (during active journey handling)
-                    .thenReturn(JourneyStatus.COMPLETED);    // Third call (after advance)
+                    .thenReturn(JourneyStatus.IN_PROGRESS) // First call (start check)
+                    .thenReturn(JourneyStatus.IN_PROGRESS) // Second call (during active journey handling)
+                    .thenReturn(JourneyStatus.COMPLETED); // Third call (after advance)
             when(journeyState.getRoute()).thenReturn(testRoute);
 
-            when(routeUseCase.getRandomRoute()).thenReturn(testRoute);
             when(journeyUseCase.startNewJourney(anyString(), eq(13.89))).thenReturn(journeyState);
 
             schedulerService.manageJourneys(); // Start journey

@@ -1,0 +1,383 @@
+# =============================================================================
+# Nebula Load Balancer Demo - Docker Compose Configuration
+# =============================================================================
+# DEMONSTRATION FILE - Shows how to set up Nginx load balancing with multiple
+# service instances. This file is NOT meant to be run alongside the main
+# docker-compose files as it would duplicate services and consume resources.
+#
+# Purpose:
+#   - Demonstrates horizontal scaling with multiple service instances
+#   - Shows Nginx load balancer configuration for high availability
+#   - Round-robin load balancing across service replicas
+#
+# To use this demo:
+#   docker compose -f docker-compose.loadbalancer.yml up -d --build
+#
+# Architecture:
+#   Client → Nginx (Port 80) → Service Instances (scaled)
+#                ↓
+#   ┌─────────────────────────────────────────────────────┐
+#   │  Nginx Load Balancer (Port 80)                      │
+#   │    ├── /api/v1/vehicles → vehicle-service (x2)      │
+#   │    ├── /api/v1/world-view → world-view (x2)         │
+#   │    ├── /api/v1/users → user-service (x2)            │
+#   │    └── /api/v1/merchandise → merchandise (x2)       │
+#   └─────────────────────────────────────────────────────┘
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Nginx Load Balancer - Entry Point
+  # ---------------------------------------------------------------------------
+  nginx-lb:
+    image: nginx:alpine
+    container_name: nebula-nginx-loadbalancer
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - vehicle-service-1
+      - vehicle-service-2
+      - world-view-1
+      - world-view-2
+      - user-service-1
+      - user-service-2
+      - merchandise-service-1
+      - merchandise-service-2
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - nebula-lb-network
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database (Shared)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: nebula-lb-postgres
+    environment:
+      POSTGRES_USER: nebula
+      POSTGRES_PASSWORD: nebula_password
+      POSTGRES_DB: nebula_db
+    volumes:
+      - postgres_lb_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nebula -d nebula_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - nebula-lb-network
+
+  # ---------------------------------------------------------------------------
+  # RabbitMQ Message Broker (for World View Service)
+  # ---------------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: nebula-lb-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: nebula
+      RABBITMQ_DEFAULT_PASS: nebula_rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - nebula-lb-network
+
+  # ---------------------------------------------------------------------------
+  # Vehicle Service - Instance 1
+  # ---------------------------------------------------------------------------
+  vehicle-service-1:
+    build:
+      context: ..
+      dockerfile: services/vehicle-service/Dockerfile
+    container_name: nebula-vehicle-service-1
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nebula_db
+      POSTGRES_USER: nebula
+      POSTGRES_PASSWORD: nebula_password
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+      SERVER_PORT: 8081
+    expose:
+      - "8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-lb-network
+
+  # ---------------------------------------------------------------------------
+  # Vehicle Service - Instance 2
+  # ---------------------------------------------------------------------------
+  vehicle-service-2:
+    build:
+      context: ..
+      dockerfile: services/vehicle-service/Dockerfile
+    container_name: nebula-vehicle-service-2
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nebula_db
+      POSTGRES_USER: nebula
+      POSTGRES_PASSWORD: nebula_password
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+      SERVER_PORT: 8081
+    expose:
+      - "8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-lb-network
+
+  # ---------------------------------------------------------------------------
+  # World View Service - Instance 1
+  # ---------------------------------------------------------------------------
+  world-view-1:
+    build:
+      context: ..
+      dockerfile: services/world-view/Dockerfile
+    container_name: nebula-world-view-1
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database,shared-rabbitmq
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nebula_db
+      POSTGRES_USER: nebula
+      POSTGRES_PASSWORD: nebula_password
+      MQTT_HOST: rabbitmq
+      MQTT_PORT: 1883
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+      SERVER_PORT: 8082
+    expose:
+      - "8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-lb-network
+
+  # ---------------------------------------------------------------------------
+  # World View Service - Instance 2
+  # ---------------------------------------------------------------------------
+  world-view-2:
+    build:
+      context: ..
+      dockerfile: services/world-view/Dockerfile
+    container_name: nebula-world-view-2
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database,shared-rabbitmq
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nebula_db
+      POSTGRES_USER: nebula
+      POSTGRES_PASSWORD: nebula_password
+      MQTT_HOST: rabbitmq
+      MQTT_PORT: 1883
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+      SERVER_PORT: 8082
+    expose:
+      - "8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-lb-network
+
+  # ---------------------------------------------------------------------------
+  # User Service - Instance 1
+  # ---------------------------------------------------------------------------
+  user-service-1:
+    build:
+      context: ..
+      dockerfile: services/user-service/Dockerfile
+    container_name: nebula-user-service-1
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nebula_db
+      POSTGRES_USER: nebula
+      POSTGRES_PASSWORD: nebula_password
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+      ADMIN_DEFAULT_PASSWORD: admin123
+      SERVER_PORT: 8083
+    expose:
+      - "8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-lb-network
+
+  # ---------------------------------------------------------------------------
+  # User Service - Instance 2
+  # ---------------------------------------------------------------------------
+  user-service-2:
+    build:
+      context: ..
+      dockerfile: services/user-service/Dockerfile
+    container_name: nebula-user-service-2
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nebula_db
+      POSTGRES_USER: nebula
+      POSTGRES_PASSWORD: nebula_password
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+      ADMIN_DEFAULT_PASSWORD: admin123
+      SERVER_PORT: 8083
+    expose:
+      - "8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-lb-network
+
+  # ---------------------------------------------------------------------------
+  # Merchandise Service - Instance 1
+  # ---------------------------------------------------------------------------
+  merchandise-service-1:
+    build:
+      context: ..
+      dockerfile: services/merchandise-service/Dockerfile
+    container_name: nebula-merchandise-service-1
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nebula_db
+      POSTGRES_USER: nebula
+      POSTGRES_PASSWORD: nebula_password
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+      SERVER_PORT: 8084
+    expose:
+      - "8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-lb-network
+
+  # ---------------------------------------------------------------------------
+  # Merchandise Service - Instance 2
+  # ---------------------------------------------------------------------------
+  merchandise-service-2:
+    build:
+      context: ..
+      dockerfile: services/merchandise-service/Dockerfile
+    container_name: nebula-merchandise-service-2
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,shared-database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nebula_db
+      POSTGRES_USER: nebula
+      POSTGRES_PASSWORD: nebula_password
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_CLOUD_CONFIG_ENABLED: "false"
+      SERVER_PORT: 8084
+    expose:
+      - "8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - nebula-lb-network
+
+# =============================================================================
+# Networks & Volumes
+# =============================================================================
+networks:
+  nebula-lb-network:
+    driver: bridge
+    name: nebula-lb-network
+
+volumes:
+  postgres_lb_data:
+    name: nebula-lb-postgres-data

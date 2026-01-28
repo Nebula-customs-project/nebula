@@ -25,6 +25,7 @@ import VideoIntroEffect from "../../components/VideoIntroEffect";
 import LoadingSkeleton, {
   CategoryTabSkeleton,
 } from "../../components/LoadingSkeleton";
+import OrderSuccessPopup from "../../components/OrderSuccessPopup";
 import { vehicleServiceApi } from "./lib/api";
 import { useAudioManager } from "../../hooks/useAudioManager";
 
@@ -46,6 +47,7 @@ export default function CarConfiguratorPage() {
   const [modelLoaded, setModelLoaded] = useState(false);
   const [isLoadingConfig, setIsLoadingConfig] = useState(false);
   const [isPaintChanging, setIsPaintChanging] = useState(false);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
 
   // Audio management (paint SFX only)
   const { playPaintSfx } = useAudioManager();
@@ -57,10 +59,10 @@ export default function CarConfiguratorPage() {
       vehicles.find((v) => v.vehicleId === currentVehicleId) || vehicles[0];
     return vehicle
       ? {
-        id: vehicle.vehicleId,
-        name: vehicle.carName || vehicle.name,
-        modelPath: vehicle.modelPath,
-      }
+          id: vehicle.vehicleId,
+          name: vehicle.carName || vehicle.name,
+          modelPath: vehicle.modelPath,
+        }
       : null;
   }, [currentVehicleId, vehicles]);
 
@@ -114,9 +116,13 @@ export default function CarConfiguratorPage() {
 
         // Set vehicle from URL param or default to first vehicle
         if (fetchedVehicles.length > 0 && !currentVehicleId) {
-          const urlVehicleId = parseInt(searchParams.get('vehicleId'), 10);
-          const validVehicle = fetchedVehicles.find(v => v.vehicleId === urlVehicleId);
-          setCurrentVehicleId(validVehicle ? urlVehicleId : fetchedVehicles[0].vehicleId);
+          const urlVehicleId = parseInt(searchParams.get("vehicleId"), 10);
+          const validVehicle = fetchedVehicles.find(
+            (v) => v.vehicleId === urlVehicleId,
+          );
+          setCurrentVehicleId(
+            validVehicle ? urlVehicleId : fetchedVehicles[0].vehicleId,
+          );
         }
 
         // Clear retry interval on success
@@ -138,7 +144,7 @@ export default function CarConfiguratorPage() {
     checkServiceAndFetch();
 
     return () => {
-      isMounted = false
+      isMounted = false;
       if (retryInterval) {
         clearInterval(retryInterval);
       }
@@ -439,7 +445,7 @@ export default function CarConfiguratorPage() {
               {/* Video Intro Effect - Only plays on FIRST visit, positioned within 3D viewer */}
               <VideoIntroEffect
                 videoSrc="/videos/car-intro.mp4"
-                onComplete={() => { }}
+                onComplete={() => {}}
               />
               {currentVehicle && (
                 <Vehicle3DScene
@@ -456,8 +462,9 @@ export default function CarConfiguratorPage() {
 
               {/* Paint Change Flash Effect */}
               <div
-                className={`absolute inset-0 pointer-events-none transition-opacity duration-200 ${isPaintChanging ? "opacity-100" : "opacity-0"
-                  }`}
+                className={`absolute inset-0 pointer-events-none transition-opacity duration-200 ${
+                  isPaintChanging ? "opacity-100" : "opacity-0"
+                }`}
                 style={{
                   background:
                     "radial-gradient(circle at center, rgba(239, 68, 68, 0.4) 0%, rgba(0, 0, 0, 0.8) 70%)",
@@ -554,8 +561,9 @@ export default function CarConfiguratorPage() {
                     Customization
                   </p>
                   <p
-                    className={`text-base font-bold transition-colors ${customizationCost > 0 ? "text-red-400" : "text-gray-500"
-                      }`}
+                    className={`text-base font-bold transition-colors ${
+                      customizationCost > 0 ? "text-red-400" : "text-gray-500"
+                    }`}
                   >
                     {customizationCost > 0 ? "+" : ""}€
                     {customizationCost.toLocaleString()}
@@ -590,15 +598,22 @@ export default function CarConfiguratorPage() {
 
                 <button
                   disabled={!vehicleConfig}
+                  onClick={() => setShowOrderSuccess(true)}
                   className="px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-xs font-bold transition-all duration-200 shadow-lg shadow-red-500/40 hover:shadow-red-500/60 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save Configuration
+                  Save and Order
                 </button>
               </div>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Order Success Popup */}
+      <OrderSuccessPopup
+        isOpen={showOrderSuccess}
+        onClose={() => setShowOrderSuccess(false)}
+      />
     </div>
   );
 }
