@@ -4,11 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import pse.nebula.worldview.domain.model.DrivingRoute;
 import pse.nebula.worldview.domain.model.JourneyState;
 import pse.nebula.worldview.domain.model.JourneyStatus;
 import pse.nebula.worldview.domain.port.inbound.JourneyUseCase;
-import pse.nebula.worldview.domain.port.inbound.RouteUseCase;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -18,9 +16,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * Service responsible for automatically managing journeys.
  *
  * This service:
- * - Automatically starts a new journey on a random route when no journey is active
+ * - Automatically starts a new journey on a random route when no journey is
+ * active
  * - Continuously advances the active journey
- * - When a journey completes, waits for a configurable delay before starting a new one
+ * - When a journey completes, waits for a configurable delay before starting a
+ * new one
  *
  * No user intervention is required - journeys run automatically in a loop.
  */
@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class AutoJourneySchedulerService {
 
     private final JourneyUseCase journeyUseCase;
-    private final RouteUseCase routeUseCase;
     private final double updateIntervalSeconds;
     private final double defaultSpeedMps;
     private final long delayBetweenJourneysMs;
@@ -42,18 +41,17 @@ public class AutoJourneySchedulerService {
 
     public AutoJourneySchedulerService(
             JourneyUseCase journeyUseCase,
-            RouteUseCase routeUseCase,
             @Value("${journey.scheduler.update-interval-ms:500}") long updateIntervalMs,
             @Value("${journey.scheduler.default-speed-mps:13.89}") double defaultSpeedMps,
             @Value("${journey.scheduler.delay-between-journeys-ms:5000}") long delayBetweenJourneysMs) {
         this.journeyUseCase = journeyUseCase;
-        this.routeUseCase = routeUseCase;
         this.updateIntervalSeconds = updateIntervalMs / 1000.0;
         this.defaultSpeedMps = defaultSpeedMps;
         this.delayBetweenJourneysMs = delayBetweenJourneysMs;
 
         log.info("AutoJourneySchedulerService initialized - Update: {}ms, Speed: {} m/s ({} km/h), Delay: {}ms",
-                updateIntervalMs, defaultSpeedMps, String.format("%.1f", defaultSpeedMps * 3.6), delayBetweenJourneysMs);
+                updateIntervalMs, defaultSpeedMps, String.format("%.1f", defaultSpeedMps * 3.6),
+                delayBetweenJourneysMs);
     }
 
     /**
@@ -131,17 +129,15 @@ public class AutoJourneySchedulerService {
 
     /**
      * Start a new journey automatically on a random route.
+     * Route selection is handled internally by JourneyService.
      */
     private void startNewAutoJourney() {
         try {
-            // Get a random route
-            DrivingRoute route = routeUseCase.getRandomRoute();
-
             // Generate a unique journey ID
             String journeyId = "auto-journey-" + UUID.randomUUID().toString().substring(0, 8);
 
-            // Start the journey (logging is handled in JourneyService)
-            JourneyState journeyState = journeyUseCase.startNewJourney(journeyId, defaultSpeedMps);
+            // Start the journey (route selection and logging handled in JourneyService)
+            journeyUseCase.startNewJourney(journeyId, defaultSpeedMps);
 
             // Register as active journey
             activeJourneyId.set(journeyId);
@@ -155,7 +151,8 @@ public class AutoJourneySchedulerService {
      * Handle journey completion - cleanup and prepare for next journey.
      */
     private void onJourneyCompleted(String journeyId) {
-        // Clean up the completed journey (completion logging is handled in JourneyService)
+        // Clean up the completed journey (completion logging is handled in
+        // JourneyService)
         try {
             journeyUseCase.stopJourney(journeyId);
         } catch (Exception e) {
@@ -207,4 +204,3 @@ public class AutoJourneySchedulerService {
         }
     }
 }
-
