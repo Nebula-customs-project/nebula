@@ -113,13 +113,36 @@ This document details the individual contributions of the team members towards t
     * Updated navigation bar UI, including logo positioning, cart indicator, and navigation behavior.
 
 
-### 👩‍💻 Gaytri
-* [Contribution 1]
-* [Contribution 2]
+### 👩‍💻 Gayathri
+**Core Responsibility:** Frontend UI Development
+
+* **Frontend:**
+    * Created the Neon frontend application structure with React and Next.js as the base for the platform UI.
+    * Implemented user interface components and page layouts for primary platform screens.
+    * Set up and maintained basic project dependencies and lock files for consistent frontend builds.
+    * Established baseline page layout and ensured the groundwork for responsive design and modular UI development.
+    * Supported integration readiness with backend services and other frontend branches by providing a clean, scalable codebase.
 
 ### 👨‍💻 Manik
-* [Contribution 1]
-* [Contribution 2]
+**Core Responsibility:** User Service Development, Authentication & Security
+
+* **User Service (Backend):**
+    * Created the **User Service** from scratch including core architecture, controllers, models, and repositories.
+    * Implemented **JWT Token Generation** and **JwksController** for token verification.
+    * Integrated with **Config Server** for centralized configuration.
+
+* **Authentication & Security:**
+    * Implemented **Role-Based Access Control (RBAC)** with Admin and User roles.
+    * Created **AdminController** and **AdminUserInitializer** for admin management.
+    * Implemented **SecurityConfig** and **JwtAuthenticationFilter** for secure request handling.
+
+* **Token Blacklisting:**
+    * Designed and implemented **Redis-based Token Blacklisting** for secure logout functionality.
+    * Refactored to **JTI (JWT ID)** approach for improved performance.
+
+* **Testing & Integration:**
+    * Added comprehensive **unit tests** for UserService.
+    * Configured Gateway routing for User Service endpoints.
 
 ---
 
