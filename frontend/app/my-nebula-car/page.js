@@ -15,6 +15,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useVehicleTelemetry } from "@/hooks/useVehicleTelemetry";
 import { useUserVehicleInfo } from "@/hooks/useUserVehicleInfo";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/Toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
@@ -170,9 +172,10 @@ function GlassCard({
 }
 
 // Quick Action Button with Hover Animation
-function QuickAction({ icon: Icon, label, active = false }) {
+function QuickAction({ icon: Icon, label, active = false, onClick }) {
   return (
     <button
+      onClick={onClick}
       className={`flex flex-col items-center gap-2 px-4 py-3 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 ${active
         ? "bg-red-500/20 text-red-400 border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.3)]"
         : "bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
@@ -297,6 +300,37 @@ export default function MyCarPage() {
   const { telemetry, isConnected } = useVehicleTelemetry();
   const { vehicleInfo, loading } = useUserVehicleInfo();
   const [pageLoaded, setPageLoaded] = useState(false);
+  const { toasts, addToast, removeToast } = useToast();
+
+  const [vehicleState, setVehicleState] = useState({
+    locked: true,
+    climate: false,
+    engine: false
+  });
+
+  const toggleLock = () => {
+    setVehicleState(prev => {
+      const newState = !prev.locked;
+      addToast(newState ? "Vehicle Locked" : "Vehicle Unlocked", newState ? "success" : "info");
+      return { ...prev, locked: newState };
+    });
+  };
+
+  const toggleClimate = () => {
+    setVehicleState(prev => {
+      const newState = !prev.climate;
+      addToast(newState ? "Climate Control ON" : "Climate Control OFF", newState ? "success" : "info");
+      return { ...prev, climate: newState };
+    });
+  };
+
+  const toggleEngine = () => {
+    setVehicleState(prev => {
+      const newState = !prev.engine;
+      addToast(newState ? "Engine Started" : "Engine Stopped", newState ? "success" : "info");
+      return { ...prev, engine: newState };
+    });
+  };
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -349,6 +383,7 @@ export default function MyCarPage() {
 
   return (
     <div className="min-h-screen bg-[#030712] text-white pt-24 pb-16 px-4 md:px-8 font-sans">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       {/* Animated Background Effects */}
       <FloatingParticles />
 
@@ -444,9 +479,24 @@ export default function MyCarPage() {
 
               {/* Quick Actions Overlay with Animation */}
               <div className="absolute bottom-6 left-6 right-6 z-20 flex items-center justify-center gap-4">
-                <QuickAction icon={Lock} label="Lock" active />
-                <QuickAction icon={Thermometer} label="Climate" />
-                <QuickAction icon={Play} label="Start" />
+                <QuickAction
+                  icon={Lock}
+                  label={vehicleState.locked ? "Locked" : "Unlocked"}
+                  active={vehicleState.locked}
+                  onClick={toggleLock}
+                />
+                <QuickAction
+                  icon={Thermometer}
+                  label="Climate"
+                  active={vehicleState.climate}
+                  onClick={toggleClimate}
+                />
+                <QuickAction
+                  icon={Play}
+                  label={vehicleState.engine ? "Stop" : "Start"}
+                  active={vehicleState.engine}
+                  onClick={toggleEngine}
+                />
               </div>
             </div>
           </GlassCard>
@@ -511,10 +561,10 @@ export default function MyCarPage() {
                           barHeight > 0
                             ? `0 0 10px hsla(${hue}, 80%, 50%, 0.4)`
                             : "none",
-                        animation:
-                          barHeight > 0
-                            ? `fuelPulse 1.5s ease-in-out infinite`
-                            : "none",
+                        animationName: barHeight > 0 ? 'fuelPulse' : 'none',
+                        animationDuration: '1.5s',
+                        animationTimingFunction: 'ease-in-out',
+                        animationIterationCount: 'infinite',
                         animationDelay: `${i * 0.1}s`,
                       }}
                     />
