@@ -1,0 +1,241 @@
+asyncapi: 3.0.0
+info:
+  title: World View Service - Async API
+  version: 1.0.0
+  description: >
+    Real-time MQTT messaging for the World View Service.
+
+
+    **Purpose:** Stream live vehicle position updates and journey lifecycle
+    events to frontend clients.
+
+
+    **Protocol:** MQTT over WebSockets (via RabbitMQ MQTT plugin)
+
+
+    **Important Notes:**
+
+    - Position updates are published every 500ms (high frequency)
+
+    - Event updates are rare (only on journey start/completion)
+
+    - Waypoints are NOT sent via MQTT - they are fetched once via REST API
+  contact:
+    name: Nebula Platform Team
+defaultContentType: application/json
+servers:
+  production:
+    host: 'localhost:15675'
+    pathname: /ws
+    protocol: mqtt
+    description: RabbitMQ MQTT WebSocket broker
+    variables:
+      username:
+        description: MQTT username
+        default: guest
+      password:
+        description: MQTT password
+        default: guest
+channels:
+  'nebula/journey/{journeyId}/position':
+    address: 'nebula/journey/{journeyId}/position'
+    messages:
+      subscribeToPositionUpdates.message:
+        $ref: '#/components/messages/CoordinateUpdate'
+    description: >
+      High-frequency position update stream for a specific journey.
+
+
+      **Publish Rate:** Every 500ms (2 updates per second)
+
+
+      **Consumer:** Frontend subscribes to this topic after obtaining the
+      journeyId from the REST API.
+
+
+      **Payload:** Contains only the current position - NOT the full waypoints
+      list.
+    parameters:
+      journeyId:
+        description: Unique identifier of the active journey
+  'nebula/journey/{journeyId}/events':
+    address: 'nebula/journey/{journeyId}/events'
+    messages:
+      subscribeToJourneyEvents.message.0:
+        $ref: '#/components/messages/JourneyStartedEvent'
+      subscribeToJourneyEvents.message.1:
+        $ref: '#/components/messages/JourneyCompletedEvent'
+    description: >
+      Low-frequency journey lifecycle event stream.
+
+
+      **Publish Rate:** Only on journey START and COMPLETION
+
+
+      **Purpose:** Allows frontend to trigger UI changes (e.g., show "Mission
+      Complete" modal, reset map)
+    parameters:
+      journeyId:
+        description: Unique identifier of the journey
+operations:
+  subscribeToPositionUpdates:
+    action: send
+    channel:
+      $ref: '#/channels/nebula~1journey~1{journeyId}~1position'
+    summary: Receive real-time position updates
+    messages:
+      - $ref: >-
+          #/channels/nebula~1journey~1{journeyId}~1position/messages/subscribeToPositionUpdates.message
+  subscribeToJourneyEvents:
+    action: send
+    channel:
+      $ref: '#/channels/nebula~1journey~1{journeyId}~1events'
+    summary: Receive journey lifecycle events
+    messages:
+      - $ref: >-
+          #/channels/nebula~1journey~1{journeyId}~1events/messages/subscribeToJourneyEvents.message.0
+      - $ref: >-
+          #/channels/nebula~1journey~1{journeyId}~1events/messages/subscribeToJourneyEvents.message.1
+components:
+  messages:
+    CoordinateUpdate:
+      name: CoordinateUpdate
+      title: Real-time Position Update
+      summary: Published every 500ms with the current vehicle position
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/CoordinateUpdatePayload'
+      examples:
+        - name: InProgressUpdate
+          summary: Example of a mid-journey position update
+          payload:
+            journey_id: auto-journey-a1b2c3d4
+            coordinate:
+              latitude: 48.8456
+              longitude: 9.1723
+            progress_percentage: 45.3
+            status: IN_PROGRESS
+            current_waypoint_index: 24
+            total_waypoints: 52
+            timestamp: '2026-01-29T06:00:00.500Z'
+    JourneyStartedEvent:
+      name: JourneyStarted
+      title: Journey Started Event
+      summary: Published once when a new journey begins
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/JourneyEventPayload'
+      examples:
+        - name: StartEvent
+          summary: Journey started notification
+          payload:
+            eventType: STARTED
+            data:
+              journey_id: auto-journey-a1b2c3d4
+              status: IN_PROGRESS
+              progress_percentage: 0
+              coordinate:
+                latitude: 48.8598
+                longitude: 9.1856
+              current_waypoint_index: 0
+              total_waypoints: 52
+              timestamp: '2026-01-29T06:00:00.000Z'
+    JourneyCompletedEvent:
+      name: JourneyCompleted
+      title: Journey Completed Event
+      summary: Published once when a journey reaches the dealership
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/JourneyEventPayload'
+      examples:
+        - name: CompletionEvent
+          summary: Journey completed notification
+          payload:
+            eventType: COMPLETED
+            data:
+              journey_id: auto-journey-a1b2c3d4
+              status: COMPLETED
+              progress_percentage: 100
+              coordinate:
+                latitude: 48.8354
+                longitude: 9.152
+              current_waypoint_index: 51
+              total_waypoints: 52
+              timestamp: '2026-01-29T06:05:30.000Z'
+  schemas:
+    CoordinateUpdatePayload:
+      type: object
+      description: Real-time position update message (high frequency)
+      required:
+        - journey_id
+        - coordinate
+        - progress_percentage
+        - status
+        - current_waypoint_index
+        - total_waypoints
+        - timestamp
+      properties:
+        journey_id:
+          type: string
+          description: Unique journey identifier
+          example: auto-journey-a1b2c3d4
+        coordinate:
+          $ref: '#/components/schemas/Coordinate'
+        progress_percentage:
+          type: number
+          format: double
+          description: Journey completion percentage (0-100)
+          example: 45.3
+        status:
+          type: string
+          enum:
+            - IN_PROGRESS
+            - COMPLETED
+          description: Current journey status
+          example: IN_PROGRESS
+        current_waypoint_index:
+          type: integer
+          description: Index of the current waypoint
+          example: 24
+        total_waypoints:
+          type: integer
+          description: Total number of waypoints in the route
+          example: 52
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO-8601 timestamp of the update
+          example: '2026-01-29T06:00:00.500Z'
+    JourneyEventPayload:
+      type: object
+      description: Journey lifecycle event wrapper
+      required:
+        - eventType
+        - data
+      properties:
+        eventType:
+          type: string
+          enum:
+            - STARTED
+            - COMPLETED
+          description: Type of lifecycle event
+          example: STARTED
+        data:
+          $ref: '#/components/schemas/CoordinateUpdatePayload'
+    Coordinate:
+      type: object
+      description: GPS coordinate (WGS84)
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          description: Latitude in decimal degrees
+          example: 48.8456
+        longitude:
+          type: number
+          format: double
+          description: Longitude in decimal degrees
+          example: 9.1723

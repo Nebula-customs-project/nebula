@@ -1,0 +1,289 @@
+openapi: 3.0.3
+info:
+  title: World View Service API
+  description: |
+    REST API for the World View Service - simulates autonomous vehicle journeys to the dealership.
+
+    **Key Features:**
+    - Query active journey state
+    - Retrieve available routes
+    - Monitor journey progress
+
+    **Note:** Journeys are automatically managed by the system. Real-time position updates are streamed via MQTT (see asyncapi.yaml).
+  version: 1.0.0
+  contact:
+    name: Nebula Platform Team
+
+servers:
+  - url: http://localhost:8082/api/v1
+    description: Local development server
+  - url: http://localhost:8080/api/v1
+    description: Gateway (production)
+
+tags:
+  - name: Journeys
+    description: Query journey state and status
+  - name: Routes
+    description: Available driving routes to the dealership
+
+paths:
+  /journeys/current:
+    get:
+      summary: Get Current Active Journey
+      description: |
+        Returns the currently active journey with full route details including all waypoints.
+
+        **Frontend Usage:** Polled every 2 seconds until a journey is found.
+
+        Returns `204 No Content` when no journey is active (e.g., during the 5-second pause between journeys).
+      tags:
+        - Journeys
+      responses:
+        "200":
+          description: Active journey found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JourneyState"
+              example:
+                journey_id: "auto-journey-a1b2c3d4"
+                status: "IN_PROGRESS"
+                current_position:
+                  latitude: 48.8456
+                  longitude: 9.1723
+                route:
+                  id: "route-3"
+                  name: "Kornwestheim Route"
+                  description: "From Kornwestheim - Quick route (4.7 km, ~7 min)"
+                  total_distance_meters: 4700.0
+                  total_waypoints: 52
+                  start_point:
+                    latitude: 48.8598
+                    longitude: 9.1856
+                  end_point:
+                    latitude: 48.8354
+                    longitude: 9.1520
+                  waypoints:
+                    - latitude: 48.8598
+                      longitude: 9.1856
+                    - latitude: 48.8596
+                      longitude: 9.1855
+                    - latitude: 48.8354
+                      longitude: 9.1520
+                progress_percentage: 45.2
+                current_waypoint_index: 24
+                speed_meters_per_second: 13.89
+        "204":
+          description: No active journey currently running
+
+  /journeys/active:
+    get:
+      summary: Check if Journey is Active
+      description: Lightweight endpoint that returns a boolean indicating if there is currently an active journey.
+      tags:
+        - Journeys
+      responses:
+        "200":
+          description: Journey active status
+          content:
+            application/json:
+              schema:
+                type: boolean
+              example: true
+
+  /journeys/{journeyId}:
+    get:
+      summary: Get Journey by ID
+      description: Returns the state of a specific journey by its unique identifier.
+      tags:
+        - Journeys
+      parameters:
+        - name: journeyId
+          in: path
+          required: true
+          description: Unique journey identifier
+          schema:
+            type: string
+          example: "auto-journey-a1b2c3d4"
+      responses:
+        "200":
+          description: Journey state retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JourneyState"
+        "404":
+          description: Journey not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /routes:
+    get:
+      summary: Get All Routes
+      description: Returns a list of all available predefined routes to the dealership.
+      tags:
+        - Routes
+      responses:
+        "200":
+          description: List of available routes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Route"
+              example:
+                - id: "route-1"
+                  name: "Ludwigsburg Schloss Route"
+                  description: "From Ludwigsburg Palace - Scenic castle start (9.7 km, ~12 min)"
+                  total_distance_meters: 9700.0
+                  estimated_duration_seconds: 720
+                  total_waypoints: 164
+                - id: "route-2"
+                  name: "Favoritepark Route"
+                  description: "From SWLB Mobilität near Favoritepark (14.3 km, ~13 min)"
+                  total_distance_meters: 14300.0
+                  estimated_duration_seconds: 780
+                  total_waypoints: 267
+
+  /routes/{routeId}:
+    get:
+      summary: Get Route by ID
+      description: Returns full details of a specific route including all waypoints.
+      tags:
+        - Routes
+      parameters:
+        - name: routeId
+          in: path
+          required: true
+          description: Unique route identifier
+          schema:
+            type: string
+          example: "route-1"
+      responses:
+        "200":
+          description: Route details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Route"
+        "404":
+          description: Route not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    Coordinate:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          description: GPS latitude coordinate
+          example: 48.8354
+        longitude:
+          type: number
+          format: double
+          description: GPS longitude coordinate
+          example: 9.1520
+
+    Route:
+      type: object
+      required:
+        - id
+        - name
+        - total_distance_meters
+        - total_waypoints
+      properties:
+        id:
+          type: string
+          description: Unique route identifier
+          example: "route-1"
+        name:
+          type: string
+          description: Human-readable route name
+          example: "Ludwigsburg Schloss Route"
+        description:
+          type: string
+          description: Route description with distance and duration
+          example: "From Ludwigsburg Palace - Scenic castle start (9.7 km, ~12 min)"
+        start_point:
+          $ref: "#/components/schemas/Coordinate"
+        end_point:
+          $ref: "#/components/schemas/Coordinate"
+        waypoints:
+          type: array
+          description: Ordered list of GPS coordinates forming the route path
+          items:
+            $ref: "#/components/schemas/Coordinate"
+        total_distance_meters:
+          type: number
+          format: double
+          description: Total route distance in meters
+          example: 9700.0
+        estimated_duration_seconds:
+          type: integer
+          description: Estimated travel time in seconds
+          example: 720
+        total_waypoints:
+          type: integer
+          description: Total number of waypoints in the route
+          example: 164
+
+    JourneyState:
+      type: object
+      required:
+        - journey_id
+        - status
+        - current_position
+        - route
+      properties:
+        journey_id:
+          type: string
+          description: Unique journey identifier
+          example: "auto-journey-a1b2c3d4"
+        status:
+          type: string
+          enum: [NOT_STARTED, IN_PROGRESS, PAUSED, COMPLETED]
+          description: Current journey status
+          example: "IN_PROGRESS"
+        current_position:
+          $ref: "#/components/schemas/Coordinate"
+        route:
+          $ref: "#/components/schemas/Route"
+        progress_percentage:
+          type: number
+          format: double
+          description: Journey completion percentage (0-100)
+          example: 45.2
+        current_waypoint_index:
+          type: integer
+          description: Index of the current waypoint in the route
+          example: 24
+        speed_meters_per_second:
+          type: number
+          format: double
+          description: Current vehicle speed in meters per second
+          example: 13.89
+
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Error message
+          example: "Journey not found"
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
